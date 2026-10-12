@@ -32,5 +32,8 @@ public class PictureUploadRequest implements Serializable {
      */
     private Long spaceId;
 
+    /** 客户端可选的上传任务标识。为空时由服务端生成。 */
+    private String taskId;
+
     private static final long serialVersionUID = 1L;
 }

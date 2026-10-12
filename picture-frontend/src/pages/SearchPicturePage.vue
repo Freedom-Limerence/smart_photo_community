@@ -50,13 +50,19 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 
 const pictureId = computed(() => {
-  return route.query?.pictureId
+  const value = route.query?.pictureId
+  const parsed = Number(Array.isArray(value) ? value[0] : value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
 })
 const picture = ref<API.PictureVO>({})
 
 // 获取图片详情
 const fetchPictureDetail = async () => {
   try {
+    if (!pictureId.value) {
+      message.error('图片编号无效')
+      return
+    }
     const res = await getPictureVoByIdUsingGet({
       id: pictureId.value,
     })
@@ -81,6 +87,10 @@ const loading = ref<boolean>(true)
 const fetchResultData = async () => {
   loading.value = true;
   try {
+    if (!pictureId.value) {
+      message.error('图片编号无效')
+      return
+    }
     const res = await searchPictureByPictureUsingPost({
       pictureId: pictureId.value,
     })

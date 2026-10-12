@@ -5,6 +5,22 @@ CREATE DATABASE IF NOT EXISTS smart_photo_community
 
 USE smart_photo_community;
 
+CREATE TABLE IF NOT EXISTS photo_asset_process (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    taskId VARCHAR(64) NOT NULL,
+    pictureId BIGINT NULL,
+    userId BIGINT NOT NULL,
+    spaceId BIGINT NULL,
+    sourceType VARCHAR(16) NOT NULL,
+    status VARCHAR(16) DEFAULT 'PENDING' NOT NULL,
+    errorMessage VARCHAR(512) NULL,
+    createTime DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updateTime DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    UNIQUE KEY uk_asset_process_task_user (taskId, userId),
+    INDEX idx_asset_process_picture (pictureId),
+    INDEX idx_asset_process_user_time (userId, createTime)
+) COMMENT '摄影资产上传处理状态';
+
 -- 用户表
 CREATE TABLE IF NOT EXISTS `user`
 (

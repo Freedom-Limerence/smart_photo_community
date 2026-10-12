@@ -95,8 +95,10 @@ import {
   EditOutlined,
   ShareAltOutlined,
 } from '@ant-design/icons-vue'
-import { useRouter } from 'vue-router'
-import { downloadImage, formatSize, toHexColor } from '@/utils'
+import { useRoute, useRouter } from 'vue-router'
+import { saveAs } from 'file-saver'
+import { formatSize, toHexColor } from '@/utils'
+import { authorizeDownload, downloadAuthorizedFile } from '@/api/photoCommunity'
 import ShareModal from '@/components/ShareModal.vue'
 import { SPACE_PERMISSION_ENUM } from '@/constants/space.ts'
 
@@ -105,7 +107,12 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const route = useRoute()
 const picture = ref<API.PictureVO>({})
+const pictureId = computed(() => {
+  const value = Number(props.id)
+  return Number.isFinite(value) && value > 0 ? value : undefined
+})
 
 // 通用权限检查函数
 function createPermissionChecker(permission: string) {
@@ -121,9 +128,11 @@ const canDelete = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
 // 获取图片详情
 const fetchPictureDetail = async () => {
   try {
-    const res = await getPictureVoByIdUsingGet({
-      id: props.id,
-    })
+    if (!pictureId.value) {
+      message.error('图片编号无效')
+      return
+    }
+    const res = await getPictureVoByIdUsingGet({ id: pictureId.value })
     if (res.data.code === 0 && res.data.data) {
       picture.value = res.data.data
     } else {
@@ -165,15 +174,33 @@ const doDelete = async () => {
   }
 }
 
-// 下载图片
-const doDownload = () => {
-  downloadImage(picture.value.url)
+// 通过短期授权令牌下载，避免把 COS 原图地址直接暴露给浏览器。
+const doDownload = async () => {
+  if (!pictureId.value) return
+  try {
+    const requestId = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const workIdValue = Number(route.query.workId)
+    const workId = Number.isInteger(workIdValue) && workIdValue > 0 ? workIdValue : undefined
+    const authorizeRes: any = await authorizeDownload({ pictureId: pictureId.value, workId, requestId })
+    if (authorizeRes.data.code !== 0 || !authorizeRes.data.data?.downloadToken) {
+      message.error(authorizeRes.data.message || '暂无下载权限')
+      return
+    }
+    const fileRes: any = await downloadAuthorizedFile(authorizeRes.data.data.downloadToken)
+    const blob = fileRes.data instanceof Blob ? fileRes.data : new Blob([fileRes.data])
+    saveAs(blob, picture.value.name || `picture-${pictureId.value}`)
+    message.success('下载已开始')
+  } catch (error: unknown) {
+    message.error(error instanceof Error ? error.message : '下载失败，请稍后重试')
+  }
 }
 
 // ----- 分享操作 ----
 const shareModalRef = ref()
 // 分享链接
-const shareLink = ref<string>()
+const shareLink = ref('')
 // 分享
 const doShare = () => {
   shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`

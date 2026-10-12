@@ -15,7 +15,7 @@ import com.picture_backend.exception.ErrorCode;
 import com.picture_backend.exception.ThrowUtils;
 import com.picture_backend.manager.auth.SpaceUserAuthManager;
 import com.picture_backend.model.dto.space.*;
-import com.yupi.picture_backend.model.dto.space.*;
+import com.picture_backend.model.dto.space.*;
 import com.picture_backend.model.entity.Space;
 import com.picture_backend.model.entity.User;
 import com.picture_backend.model.enums.SpaceLevelEnum;

@@ -262,7 +262,6 @@ export async function uploadPictureUsingPost(
       ...params,
     },
     data: formData,
-    requestType: 'form',
     ...(options || {}),
   })
 }
@@ -272,13 +271,20 @@ export async function uploadPictureByBatchUsingPost(
   body: API.PictureUploadByBatchRequest,
   options?: { [key: string]: any }
 ) {
-  return request<API.BaseResponseInt_>('/api/picture/upload/batch', {
+  return request<API.BaseResponsePictureBatchUploadResult_>('/api/picture/upload/batch', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     data: body,
     ...(options || {}),
+  })
+}
+
+export function getUploadProcessUsingGet(taskId: string) {
+  return request('/api/picture/upload/status', {
+    method: 'GET',
+    params: { taskId },
   })
 }
 

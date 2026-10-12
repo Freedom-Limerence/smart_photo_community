@@ -2,7 +2,7 @@
   <div id="spaceDetailPage">
     <!-- 空间信息 -->
     <a-flex justify="space-between">
-      <h2>{{ space.spaceName }}（{{ SPACE_TYPE_MAP[space.spaceType] }}）</h2>
+      <h2>{{ space.spaceName }}（{{ SPACE_TYPE_MAP[space.spaceType ?? 0] }}）</h2>
       <a-space size="middle">
         <a-button
           v-if="canUploadPicture"
@@ -39,7 +39,7 @@
           <a-progress
             type="circle"
             :size="42"
-            :percent="((space.totalSize * 100) / space.maxSize).toFixed(1)"
+            :percent="space.maxSize ? Number((((space.totalSize ?? 0) * 100) / space.maxSize).toFixed(1)) : 0"
           />
         </a-tooltip>
       </a-space>
@@ -71,7 +71,7 @@
     />
     <BatchEditPictureModal
       ref="batchEditPictureModalRef"
-      :spaceId="id"
+      :spaceId="spaceId ?? 0"
       :pictureList="dataList"
       :onSuccess="onBatchEditPictureSuccess"
     />
@@ -101,6 +101,10 @@ interface Props {
 
 const props = defineProps<Props>()
 const space = ref<API.SpaceVO>({})
+const spaceId = computed(() => {
+  const value = Number(props.id)
+  return Number.isFinite(value) && value > 0 ? value : undefined
+})
 
 // 通用权限检查函数
 function createPermissionChecker(permission: string) {
@@ -118,9 +122,11 @@ const canDeletePicture = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_D
 // -------- 获取空间详情 --------
 const fetchSpaceDetail = async () => {
   try {
-    const res = await getSpaceVoByIdUsingGet({
-      id: props.id,
-    })
+    if (!spaceId.value) {
+      message.error('空间编号无效')
+      return
+    }
+    const res = await getSpaceVoByIdUsingGet({ id: spaceId.value })
     if (res.data.code === 0 && res.data.data) {
       space.value = res.data.data
     } else {
@@ -155,7 +161,7 @@ const fetchData = async () => {
   loading.value = true
   // 转换搜索参数
   const params = {
-    spaceId: props.id,
+    spaceId: spaceId.value,
     ...searchParams.value,
   }
   const res = await listPictureVoByPageUsingPost(params)
@@ -198,7 +204,7 @@ const onColorChange = async (color: string) => {
   loading.value = true
   const res = await searchPictureByColorUsingPost({
     picColor: color,
-    spaceId: props.id,
+    spaceId: spaceId.value,
   })
   if (res.data.code === 0 && res.data.data) {
     const data = res.data.data ?? []

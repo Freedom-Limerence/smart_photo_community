@@ -13,7 +13,7 @@ import com.picture_backend.exception.BusinessException;
 import com.picture_backend.exception.ErrorCode;
 import com.picture_backend.exception.ThrowUtils;
 import com.picture_backend.model.dto.user.*;
-import com.yupi.picture_backend.model.dto.user.*;
+import com.picture_backend.model.dto.user.*;
 import com.picture_backend.model.entity.User;
 import com.picture_backend.model.vo.LoginUserVO;
 import com.picture_backend.model.vo.UserVO;
@@ -74,6 +74,56 @@ public class UserController {
         ThrowUtils.throwIf(request == null, ErrorCode.PARAMS_ERROR);
         boolean result = userService.userLogout(request);
         return ResultUtils.success(result);
+    }
+
+    /** 当前用户编辑公开资料。 */
+    @PostMapping("/profile/update")
+    public BaseResponse<Boolean> updateMyProfile(@RequestBody UserProfileUpdateRequest body,
+                                                 HttpServletRequest request) {
+        ThrowUtils.throwIf(body == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        if (body.getUserName() == null || body.getUserName().trim().length() < 2
+                || body.getUserName().trim().length() > 32) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称长度应为 2 到 32 个字符");
+        }
+        if (body.getUserProfile() != null && body.getUserProfile().length() > 200) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "个人简介不能超过 200 个字符");
+        }
+        if (body.getUserAvatar() != null && body.getUserAvatar().length() > 500) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "头像地址过长");
+        }
+        User updateUser = new User();
+        updateUser.setId(loginUser.getId());
+        updateUser.setUserName(body.getUserName().trim());
+        updateUser.setUserAvatar(body.getUserAvatar() == null ? null : body.getUserAvatar().trim());
+        updateUser.setUserProfile(body.getUserProfile() == null ? null : body.getUserProfile().trim());
+        boolean result = userService.updateById(updateUser);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
+    }
+
+    /** 当前用户修改密码。 */
+    @PostMapping("/password/update")
+    public BaseResponse<Boolean> updateMyPassword(@RequestBody UserPasswordUpdateRequest body,
+                                                   HttpServletRequest request) {
+        ThrowUtils.throwIf(body == null, ErrorCode.PARAMS_ERROR);
+        if (body.getCurrentPassword() == null || body.getNewPassword() == null
+                || body.getConfirmPassword() == null || body.getNewPassword().length() < 8) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码不能为空且至少为 8 位");
+        }
+        if (!body.getNewPassword().equals(body.getConfirmPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的新密码不一致");
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (!userService.getEncryptPassword(body.getCurrentPassword()).equals(loginUser.getUserPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "当前密码不正确");
+        }
+        User updateUser = new User();
+        updateUser.setId(loginUser.getId());
+        updateUser.setUserPassword(userService.getEncryptPassword(body.getNewPassword()));
+        boolean result = userService.updateById(updateUser);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
     }
 
     /**

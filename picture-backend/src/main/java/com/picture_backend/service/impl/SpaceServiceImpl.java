@@ -220,7 +220,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
         queryWrapper.eq(ObjUtil.isNotEmpty(spaceLevel), "spaceLevel", spaceLevel);
         queryWrapper.eq(ObjUtil.isNotEmpty(spaceType), "spaceType", spaceType);
         // 排序
-        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
+        queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), "ascend".equalsIgnoreCase(sortOrder), sortField);
         return queryWrapper;
     }
 
@@ -241,10 +241,24 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space>
 
     @Override
     public void checkSpaceAuth(User loginUser, Space space) {
-        // 仅本人或管理员可编辑
-        if (!space.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+        if (loginUser == null || space == null) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
+        // 创建者和系统管理员始终拥有空间管理权限。
+        if (space.getUserId().equals(loginUser.getId()) || userService.isAdmin(loginUser)) {
+            return;
+        }
+        // 团队空间的 admin 成员拥有空间级管理权限；viewer/editor 不允许修改或删除空间。
+        if (SpaceTypeEnum.TEAM.getValue() == space.getSpaceType()) {
+            SpaceUser member = spaceUserService.lambdaQuery()
+                    .eq(SpaceUser::getSpaceId, space.getId())
+                    .eq(SpaceUser::getUserId, loginUser.getId())
+                    .one();
+            if (member != null && SpaceRoleEnum.ADMIN.getValue().equals(member.getSpaceRole())) {
+                return;
+            }
+        }
+        throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
     }
 }
 

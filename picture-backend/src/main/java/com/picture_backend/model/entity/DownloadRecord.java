@@ -3,6 +3,7 @@ package com.picture_backend.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -14,6 +15,7 @@ public class DownloadRecord implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
     private String requestId;
+    @JsonIgnore
     private String downloadToken;
     private Long userId;
     private Long workId;

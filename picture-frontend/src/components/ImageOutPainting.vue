@@ -70,8 +70,13 @@ const createTask = async () => {
   })
   if (res.data.code === 0 && res.data.data) {
     message.success('创建任务成功，请耐心等待，不要退出界面')
-    console.log(res.data.data.output.taskId)
-    taskId.value = res.data.data.output.taskId
+    const output = res.data.data.output
+    if (!output?.taskId) {
+      message.error('扩图任务未返回任务编号')
+      return
+    }
+    console.log(output.taskId)
+    taskId.value = output.taskId
     // 开启轮询
     startPolling()
   } else {
@@ -80,7 +85,7 @@ const createTask = async () => {
 }
 
 // 轮询定时器
-let pollingTimer: NodeJS.Timeout = null
+let pollingTimer: ReturnType<typeof setInterval> | null = null
 
 // 开始轮询
 const startPolling = () => {
@@ -95,8 +100,18 @@ const startPolling = () => {
       })
       if (res.data.code === 0 && res.data.data) {
         const taskResult = res.data.data.output
+        if (!taskResult) {
+          message.error('扩图任务返回结果为空')
+          clearPolling()
+          return
+        }
         if (taskResult.taskStatus === 'SUCCEEDED') {
           message.success('扩图任务执行成功')
+          if (!taskResult.outputImageUrl) {
+            message.error('扩图任务未返回图片地址')
+            clearPolling()
+            return
+          }
           resultImageUrl.value = taskResult.outputImageUrl
           // 清理轮询
           clearPolling()
@@ -106,9 +121,9 @@ const startPolling = () => {
           clearPolling()
         }
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('扩图任务轮询失败', error)
-      message.error('扩图任务轮询失败，' + error.message)
+      message.error('扩图任务轮询失败，' + (error instanceof Error ? error.message : '请稍后重试'))
       // 清理轮询
       clearPolling()
     }
@@ -120,7 +135,7 @@ const clearPolling = () => {
   if (pollingTimer) {
     clearInterval(pollingTimer)
     pollingTimer = null
-    taskId.value = null
+    taskId.value = undefined
   }
 }
 
@@ -151,9 +166,9 @@ const handleUpload = async () => {
     } else {
       message.error('图片上传失败，' + res.data.message)
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('图片上传失败', error)
-    message.error('图片上传失败，' + error.message)
+    message.error('图片上传失败，' + (error instanceof Error ? error.message : '请稍后重试'))
   }
   uploadLoading.value = false
 }

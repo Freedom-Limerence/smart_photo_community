@@ -70,7 +70,7 @@ const isTeamSpace = computed(() => {
 const cropperRef = ref()
 
 // 缩放比例
-const changeScale = (num) => {
+const changeScale = (num: number) => {
   cropperRef.value?.changeScale(num)
   if (num > 0) {
     editAction(PICTURE_EDIT_ACTION_ENUM.ZOOM_IN)
@@ -122,9 +122,9 @@ const handleUpload = async ({ file }: any) => {
     } else {
       message.error('图片上传失败，' + res.data.message)
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('图片上传失败', error)
-    message.error('图片上传失败，' + error.message)
+    message.error('图片上传失败，' + (error instanceof Error ? error.message : '请稍后重试'))
   }
   loading.value = false
 }

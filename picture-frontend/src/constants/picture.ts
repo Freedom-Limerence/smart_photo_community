@@ -11,7 +11,7 @@ export const PIC_REVIEW_STATUS_ENUM = {
 /**
  * 图片审核状态文案
  */
-export const PIC_REVIEW_STATUS_MAP = {
+export const PIC_REVIEW_STATUS_MAP: Record<string, string> = {
   0: '待审核',
   1: '通过',
   2: '拒绝',
@@ -41,7 +41,7 @@ export const PICTURE_EDIT_MESSAGE_TYPE_ENUM = {
 /**
  * 图片编辑消息类型映射
  */
-export const PICTURE_EDIT_MESSAGE_TYPE_MAP = {
+export const PICTURE_EDIT_MESSAGE_TYPE_MAP: Record<string, string> = {
   INFO: '发送通知',
   ERROR: '发送错误',
   ENTER_EDIT: '进入编辑状态',
@@ -62,7 +62,7 @@ export const PICTURE_EDIT_ACTION_ENUM = {
 /**
  * 图片编辑操作映射
  */
-export const PICTURE_EDIT_ACTION_MAP = {
+export const PICTURE_EDIT_ACTION_MAP: Record<string, string> = {
   ZOOM_IN: '放大操作',
   ZOOM_OUT: '缩小操作',
   ROTATE_LEFT: '左旋操作',

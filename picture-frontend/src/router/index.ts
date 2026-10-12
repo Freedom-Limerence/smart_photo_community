@@ -18,6 +18,11 @@ import UserExchangeVipPage from '@/pages/UserExchangeVipPage.vue'
 import PhotoCommunityPage from '@/pages/PhotoCommunityPage.vue'
 import AiWorkbenchPage from '@/pages/AiWorkbenchPage.vue'
 import AccessCenterPage from '@/pages/AccessCenterPage.vue'
+import CreateWorkPage from '@/pages/CreateWorkPage.vue'
+import ExhibitionPage from '@/pages/ExhibitionPage.vue'
+import UserProfilePage from '@/pages/user/UserProfilePage.vue'
+import UserPasswordPage from '@/pages/user/UserPasswordPage.vue'
+import UserSettingsPage from '@/pages/user/UserSettingsPage.vue'
 
 // @author 程序员鱼皮 <a href="https://www.codefather.cn">编程导航原创项目</a>
 const router = createRouter({
@@ -31,6 +36,8 @@ const router = createRouter({
     { path: '/community', name: '摄影社区', component: PhotoCommunityPage },
     { path: '/ai-workbench', name: 'AI 摄影工作台', component: AiWorkbenchPage },
     { path: '/access-center', name: '访问控制中心', component: AccessCenterPage },
+    { path: '/community/create', name: '创建摄影作品', component: CreateWorkPage },
+    { path: '/exhibitions', name: '专题展览', component: ExhibitionPage },
     {
       path: '/user/login',
       name: '用户登录',
@@ -41,6 +48,9 @@ const router = createRouter({
       name: '用户注册',
       component: UserRegisterPage,
     },
+    { path: '/user/profile', name: '个人主页', component: UserProfilePage },
+    { path: '/user/password', name: '修改密码', component: UserPasswordPage },
+    { path: '/user/settings', name: '账号设置', component: UserSettingsPage },
     {
       path: '/admin/userManage',
       name: '用户管理',

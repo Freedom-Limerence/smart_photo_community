@@ -51,7 +51,8 @@ import {SPACE_LEVEL_MAP, SPACE_LEVEL_OPTIONS, SPACE_TYPE_ENUM, SPACE_TYPE_MAP} f
 import { formatSize } from '../utils'
 
 const space = ref<API.SpaceVO>()
-const spaceForm = reactive<API.SpaceAddRequest | API.SpaceEditRequest>({})
+type SpaceForm = API.SpaceAddRequest & Partial<API.SpaceEditRequest>
+const spaceForm = reactive<SpaceForm>({})
 const loading = ref(false)
 
 const route = useRoute()
@@ -119,8 +120,9 @@ const handleSubmit = async (values: any) => {
 // 获取老数据
 const getOldSpace = async () => {
   // 获取到 id
-  const id = route.query?.id
-  if (id) {
+  const idValue = route.query?.id
+  const id = Number(Array.isArray(idValue) ? idValue[0] : idValue)
+  if (Number.isFinite(id) && id > 0) {
     const res = await getSpaceVoByIdUsingGet({
       id,
     })

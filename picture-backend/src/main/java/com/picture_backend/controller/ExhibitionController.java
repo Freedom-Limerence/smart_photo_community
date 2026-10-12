@@ -234,8 +234,15 @@ public class ExhibitionController {
      * 获取展览的展品列表（按 sortOrder 升序）
      */
     @GetMapping("/picture/list")
-    public BaseResponse<List<ExhibitionPicture>> listExhibitionPictures(long exhibitionId) {
+    public BaseResponse<List<ExhibitionPicture>> listExhibitionPictures(long exhibitionId,
+                                                                          HttpServletRequest request) {
         ThrowUtils.throwIf(exhibitionId <= 0, ErrorCode.PARAMS_ERROR);
+        Exhibition exhibition = exhibitionService.getById(exhibitionId);
+        ThrowUtils.throwIf(exhibition == null, ErrorCode.NOT_FOUND_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        boolean isAdmin = UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole());
+        ThrowUtils.throwIf(!isAdmin && !Integer.valueOf(1).equals(exhibition.getStatus()),
+                ErrorCode.NO_AUTH_ERROR, "该展览未发布");
         return ResultUtils.success(exhibitionService.listPictures(exhibitionId));
     }
 

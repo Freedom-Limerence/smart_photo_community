@@ -1,6 +1,12 @@
 <template>
   <div id="mySpacePage">
-    <p>正在跳转，请稍后。。。</p>
+    <a-card class="redirect-card">
+      <a-spin v-if="loading" size="large" />
+      <a-result v-else-if="error" status="warning" title="个人空间暂时无法打开" sub-title="请确认服务已启动并重试。">
+        <template #extra><a-button type="primary" @click="checkUserSpace">重新加载</a-button></template>
+      </a-result>
+      <a-result v-else status="info" title="正在查找你的个人空间" sub-title="找到后会自动进入空间。" />
+    </a-card>
   </div>
 </template>
 
@@ -9,14 +15,18 @@ import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { listSpaceVoByPageUsingPost } from '@/api/spaceController.ts'
 import { message } from 'ant-design-vue'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { SPACE_TYPE_ENUM } from '@/constants/space.ts'
 
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
+const loading = ref(true)
+const error = ref(false)
 
 // 检查用户是否有个人空间
 const checkUserSpace = async () => {
+  loading.value = true
+  error.value = false
   // 用户未登录，则直接跳转到登录页面
   const loginUser = loginUserStore.loginUser
   if (!loginUser?.id) {
@@ -24,24 +34,30 @@ const checkUserSpace = async () => {
     return
   }
   // 如果用户已登录，会获取该用户已创建的空间
-  const res = await listSpaceVoByPageUsingPost({
-    userId: loginUser.id,
-    current: 1,
-    pageSize: 1,
-    spaceType: SPACE_TYPE_ENUM.PRIVATE,
-  })
-  if (res.data.code === 0) {
-    // 如果有，则进入第一个空间
-    if (res.data.data?.records?.length > 0) {
-      const space = res.data.data.records[0]
-      router.replace(`/space/${space.id}`)
+  try {
+    const res = await listSpaceVoByPageUsingPost({
+      userId: loginUser.id,
+      current: 1,
+      pageSize: 1,
+      spaceType: SPACE_TYPE_ENUM.PRIVATE,
+    })
+    if (res.data.code === 0) {
+      const records = res.data.data?.records ?? []
+      if (records.length > 0) {
+        router.replace(`/space/${records[0]?.id}`)
+      } else {
+        router.replace('/add_space')
+        message.warn('请先创建空间')
+      }
     } else {
-      // 如果没有，则跳转到创建空间页面
-      router.replace('/add_space')
-      message.warn('请先创建空间')
+      error.value = true
+      message.error('加载我的空间失败，' + res.data.message)
     }
-  } else {
-    message.error('加载我的空间失败，' + res.data.message)
+  } catch {
+    error.value = true
+    message.error('加载我的空间失败，请稍后重试')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -50,3 +66,8 @@ onMounted(() => {
   checkUserSpace()
 })
 </script>
+
+<style scoped>
+#mySpacePage { max-width: 720px; margin: 48px auto; }
+.redirect-card { min-height: 260px; display: grid; place-items: center; border-color: #e1e9e2; }
+</style>

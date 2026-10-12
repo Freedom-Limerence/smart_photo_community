@@ -13,6 +13,14 @@
     <div class="img-wrapper">
       <img v-if="picture?.url" :src="picture?.url" alt="avatar" />
     </div>
+    <a-alert
+      v-if="picture?.processingStatus"
+      class="process-status"
+      :type="picture.processingStatus === 'SUCCEEDED' ? 'success' : picture.processingStatus === 'FAILED' ? 'error' : 'info'"
+      show-icon
+      :message="picture.processingStatus === 'SUCCEEDED' ? '图片处理完成' : picture.processingStatus === 'FAILED' ? '图片处理失败' : '图片处理中'"
+      :description="picture.processingError || (picture.uploadTaskId ? `任务号：${picture.uploadTaskId}` : undefined)"
+    />
   </div>
 </template>
 <script lang="ts" setup>
@@ -36,9 +44,13 @@ const loading = ref<boolean>(false)
  */
 const handleUpload = async () => {
   loading.value = true
+  const taskId = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
   try {
     const params: API.PictureUploadRequest = { fileUrl: fileUrl.value }
     params.spaceId = props.spaceId;
+    params.taskId = taskId
     if (props.picture) {
       params.id = props.picture.id
     }
@@ -50,9 +62,9 @@ const handleUpload = async () => {
     } else {
       message.error('图片上传失败，' + res.data.message)
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('图片上传失败', error)
-    message.error('图片上传失败，' + error.message)
+    message.error(`图片上传失败（任务号：${taskId}），${error instanceof Error ? error.message : '请稍后重试'}`)
   }
   loading.value = false
 }
@@ -70,5 +82,10 @@ const handleUpload = async () => {
 .url-picture-upload .img-wrapper {
   text-align: center;
   margin-top: 16px;
+}
+
+.process-status {
+  margin-top: 12px;
+  text-align: left;
 }
 </style>

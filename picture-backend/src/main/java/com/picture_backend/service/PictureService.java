@@ -7,6 +7,7 @@ import com.picture_backend.api.aliyunai.model.CreateOutPaintingTaskResponse;
 import com.picture_backend.model.dto.picture.*;
 import com.picture_backend.model.dto.picture.*;
 import com.picture_backend.model.entity.Picture;
+import com.picture_backend.model.entity.PhotoAssetProcess;
 import com.picture_backend.model.entity.User;
 import com.picture_backend.model.vo.PictureVO;
 import org.springframework.web.multipart.MultipartFile;
@@ -90,8 +91,10 @@ public interface PictureService extends IService<Picture> {
      * @param loginUser
      * @return 成功创建的图片数
      */
-    Integer uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest,
-                                 User loginUser);
+    PictureBatchUploadResult uploadPictureByBatch(PictureUploadByBatchRequest pictureUploadByBatchRequest,
+                                                  User loginUser);
+
+    PhotoAssetProcess getUploadProcess(String taskId, Long userId);
 
     /**
      * 清理图片文件

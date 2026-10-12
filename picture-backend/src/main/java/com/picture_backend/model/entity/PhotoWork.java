@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.picture_backend.model.vo.PictureVO;
+import com.picture_backend.model.vo.UserVO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -40,4 +41,6 @@ public class PhotoWork implements Serializable {
     private String thumbnailUrl;
     @TableField(exist = false)
     private java.util.List<PictureVO> pictures;
+    @TableField(exist = false)
+    private UserVO author;
 }

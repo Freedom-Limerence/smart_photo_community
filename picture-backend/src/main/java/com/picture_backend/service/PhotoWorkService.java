@@ -12,6 +12,7 @@ public interface PhotoWorkService {
     Long saveWork(PhotoWorkRequest request, Long userId);
     boolean publish(Long workId, Long userId, boolean publish);
     PhotoWork getVisible(Long workId, Long userId);
+    void validateVisible(Long workId, Long userId);
     Page<PhotoWork> page(long current, long size, Long userId);
     boolean like(Long workId, Long userId, boolean like);
     boolean favorite(Long workId, Long userId, boolean favorite);

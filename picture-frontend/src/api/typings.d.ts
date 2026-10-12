@@ -422,6 +422,7 @@ declare namespace API {
     id?: number
     picName?: string
     spaceId?: number
+    taskId?: string
   }
 
   type PictureVO = {
@@ -445,6 +446,30 @@ declare namespace API {
     url?: string
     user?: UserVO
     userId?: number
+    uploadTaskId?: string
+    processingStatus?: string
+    processingError?: string
+  }
+
+  type PictureBatchUploadItem = {
+    sourceUrl?: string
+    name?: string
+    pictureId?: number
+    status?: string
+    errorMessage?: string
+  }
+
+  type PictureBatchUploadResult = {
+    requestedCount?: number
+    successCount?: number
+    failureCount?: number
+    items?: PictureBatchUploadItem[]
+  }
+
+  type BaseResponsePictureBatchUploadResult_ = {
+    code?: number
+    data?: PictureBatchUploadResult
+    message?: string
   }
 
   type SearchPictureByColorRequest = {
@@ -647,6 +672,7 @@ declare namespace API {
     id?: number
     picName?: string
     spaceId?: number
+    taskId?: string
   }
 
   type User = {

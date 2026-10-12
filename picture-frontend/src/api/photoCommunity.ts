@@ -44,10 +44,46 @@ export function getTodayQuota() {
   return request('/api/access/quota/today', { method: 'GET' })
 }
 
+export function authorizeDownload(data: { pictureId: number; workId?: number; requestId: string }) {
+  return request('/api/access/download/authorize', { method: 'POST', data })
+}
+
+export function downloadAuthorizedFile(token: string) {
+  return request<Blob>('/api/access/download/file', {
+    method: 'GET',
+    params: { token },
+    responseType: 'blob',
+  })
+}
+
 export function createInvite(data: any) {
   return request('/api/access/invite/create', { method: 'POST', data })
 }
 
 export function redeemInvite(data: { code: string }) {
   return request('/api/access/invite/redeem', { method: 'POST', data })
+}
+
+export function listMyTeamSpaces() {
+  return request('/api/spaceUser/list/my', { method: 'POST' })
+}
+
+export function listInvites(spaceId: number) {
+  return request('/api/access/invite/list', { method: 'GET', params: { spaceId } })
+}
+
+export function listExhibitions(data: { current?: number; pageSize?: number; searchText?: string; theme?: string }) {
+  return request('/api/exhibition/list/page', { method: 'POST', data })
+}
+
+export function getExhibition(id: number) {
+  return request('/api/exhibition/get/vo', { method: 'GET', params: { id } })
+}
+
+export function listExhibitionPictures(exhibitionId: number) {
+  return request('/api/exhibition/picture/list', { method: 'GET', params: { exhibitionId } })
+}
+
+export function listExhibitionWorks(exhibitionId: number) {
+  return request('/api/exhibition/work/list', { method: 'GET', params: { exhibitionId } })
 }

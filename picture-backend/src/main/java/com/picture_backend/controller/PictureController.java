@@ -24,8 +24,9 @@ import com.picture_backend.manager.auth.StpKit;
 import com.picture_backend.manager.auth.annotation.SaSpaceCheckPermission;
 import com.picture_backend.manager.auth.model.SpaceUserPermissionConstant;
 import com.picture_backend.model.dto.picture.*;
-import com.yupi.picture_backend.model.dto.picture.*;
+import com.picture_backend.model.dto.picture.*;
 import com.picture_backend.model.entity.Picture;
+import com.picture_backend.model.entity.PhotoAssetProcess;
 import com.picture_backend.model.entity.Space;
 import com.picture_backend.model.entity.User;
 import com.picture_backend.model.enums.PictureReviewStatusEnum;
@@ -260,6 +261,7 @@ public class PictureController {
      */
     @Deprecated
     @PostMapping("/list/page/vo/cache")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_VIEW)
     public BaseResponse<Page<PictureVO>> listPictureVOByPageWithCache(@RequestBody PictureQueryRequest pictureQueryRequest,
                                                                       HttpServletRequest request) {
         long current = pictureQueryRequest.getCurrent();
@@ -268,6 +270,12 @@ public class PictureController {
         ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
         // 普通用户默认只能看到审核通过的数据
         pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+        Long spaceId = pictureQueryRequest.getSpaceId();
+        if (spaceId == null) {
+            pictureQueryRequest.setNullSpaceId(true);
+        } else {
+            ThrowUtils.throwIf(!StpKit.SPACE.hasPermission(SpaceUserPermissionConstant.PICTURE_VIEW), ErrorCode.NO_AUTH_ERROR);
+        }
         // 查询缓存，缓存中没有，再查询数据库
         // 构建缓存的 key
         String queryCondition = JSONUtil.toJsonStr(pictureQueryRequest);
@@ -347,18 +355,25 @@ public class PictureController {
      */
     @PostMapping("/upload/batch")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Integer> uploadPictureByBatch(@RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest,
-                                                      HttpServletRequest request) {
+    public BaseResponse<PictureBatchUploadResult> uploadPictureByBatch(@RequestBody PictureUploadByBatchRequest pictureUploadByBatchRequest,
+                                                                        HttpServletRequest request) {
         ThrowUtils.throwIf(pictureUploadByBatchRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
-        int uploadCount = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
-        return ResultUtils.success(uploadCount);
+        PictureBatchUploadResult result = pictureService.uploadPictureByBatch(pictureUploadByBatchRequest, loginUser);
+        return ResultUtils.success(result);
+    }
+
+    @GetMapping("/upload/status")
+    public BaseResponse<PhotoAssetProcess> getUploadStatus(@RequestParam String taskId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(pictureService.getUploadProcess(taskId, loginUser.getId()));
     }
 
     /**
      * 以图搜图
      */
     @PostMapping("/search/picture")
+    @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.PICTURE_VIEW)
     public BaseResponse<List<ImageSearchResult>> searchPictureByPicture(@RequestBody SearchPictureByPictureRequest searchPictureByPictureRequest) {
         ThrowUtils.throwIf(searchPictureByPictureRequest == null, ErrorCode.PARAMS_ERROR);
         Long pictureId = searchPictureByPictureRequest.getPictureId();
@@ -414,7 +429,8 @@ public class PictureController {
      * 查询 AI 扩图任务
      */
     @GetMapping("/out_painting/get_task")
-    public BaseResponse<GetOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId) {
+    public BaseResponse<GetOutPaintingTaskResponse> getPictureOutPaintingTask(String taskId, HttpServletRequest request) {
+        userService.getLoginUser(request);
         ThrowUtils.throwIf(StrUtil.isBlank(taskId), ErrorCode.PARAMS_ERROR);
         GetOutPaintingTaskResponse task = aliYunAiApi.getOutPaintingTask(taskId);
         return ResultUtils.success(task);

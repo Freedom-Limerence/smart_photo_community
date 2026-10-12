@@ -1,150 +1,15 @@
 <template>
-  <div id="homePage">
-    <!-- 搜索框 -->
-    <div class="search-bar">
-      <a-input-search
-        v-model:value="searchParams.searchText"
-        placeholder="从海量图片中搜索"
-        enter-button="搜索"
-        size="large"
-        @search="doSearch"
-      />
-    </div>
-    <!-- 分类和标签筛选 -->
-    <a-tabs v-model:active-key="selectedCategory" @change="doSearch">
-      <a-tab-pane key="all" tab="全部" />
-      <a-tab-pane v-for="category in categoryList" :tab="category" :key="category" />
-    </a-tabs>
-    <div class="tag-bar">
-      <span style="margin-right: 8px">标签：</span>
-      <a-space :size="[0, 8]" wrap>
-        <a-checkable-tag
-          v-for="(tag, index) in tagList"
-          :key="tag"
-          v-model:checked="selectedTagList[index]"
-          @change="doSearch"
-        >
-          {{ tag }}
-        </a-checkable-tag>
-      </a-space>
-    </div>
-    <!-- 图片列表 -->
-    <PictureList :dataList="dataList" :loading="loading" />
-    <!-- 分页 -->
-    <a-pagination
-      style="text-align: right"
-      v-model:current="searchParams.current"
-      v-model:pageSize="searchParams.pageSize"
-      :total="total"
-      @change="onPageChange"
-    />
+  <div class="discovery-page">
+    <section class="discovery-hero"><div class="hero-copy"><p class="eyebrow">PHOTOGRAPHY COMMUNITY</p><h1>发现世界的<br /><em>另一种视角。</em></h1><p>在光影集中，看见摄影师的创作过程，收藏值得反复观看的瞬间。</p><div class="hero-actions"><a-button type="primary" size="large" @click="router.push('/community')">浏览作品流</a-button><a-button size="large" @click="router.push('/community/create')">发布我的作品</a-button></div></div><div class="hero-art" aria-hidden="true"><div class="hero-frame frame-main"><div class="frame-sky" /><div class="frame-horizon" /><div class="frame-sun" /></div><div class="hero-frame frame-small"><span>今日灵感</span><strong>把日常拍成作品</strong></div></div></section>
+    <section class="topic-section"><div class="section-heading"><div><p class="eyebrow">EXPLORE BY MOOD</p><h2>从一个主题开始发现</h2></div><a-button type="link" @click="router.push('/exhibitions')">查看专题展览 <RightOutlined /></a-button></div><div class="topic-grid"><button v-for="topic in topics" :key="topic.title" type="button" class="topic-item" @click="router.push(`/community?topic=${encodeURIComponent(topic.title)}`)"><span class="topic-index">0{{ topic.index }}</span><strong>{{ topic.title }}</strong><small>{{ topic.subtitle }}</small><ArrowRightOutlined /></button></div></section>
+    <section class="feed-section"><div class="section-heading"><div><p class="eyebrow">COMMUNITY FEED</p><h2>正在被看见的作品</h2><p>来自摄影爱好者的最新创作，按时间持续更新。</p></div><a-button @click="router.push('/community')">进入完整社区 <RightOutlined /></a-button></div><a-alert v-if="error" type="warning" show-icon message="作品流暂时无法加载" description="请确认后端服务已启动，或稍后再次刷新。" closable @close="error=false" /><a-spin :spinning="loading"><div class="feed-grid"><article v-for="work in works" :key="work.id" class="feed-card"><button class="feed-cover" type="button" @click="openWork(work)"><img v-if="coverOf(work)" :src="coverOf(work)" :alt="work.title" /><div v-else class="cover-placeholder"><PictureOutlined /><span>等待作品图片</span></div></button><div class="feed-body"><div class="author-row"><a-avatar :src="work.author?.userAvatar" :size="34">{{ (work.author?.userName || '摄').slice(0,1) }}</a-avatar><div><strong>{{ work.author?.userName || '摄影师' }}</strong><span>{{ formatDate(work.createTime) }} 发布</span></div><a-button type="text" class="more-button" @click="openWork(work)"><ArrowRightOutlined /></a-button></div><h3>{{ work.title || '未命名作品' }}</h3><p>{{ work.description || '作者还没有添加作品说明。' }}</p><div class="card-stats"><span><LikeOutlined /> {{ work.likeCount || 0 }}</span><span><MessageOutlined /> {{ work.commentCount || 0 }}</span><span v-if="work.shootLocation"><EnvironmentOutlined /> {{ work.shootLocation }}</span></div></div></article></div><a-empty v-if="!loading && !works.length" description="社区还没有公开作品"><template #image><CameraOutlined /></template><a-button type="primary" @click="router.push('/community/create')">发布第一组作品</a-button></a-empty></a-spin></section>
   </div>
 </template>
-
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
-import {
-  listPictureTagCategoryUsingGet,
-  listPictureVoByPageUsingPost,
-} from '@/api/pictureController.ts'
-import { message } from 'ant-design-vue'
-import PictureList from '@/components/PictureList.vue' // 定义数据
-
-// 定义数据
-const dataList = ref<API.PictureVO[]>([])
-const total = ref(0)
-const loading = ref(true)
-
-// 搜索条件
-const searchParams = reactive<API.PictureQueryRequest>({
-  current: 1,
-  pageSize: 12,
-  sortField: 'createTime',
-  sortOrder: 'descend',
-})
-
-// 获取数据
-const fetchData = async () => {
-  loading.value = true
-  // 转换搜索参数
-  const params = {
-    ...searchParams,
-    tags: [] as string[],
-  }
-  if (selectedCategory.value !== 'all') {
-    params.category = selectedCategory.value
-  }
-  // [true, false, false] => ['java']
-  selectedTagList.value.forEach((useTag, index) => {
-    if (useTag) {
-      params.tags.push(tagList.value[index])
-    }
-  })
-  const res = await listPictureVoByPageUsingPost(params)
-  if (res.data.code === 0 && res.data.data) {
-    dataList.value = res.data.data.records ?? []
-    total.value = res.data.data.total ?? 0
-  } else {
-    message.error('获取数据失败，' + res.data.message)
-  }
-  loading.value = false
-}
-
-// 页面加载时获取数据，请求一次
-onMounted(() => {
-  fetchData()
-})
-
-// 分页参数
-const onPageChange = (page: number, pageSize: number) => {
-  searchParams.current = page
-  searchParams.pageSize = pageSize
-  fetchData()
-}
-
-// 搜索
-const doSearch = () => {
-  // 重置搜索条件
-  searchParams.current = 1
-  fetchData()
-}
-
-// 标签和分类列表
-const categoryList = ref<string[]>([])
-const selectedCategory = ref<string>('all')
-const tagList = ref<string[]>([])
-const selectedTagList = ref<boolean[]>([])
-
-/**
- * 获取标签和分类选项
- * @param values
- */
-const getTagCategoryOptions = async () => {
-  const res = await listPictureTagCategoryUsingGet()
-  if (res.data.code === 0 && res.data.data) {
-    tagList.value = res.data.data.tagList ?? []
-    categoryList.value = res.data.data.categoryList ?? []
-  } else {
-    message.error('获取标签分类列表失败，' + res.data.message)
-  }
-}
-
-onMounted(() => {
-  getTagCategoryOptions()
-})
+import { onMounted, ref } from 'vue';import { message } from 'ant-design-vue';import { ArrowRightOutlined, CameraOutlined, EnvironmentOutlined, LikeOutlined, MessageOutlined, PictureOutlined, RightOutlined } from '@ant-design/icons-vue';import { useRouter } from 'vue-router';import { listWorks } from '@/api/photoCommunity'
+const router=useRouter();const works=ref<any[]>([]);const loading=ref(false);const error=ref(false);const topics=[{index:1,title:'城市夜景',subtitle:'霓虹、街道与蓝调时刻'},{index:2,title:'人像情绪',subtitle:'捕捉眼神里的故事'},{index:3,title:'自然风光',subtitle:'在山海之间寻找秩序'},{index:4,title:'日常观察',subtitle:'把熟悉的生活重新取景'}]
+function coverOf(work:any){return work.coverUrl||work.thumbnailUrl||work.pictures?.[0]?.thumbnailUrl||work.pictures?.[0]?.url||''}function formatDate(value:any){if(!value)return '刚刚';const date=new Date(value);return Number.isNaN(date.getTime())?'刚刚':date.toLocaleDateString('zh-CN',{month:'short',day:'numeric'})}function openWork(work:any){const picture=work.pictures?.[0];if(picture?.id)router.push({path:`/picture/${picture.id}`,query:{workId:String(work.id)}});else message.info('该作品暂未关联可查看的图片')}async function load(){loading.value=true;error.value=false;try{const res:any=await listWorks({current:1,size:6});if(res.data.code===0)works.value=res.data.data?.records||[];else error.value=true}catch{error.value=true}finally{loading.value=false}}onMounted(load)
 </script>
-
 <style scoped>
-#homePage {
-  margin-bottom: 16px;
-}
-
-#homePage .search-bar {
-  max-width: 480px;
-  margin: 0 auto 16px;
-}
-
-#homePage .tag-bar {
-  margin-bottom: 16px;
-}
+.discovery-page{max-width:1220px;margin:0 auto}.discovery-hero{position:relative;display:flex;justify-content:space-between;gap:30px;min-height:330px;padding:48px 54px;margin-bottom:42px;overflow:hidden;background:#e8f1ea;border:1px solid #dbe8de;border-radius:12px}.hero-copy{position:relative;z-index:1}.eyebrow{margin:0 0 10px;color:#668473;font-size:11px;letter-spacing:2px;font-weight:600}.hero-copy h1{margin:0;color:#20322e;font-size:48px;line-height:1.12}.hero-copy h1 em{color:#568164;font-style:normal}.hero-copy>p:not(.eyebrow){max-width:500px;margin:18px 0 26px;color:#66786d;font-size:15px;line-height:1.8}.hero-actions{display:flex;gap:12px}.hero-art{position:relative;flex:0 0 330px}.hero-frame{position:absolute;border:8px solid rgba(255,255,255,.92);border-radius:7px;box-shadow:0 18px 36px rgba(48,85,58,.16)}.frame-main{right:12px;top:10px;width:232px;height:260px;transform:rotate(5deg);overflow:hidden;background:#bdd3c2}.frame-sky{height:57%;background:linear-gradient(180deg,#9eb9ba 0%,#d9e7d7 100%)}.frame-horizon{height:43%;background:linear-gradient(160deg,#557b63 0%,#789b75 46%,#d5c99f 47%,#c5a76d 100%)}.frame-sun{position:absolute;top:50px;left:70px;width:54px;height:54px;border-radius:50%;background:#f5e6b7;box-shadow:0 0 28px #fff1b4}.frame-small{right:164px;bottom:24px;width:150px;padding:16px 18px;background:#fff;transform:rotate(-8deg);color:#54705d}.frame-small span{display:block;margin-bottom:5px;color:#94a79a;font-size:11px}.frame-small strong{font-size:15px}.section-heading{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:18px}.section-heading h2{margin:0 0 5px;color:#20322e;font-size:27px}.section-heading p:not(.eyebrow){margin:0;color:#829087}.topic-section{margin-bottom:50px}.topic-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.topic-item{position:relative;display:grid;gap:7px;min-height:126px;padding:18px;text-align:left;background:#fff;border:1px solid #e1e9e2;border-radius:8px;cursor:pointer;transition:.2s}.topic-item:hover{border-color:#9cbea5;transform:translateY(-3px);box-shadow:0 12px 26px rgba(35,67,48,.07)}.topic-index{color:#97aa9d;font-size:11px;letter-spacing:1px}.topic-item strong{color:#304c3a;font-size:19px}.topic-item small{color:#86938b;font-size:12px}.topic-item :deep(svg){position:absolute;right:16px;top:18px;color:#6d9b79}.feed-section{padding-bottom:30px}.feed-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:22px}.feed-card{overflow:hidden;background:#fff;border:1px solid #e1e9e2;border-radius:8px}.feed-cover{display:block;width:100%;height:218px;padding:0;border:0;background:#eaf1eb;cursor:pointer;overflow:hidden}.feed-cover img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .35s}.feed-cover:hover img{transform:scale(1.04)}.cover-placeholder{display:grid;place-items:center;align-content:center;gap:8px;height:100%;color:#6d9b79;font-size:28px}.cover-placeholder span{font-size:13px}.feed-body{padding:16px}.author-row{display:flex;align-items:center;gap:9px}.author-row>div{display:grid;gap:2px;min-width:0}.author-row strong{color:#395644;font-size:13px}.author-row span{color:#9aa59e;font-size:11px}.more-button{margin-left:auto;color:#6d9b79}.feed-body h3{margin:16px 0 6px;color:#304c3a;font-size:18px}.feed-body>p{height:38px;margin:0;color:#7a8880;font-size:13px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.card-stats{display:flex;gap:14px;margin-top:14px;padding-top:10px;border-top:1px solid #eef2ef;color:#89958d;font-size:11px}.card-stats span{display:inline-flex;align-items:center;gap:4px}.discovery-page :deep(.ant-empty){padding:48px 0}@media(max-width:950px){.discovery-hero{padding:36px}.hero-copy h1{font-size:40px}.topic-grid{grid-template-columns:repeat(2,1fr)}.feed-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.discovery-hero{display:block;padding:30px 24px}.hero-copy h1{font-size:36px}.hero-art{height:220px;margin-top:20px}.frame-main{right:12px}.frame-small{left:10px;right:auto}.section-heading{align-items:start}.topic-grid,.feed-grid{grid-template-columns:1fr}}
 </style>

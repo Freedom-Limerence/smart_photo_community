@@ -84,8 +84,8 @@ const doSearch = () => {
 }
 
 // 标签和分类选项
-const categoryOptions = ref<string[]>([])
-const tagOptions = ref<string[]>([])
+const categoryOptions = ref<{ value: string; label: string }[]>([])
+const tagOptions = ref<{ value: string; label: string }[]>([])
 
 /**
  * 获取标签和分类选项
@@ -143,8 +143,17 @@ const rangePresets = ref([
 // 清理
 const doClear = () => {
   // 取消所有对象的值
-  Object.keys(searchParams).forEach((key) => {
-    searchParams[key] = undefined
+  Object.assign(searchParams, {
+    searchText: undefined,
+    category: undefined,
+    tags: undefined,
+    startEditTime: undefined,
+    endEditTime: undefined,
+    name: undefined,
+    introduction: undefined,
+    picWidth: undefined,
+    picHeight: undefined,
+    picFormat: undefined,
   })
   // 日期筛选项单独清空，必须定义为空数组
   dateRange.value = []

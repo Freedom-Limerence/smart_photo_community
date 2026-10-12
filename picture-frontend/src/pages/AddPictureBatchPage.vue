@@ -30,18 +30,35 @@
         </a-button>
       </a-form-item>
     </a-form>
+    <a-alert
+      v-if="batchResult"
+      class="result-summary"
+      type="info"
+      show-icon
+      :message="`处理完成：成功 ${batchResult.successCount || 0} 张，失败 ${batchResult.failureCount || 0} 张`"
+    />
+    <a-list v-if="batchResult?.items?.length" bordered :data-source="batchResult.items" class="result-list">
+      <template #renderItem="{ item }">
+        <a-list-item>
+          <a-space direction="vertical" size="small">
+            <span>{{ item.name || item.sourceUrl }}</span>
+            <a-tag :color="item.status === 'SUCCEEDED' ? 'success' : 'error'">
+              {{ item.status === 'SUCCEEDED' ? `成功，图片 ID：${item.pictureId}` : '失败' }}
+            </a-tag>
+            <span v-if="item.errorMessage" class="error-text">{{ item.errorMessage }}</span>
+          </a-space>
+        </a-list-item>
+      </template>
+    </a-list>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
-  getPictureVoByIdUsingGet,
-  listPictureTagCategoryUsingGet,
   uploadPictureByBatchUsingPost,
 } from '@/api/pictureController.ts'
-import { useRoute, useRouter } from 'vue-router'
 
 const formData = reactive<API.PictureUploadByBatchRequest>({
   count: 10,
@@ -49,7 +66,7 @@ const formData = reactive<API.PictureUploadByBatchRequest>({
 // 提交任务状态
 const loading = ref(false)
 
-const router = useRouter()
+const batchResult = ref<API.PictureBatchUploadResult>()
 
 /**
  * 提交表单
@@ -57,20 +74,18 @@ const router = useRouter()
  */
 const handleSubmit = async (values: any) => {
   loading.value = true
-  const res = await uploadPictureByBatchUsingPost({
-    ...formData,
-  })
+  try {
+    const res = await uploadPictureByBatchUsingPost({ ...formData })
   // 操作成功
-  if (res.data.code === 0 && res.data.data) {
-    message.success(`创建成功，共 ${res.data.data} 条`)
-    // 跳转到主页
-    router.push({
-      path: `/`,
-    })
-  } else {
-    message.error('创建失败，' + res.data.message)
+    if (res.data.code === 0 && res.data.data) {
+      batchResult.value = res.data.data
+      message.success(`处理完成，成功 ${res.data.data.successCount || 0} 张`)
+    } else message.error('创建失败，' + res.data.message)
+  } catch (error: unknown) {
+    message.error(error instanceof Error ? error.message : '批量处理失败，请稍后重试')
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 </script>
 
@@ -79,4 +94,7 @@ const handleSubmit = async (values: any) => {
   max-width: 720px;
   margin: 0 auto;
 }
+.result-summary { margin-top: 20px; }
+.result-list { margin-top: 12px; }
+.error-text { color: #c53d3d; }
 </style>

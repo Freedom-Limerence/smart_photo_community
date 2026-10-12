@@ -113,6 +113,10 @@ public class PictureVO implements Serializable {
      */
     private List<String> permissionList = new ArrayList<>();
 
+    private String uploadTaskId;
+    private String processingStatus;
+    private String processingError;
+
     private static final long serialVersionUID = 1L;
 
     /**

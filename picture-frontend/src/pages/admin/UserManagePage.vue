@@ -120,7 +120,7 @@ const pagination = computed(() => {
     pageSize: searchParams.pageSize,
     total: total.value,
     showSizeChanger: true,
-    showTotal: (total) => `共 ${total} 条`,
+    showTotal: (total: number) => `共 ${total} 条`,
   }
 })
 
@@ -139,7 +139,7 @@ const doSearch = () => {
 }
 
 // 删除数据
-const doDelete = async (id: string) => {
+const doDelete = async (id?: number) => {
   if (!id) {
     return
   }

@@ -32,7 +32,7 @@
       </a-col>
       <!-- 空间使用排行分析 -->
       <a-col :xs="24" :md="12">
-        <SpaceRankAnalyze v-if="isAdmin" :spaceId="spaceId" :queryAll="queryAll" :queryPublic="queryPublic" />
+        <SpaceRankAnalyze v-if="isAdmin" />
       </a-col>
     </a-row>
   </div>
@@ -52,8 +52,10 @@ import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 const route = useRoute()
 
 // 空间 id
-const spaceId = computed(() => {
-  return route.query?.spaceId as string
+const spaceId = computed<number | undefined>(() => {
+  const value = route.query?.spaceId
+  const parsed = Number(Array.isArray(value) ? value[0] : value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
 })
 
 // 是否查询所有空间

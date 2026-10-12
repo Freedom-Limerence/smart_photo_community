@@ -13,6 +13,14 @@
         <div class="ant-upload-text">点击或拖拽上传图片</div>
       </div>
     </a-upload>
+    <a-alert
+      v-if="picture?.processingStatus"
+      class="process-status"
+      :type="picture.processingStatus === 'SUCCEEDED' ? 'success' : picture.processingStatus === 'FAILED' ? 'error' : 'info'"
+      show-icon
+      :message="picture.processingStatus === 'SUCCEEDED' ? '图片处理完成' : picture.processingStatus === 'FAILED' ? '图片处理失败' : '图片处理中'"
+      :description="picture.processingError || (picture.uploadTaskId ? `任务号：${picture.uploadTaskId}` : undefined)"
+    />
   </div>
 </template>
 <script lang="ts" setup>
@@ -36,9 +44,13 @@ const props = defineProps<Props>()
  */
 const handleUpload = async ({ file }: any) => {
   loading.value = true
+  const taskId = typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`
   try {
     const params: API.PictureUploadRequest = props.picture ? { id: props.picture.id } : {}
     params.spaceId = props.spaceId;
+    params.taskId = taskId
     const res = await uploadPictureUsingPost(params, {}, file)
     if (res.data.code === 0 && res.data.data) {
       message.success('图片上传成功')
@@ -47,9 +59,9 @@ const handleUpload = async ({ file }: any) => {
     } else {
       message.error('图片上传失败，' + res.data.message)
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('图片上传失败', error)
-    message.error('图片上传失败，' + error.message)
+    message.error(`图片上传失败（任务号：${taskId}），${error instanceof Error ? error.message : '请稍后重试'}`)
   }
   loading.value = false
 }
@@ -60,14 +72,14 @@ const loading = ref<boolean>(false)
  * 上传前的校验
  * @param file
  */
-const beforeUpload = (file: UploadProps['fileList'][number]) => {
+const beforeUpload = (file: NonNullable<UploadProps['fileList']>[number]) => {
   // 校验图片格式
   const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
   if (!isJpgOrPng) {
     message.error('不支持上传该格式的图片，推荐 jpg 或 png')
   }
   // 校验图片大小
-  const isLt2M = file.size / 1024 / 1024 < 2
+  const isLt2M = (file.size ?? 0) / 1024 / 1024 < 2
   if (!isLt2M) {
     message.error('不能上传超过 2M 的图片')
   }
@@ -85,6 +97,11 @@ const beforeUpload = (file: UploadProps['fileList'][number]) => {
 .picture-upload img {
   max-width: 100%;
   max-height: 480px;
+}
+
+.process-status {
+  margin-top: 12px;
+  text-align: left;
 }
 
 .ant-upload-select-picture-card i {

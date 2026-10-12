@@ -1,102 +1,30 @@
 <template>
   <div class="community-page">
-    <section class="community-hero">
-      <div>
-        <p class="eyebrow">SMART PHOTOGRAPHY COMMUNITY</p>
-        <h1>把每一张照片，整理成可交流的作品</h1>
-        <p class="hero-copy">从云端资产管理开始，用 AI 完成摄影编目，再把作品交给社区和专题展览。</p>
-        <a-space>
-          <a-button type="primary" size="large" @click="router.push('/ai-workbench')">打开 AI 工作台</a-button>
-          <a-button size="large" @click="router.push('/add_picture')">上传照片</a-button>
-        </a-space>
-      </div>
-      <div class="hero-stats">
-        <div><strong>{{ total }}</strong><span>公开作品</span></div>
-        <div><strong>AI</strong><span>摄影编目</span></div>
-        <div><strong>{{ quotaLabel }}</strong><span>今日下载配额</span></div>
-      </div>
-    </section>
-
-    <section class="feed-head">
-      <div><h2>摄影作品流</h2><span>按发布时间浏览社区作品</span></div>
-      <a-button @click="loadWorks">刷新</a-button>
-    </section>
-    <a-spin :spinning="loading">
-      <a-row :gutter="[20, 20]">
-        <a-col v-for="work in works" :key="work.id" :xs="24" :sm="12" :lg="8">
-          <a-card class="work-card" :bordered="false">
-            <div class="work-cover" :style="{ backgroundImage: work.thumbnailUrl || work.coverUrl ? `url(${work.thumbnailUrl || work.coverUrl})` : 'linear-gradient(135deg, #20322e, #8fa895)' }">
-              <span>{{ work.visibility === 'PUBLIC' ? '公开作品' : '受限作品' }}</span>
-            </div>
-            <h3>{{ work.title }}</h3>
-            <p>{{ work.description || '作者还没有添加作品说明' }}</p>
-            <a-space>
-              <a-button type="text" @click="doLike(work.id)">赞 {{ work.likeCount || 0 }}</a-button>
-              <a-button type="text" @click="doFavorite(work.id)">{{ favoriteIds.has(work.id) ? '已收藏' : '收藏' }} {{ work.favoriteCount || 0 }}</a-button>
-              <a-button type="text" @click="openComment(work)">评论 {{ work.commentCount || 0 }}</a-button>
-            </a-space>
-          </a-card>
-        </a-col>
-      </a-row>
-      <a-empty v-if="!loading && works.length === 0" description="还没有公开作品，先上传一组照片吧" />
-    </a-spin>
-
-    <a-modal v-model:open="commentOpen" title="发表评论" ok-text="发布" @ok="submitComment">
-      <a-textarea v-model:value="commentText" :rows="4" maxlength="1000" show-count placeholder="分享你的观感" />
-    </a-modal>
+    <section class="community-hero"><div><p class="eyebrow">PHOTO COMMUNITY</p><h1>看见别人的视角，<br /><em>也让作品被看见。</em></h1><p class="hero-copy">把云端资产变成完整作品，和摄影爱好者交流拍摄思路、收藏灵感。</p><div class="hero-actions"><a-button type="primary" size="large" @click="router.push('/community/create')">发布一组作品</a-button><a-button size="large" @click="router.push('/ai-workbench')">先用 AI 整理</a-button></div></div><div class="hero-summary"><div><strong>{{ total }}</strong><span>公开作品</span></div><div><strong>{{ quotaLabel }}</strong><span>今日下载配额</span></div><div><strong>AI</strong><span>摄影编目</span></div></div></section>
+    <section class="feed-toolbar"><div><h2>最新作品</h2><p>按发布时间浏览社区里的摄影作品</p></div><a-button :loading="loading" @click="loadWorks">刷新作品流</a-button></section>
+    <a-alert v-if="loadError" type="warning" show-icon message="作品流暂时无法加载" description="请确认后端服务已启动，或稍后再次刷新。" closable @close="loadError=false" />
+    <a-spin :spinning="loading"><div class="work-grid"><article v-for="work in works" :key="work.id" class="work-card"><button class="cover-button" type="button" @click="openWork(work)"><img v-if="coverOf(work)" :src="coverOf(work)" :alt="work.title" /><div v-else class="cover-fallback"><PictureOutlined /><span>{{ work.title || '未命名作品' }}</span></div><span class="visibility">{{ work.visibility === 'PUBLIC' ? '公开' : '受限' }}</span></button><div class="work-body"><div class="work-title"><h3>{{ work.title || '未命名作品' }}</h3><span v-if="work.shootLocation"><EnvironmentOutlined /> {{ work.shootLocation }}</span></div><p class="description">{{ work.description || '作者还没有添加作品说明。' }}</p><div class="work-meta"><span>{{ formatDate(work.createTime) }}</span><span v-if="work.pictures?.length">{{ work.pictures.length }} 张图片</span></div><div class="work-actions"><a-button type="text" @click="doLike(work)"><LikeOutlined /> {{ work.likeCount || 0 }}</a-button><a-button type="text" @click="doFavorite(work)"><StarFilled v-if="favoriteIds.has(work.id)" /><StarOutlined v-else /> {{ favoriteIds.has(work.id) ? '已收藏' : '收藏' }}</a-button><a-button type="text" @click="openComment(work)"><MessageOutlined /> {{ work.commentCount || 0 }}</a-button></div></div></article></div><a-empty v-if="!loading && !works.length" class="community-empty" description="还没有公开作品"><template #image><CameraOutlined /></template><p>上传照片并发布第一组作品，开启你的摄影主页。</p><a-button type="primary" @click="router.push('/add_picture')">上传照片</a-button></a-empty></a-spin>
+    <a-modal v-model:open="commentOpen" title="发表评论" ok-text="发布评论" :confirm-loading="commenting" @ok="submitComment"><a-textarea v-model:value="commentText" :rows="4" maxlength="1000" show-count placeholder="说说你对这组作品的感受" /></a-modal>
   </div>
 </template>
-
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
+import { CameraOutlined, EnvironmentOutlined, LikeOutlined, MessageOutlined, PictureOutlined, StarFilled, StarOutlined } from '@ant-design/icons-vue'
 import { useRouter } from 'vue-router'
 import { commentWork, favoriteWork, getTodayQuota, likeWork, listWorks, unfavoriteWork } from '@/api/photoCommunity'
-
-const router = useRouter()
-const works = ref<any[]>([])
-const total = ref(0)
-const loading = ref(false)
-const quota = ref<any>()
-const selectedWork = ref<any>()
-const commentOpen = ref(false)
-const commentText = ref('')
-const favoriteIds = ref<Set<number>>(new Set())
-const quotaLabel = computed(() => quota.value ? `${Math.max(0, quota.value.quotaLimit - quota.value.usedCount)}/${quota.value.quotaLimit}` : '--')
-
-async function loadWorks() {
-  loading.value = true
-  const res: any = await listWorks({ current: 1, size: 12 })
-  if (res.data.code === 0) { works.value = res.data.data?.records || []; total.value = res.data.data?.total || 0 }
-  loading.value = false
-}
-async function doLike(workId: number) { const res: any = await likeWork({ workId }); if (res.data.code === 0) { message.success('已点赞'); await loadWorks() } }
-async function doFavorite(workId: number) {
-  const isFav = favoriteIds.value.has(workId)
-  const res: any = isFav ? await unfavoriteWork({ workId }) : await favoriteWork({ workId })
-  if (res.data.code === 0) { if (isFav) favoriteIds.value.delete(workId); else favoriteIds.value.add(workId); message.success(isFav ? '已取消收藏' : '已收藏'); await loadWorks() }
-}
-function openComment(work: any) { selectedWork.value = work; commentText.value = ''; commentOpen.value = true }
-async function submitComment() { if (!commentText.value.trim()) return; const res: any = await commentWork({ workId: selectedWork.value.id, content: commentText.value }); if (res.data.code === 0) { message.success('评论已发布'); commentOpen.value = false; await loadWorks() } }
-onMounted(async () => { await Promise.all([loadWorks(), getTodayQuota().then((res: any) => { if (res.data.code === 0) quota.value = res.data.data })]) })
+const router=useRouter(); const works=ref<any[]>([]); const total=ref(0); const loading=ref(false); const loadError=ref(false); const quota=ref<any>(); const favoriteIds=ref<Set<number>>(new Set()); const selectedWork=ref<any>(); const commentOpen=ref(false); const commentText=ref(''); const commenting=ref(false)
+const quotaLabel=computed(()=>quota.value?`${Math.max(0,(quota.value.quotaLimit||0)-(quota.value.usedCount||0))}/${quota.value.quotaLimit||0}`:'--')
+function coverOf(work:any){return work.coverUrl||work.thumbnailUrl||work.pictures?.[0]?.thumbnailUrl||work.pictures?.[0]?.url||''}
+function formatDate(value:any){if(!value)return '刚刚发布';const date=new Date(value);return Number.isNaN(date.getTime())?'刚刚发布':date.toLocaleDateString('zh-CN',{month:'short',day:'numeric'})}
+async function loadWorks(){loading.value=true;loadError.value=false;try{const res:any=await listWorks({current:1,size:12});if(res.data.code===0){works.value=res.data.data?.records||[];total.value=res.data.data?.total||0}else{loadError.value=true}}catch{loadError.value=true}finally{loading.value=false}}
+async function doLike(work:any){try{const res:any=await likeWork({workId:work.id});if(res.data.code===0){message.success('已点赞');await loadWorks()}else message.error(res.data.message)}catch{message.error('点赞失败，请先登录')}}
+async function doFavorite(work:any){const isFav=favoriteIds.value.has(work.id);try{const res:any=isFav?await unfavoriteWork({workId:work.id}):await favoriteWork({workId:work.id});if(res.data.code===0){if(isFav)favoriteIds.value.delete(work.id);else favoriteIds.value.add(work.id);message.success(isFav?'已取消收藏':'已收藏');await loadWorks()}else message.error(res.data.message)}catch{message.error('收藏失败，请先登录')}}
+function openComment(work:any){selectedWork.value=work;commentText.value='';commentOpen.value=true}
+function openWork(work:any){const picture=work.pictures?.[0];if(picture?.id)router.push({path:`/picture/${picture.id}`,query:{workId:String(work.id)}});else message.info('该作品暂未关联可查看的图片')}
+async function submitComment(){if(!commentText.value.trim()||!selectedWork.value)return;commenting.value=true;try{const res:any=await commentWork({workId:selectedWork.value.id,content:commentText.value.trim()});if(res.data.code===0){message.success('评论已发布');commentOpen.value=false;await loadWorks()}else message.error(res.data.message)}finally{commenting.value=false}}
+onMounted(async()=>{await loadWorks();try{const res:any=await getTodayQuota();if(res.data.code===0)quota.value=res.data.data}catch{}})
 </script>
-
 <style scoped>
-.community-page { max-width: 1180px; margin: 0 auto; }
-.community-hero { display: flex; justify-content: space-between; gap: 40px; padding: 34px 0 44px; border-bottom: 1px solid #e6ebe7; }
-.eyebrow { color: #5a836d; letter-spacing: 2px; font-size: 12px; margin: 0 0 12px; }
-h1 { font-size: 40px; line-height: 1.15; max-width: 620px; margin: 0 0 16px; color: #20322e; }
-.hero-copy { max-width: 560px; color: #65736c; font-size: 16px; margin-bottom: 24px; }
-.hero-stats { display: flex; gap: 28px; align-items: end; padding-bottom: 10px; }
-.hero-stats div { display: grid; gap: 5px; min-width: 88px; }
-.hero-stats strong { color: #20322e; font-size: 25px; }
-.hero-stats span, .feed-head span { color: #7a8780; font-size: 13px; }
-.feed-head { display: flex; justify-content: space-between; align-items: end; margin: 30px 0 18px; }
-.feed-head h2 { margin: 0 0 4px; color: #20322e; }
-.work-card { border: 1px solid #e5ebe7; box-shadow: none; }
-.work-cover { height: 160px; display: flex; align-items: flex-start; justify-content: flex-end; padding: 12px; background-size: cover; }
-.work-cover span { background: rgba(255,255,255,.85); color: #355443; padding: 4px 8px; font-size: 12px; }
-.work-card h3 { margin: 16px 0 6px; }
-.work-card p { min-height: 44px; color: #748078; }
-@media (max-width: 760px) { .community-hero { display: block; } h1 { font-size: 32px; } .hero-stats { margin-top: 28px; } }
+.community-page{max-width:1220px;margin:0 auto}.community-hero{display:flex;justify-content:space-between;gap:40px;padding:34px 0 42px;border-bottom:1px solid #e1e9e2}.eyebrow{margin:0 0 10px;color:#668473;font-size:11px;letter-spacing:2px;font-weight:600}.community-hero h1{margin:0;color:#20322e;font-size:42px;line-height:1.18}.community-hero h1 em{color:#568164;font-style:normal}.hero-copy{max-width:540px;color:#748078;font-size:15px;line-height:1.8;margin:18px 0 24px}.hero-actions{display:flex;gap:12px}.hero-summary{display:flex;align-items:end;gap:30px;padding-bottom:5px}.hero-summary div{display:grid;gap:5px;min-width:84px}.hero-summary strong{font-size:26px;color:#355443}.hero-summary span{font-size:12px;color:#829087}.feed-toolbar{display:flex;justify-content:space-between;align-items:end;margin:34px 0 18px}.feed-toolbar h2{margin:0 0 5px;color:#20322e}.feed-toolbar p{margin:0;color:#829087}.work-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:22px}.work-card{min-width:0;overflow:hidden;background:#fff;border:1px solid #e1e9e2;border-radius:8px;transition:.2s}.work-card:hover{transform:translateY(-3px);box-shadow:0 12px 25px rgba(35,67,48,.08)}.cover-button{position:relative;display:block;width:100%;height:205px;padding:0;border:0;background:#eaf1eb;cursor:pointer;overflow:hidden}.cover-button img{width:100%;height:100%;object-fit:cover;display:block}.cover-fallback{display:grid;place-items:center;align-content:center;gap:8px;height:100%;color:#5f8069;font-size:30px;background:linear-gradient(135deg,#eaf3eb,#d8e8dc)}.cover-fallback span{font-size:14px}.visibility{position:absolute;top:12px;right:12px;padding:4px 8px;border-radius:4px;background:rgba(255,255,255,.88);color:#486451;font-size:11px}.work-body{padding:16px}.work-title{display:flex;justify-content:space-between;gap:8px;align-items:start}.work-title h3{margin:0;color:#304c3a;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.work-title span{flex:0 0 auto;color:#8b978f;font-size:11px}.description{height:42px;margin:10px 0;color:#748078;font-size:13px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.work-meta{display:flex;justify-content:space-between;color:#a0aba4;font-size:11px}.work-actions{display:flex;gap:2px;margin-top:12px;border-top:1px solid #eef2ef;padding-top:8px}.work-actions .ant-btn{padding-inline:6px;color:#6c7b72;font-size:12px}.community-empty{padding:56px 0}.community-empty p{color:#829087}@media(max-width:950px){.work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.community-hero h1{font-size:36px}}@media(max-width:650px){.community-hero{display:block}.hero-summary{margin-top:30px;gap:18px}.work-grid{grid-template-columns:1fr}.feed-toolbar{align-items:start;gap:10px}}
 </style>

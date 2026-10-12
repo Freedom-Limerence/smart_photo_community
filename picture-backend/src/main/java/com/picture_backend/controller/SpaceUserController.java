@@ -12,7 +12,10 @@ import com.picture_backend.manager.auth.model.SpaceUserPermissionConstant;
 import com.picture_backend.model.dto.spaceuser.SpaceUserAddRequest;
 import com.picture_backend.model.dto.spaceuser.SpaceUserEditRequest;
 import com.picture_backend.model.dto.spaceuser.SpaceUserQueryRequest;
+import com.picture_backend.model.enums.SpaceRoleEnum;
 import com.picture_backend.model.entity.SpaceUser;
+import com.picture_backend.model.entity.Space;
+import com.picture_backend.model.enums.SpaceTypeEnum;
 import com.picture_backend.model.entity.User;
 import com.picture_backend.model.vo.SpaceUserVO;
 import com.picture_backend.service.SpaceUserService;
@@ -49,6 +52,9 @@ public class SpaceUserController {
     @SaSpaceCheckPermission(value = SpaceUserPermissionConstant.SPACE_USER_MANAGE)
     public BaseResponse<Long> addSpaceUser(@RequestBody SpaceUserAddRequest spaceUserAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(spaceUserAddRequest == null, ErrorCode.PARAMS_ERROR);
+        Space targetSpace = spaceUserService.getSpaceById(spaceUserAddRequest.getSpaceId());
+        ThrowUtils.throwIf(targetSpace == null, ErrorCode.NOT_FOUND_ERROR, "空间不存在");
+        ThrowUtils.throwIf(SpaceTypeEnum.TEAM.getValue() != targetSpace.getSpaceType(), ErrorCode.PARAMS_ERROR, "只有团队空间可以添加成员");
         long id = spaceUserService.addSpaceUser(spaceUserAddRequest);
         return ResultUtils.success(id);
     }
@@ -67,6 +73,16 @@ public class SpaceUserController {
         // 判断是否存在
         SpaceUser oldSpaceUser = spaceUserService.getById(id);
         ThrowUtils.throwIf(oldSpaceUser == null, ErrorCode.NOT_FOUND_ERROR);
+        Space targetSpace = spaceUserService.getSpaceById(oldSpaceUser.getSpaceId());
+        ThrowUtils.throwIf(targetSpace != null && oldSpaceUser.getUserId().equals(targetSpace.getUserId()),
+                ErrorCode.OPERATION_ERROR, "不能移除空间创建者");
+        if (targetSpace != null && SpaceRoleEnum.ADMIN.getValue().equals(oldSpaceUser.getSpaceRole())) {
+            long adminCount = spaceUserService.lambdaQuery()
+                    .eq(SpaceUser::getSpaceId, oldSpaceUser.getSpaceId())
+                    .eq(SpaceUser::getSpaceRole, SpaceRoleEnum.ADMIN.getValue())
+                    .count();
+            ThrowUtils.throwIf(adminCount <= 1, ErrorCode.OPERATION_ERROR, "团队至少需要保留一名管理员");
+        }
         // 操作数据库
         boolean result = spaceUserService.removeById(id);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
@@ -123,6 +139,20 @@ public class SpaceUserController {
         long id = spaceUserEditRequest.getId();
         SpaceUser oldSpaceUser = spaceUserService.getById(id);
         ThrowUtils.throwIf(oldSpaceUser == null, ErrorCode.NOT_FOUND_ERROR);
+        Space targetSpace = spaceUserService.getSpaceById(oldSpaceUser.getSpaceId());
+        String requestedRole = spaceUserEditRequest.getSpaceRole();
+        if (targetSpace != null && oldSpaceUser.getUserId().equals(targetSpace.getUserId())
+                && requestedRole != null && !SpaceRoleEnum.ADMIN.getValue().equals(requestedRole)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "不能修改空间创建者的管理员角色");
+        }
+        if (targetSpace != null && SpaceRoleEnum.ADMIN.getValue().equals(oldSpaceUser.getSpaceRole())
+                && requestedRole != null && !SpaceRoleEnum.ADMIN.getValue().equals(requestedRole)) {
+            long adminCount = spaceUserService.lambdaQuery()
+                    .eq(SpaceUser::getSpaceId, oldSpaceUser.getSpaceId())
+                    .eq(SpaceUser::getSpaceRole, SpaceRoleEnum.ADMIN.getValue())
+                    .count();
+            ThrowUtils.throwIf(adminCount <= 1, ErrorCode.OPERATION_ERROR, "团队至少需要保留一名管理员");
+        }
         // 操作数据库
         boolean result = spaceUserService.updateById(spaceUser);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

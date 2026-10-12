@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.picture_backend.model.dto.spaceuser.SpaceUserAddRequest;
 import com.picture_backend.model.dto.spaceuser.SpaceUserQueryRequest;
 import com.picture_backend.model.entity.SpaceUser;
+import com.picture_backend.model.entity.Space;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.picture_backend.model.vo.SpaceUserVO;
 
@@ -17,6 +18,9 @@ import java.util.List;
  * @createDate 2025-01-02 20:07:15
  */
 public interface SpaceUserService extends IService<SpaceUser> {
+
+    /** 查询成员所属空间，供控制器执行空间类型和所有者保护校验。 */
+    Space getSpaceById(Long spaceId);
 
     /**
      * 创建空间成员

@@ -120,6 +120,26 @@ export async function userLogoutUsingPost(options?: { [key: string]: any }) {
   })
 }
 
+/** updateMyProfile POST /api/user/profile/update */
+export async function updateMyProfileUsingPost(body: any, options?: { [key: string]: any }) {
+  return request<API.BaseResponseBoolean_>('/api/user/profile/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
+  })
+}
+
+/** updateMyPassword POST /api/user/password/update */
+export async function updateMyPasswordUsingPost(body: any, options?: { [key: string]: any }) {
+  return request<API.BaseResponseBoolean_>('/api/user/password/update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
+  })
+}
+
 /** userRegister POST /api/user/register */
 export async function userRegisterUsingPost(
   body: API.UserRegisterRequest,

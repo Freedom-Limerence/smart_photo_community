@@ -50,6 +50,11 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     private SpaceService spaceService;
 
     @Override
+    public Space getSpaceById(Long spaceId) {
+        return spaceId == null ? null : spaceService.getById(spaceId);
+    }
+
+    @Override
     public long addSpaceUser(SpaceUserAddRequest spaceUserAddRequest) {
         // 参数校验
         ThrowUtils.throwIf(spaceUserAddRequest == null, ErrorCode.PARAMS_ERROR);

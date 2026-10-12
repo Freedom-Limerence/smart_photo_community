@@ -3,10 +3,10 @@ package com.picture_backend.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.picture_backend.model.dto.space.analyze.*;
 import com.picture_backend.model.vo.space.analyze.*;
-import com.yupi.picture_backend.model.dto.space.analyze.*;
+import com.picture_backend.model.dto.space.analyze.*;
 import com.picture_backend.model.entity.Space;
 import com.picture_backend.model.entity.User;
-import com.yupi.picture_backend.model.vo.space.analyze.*;
+import com.picture_backend.model.vo.space.analyze.*;
 
 import java.util.List;
 

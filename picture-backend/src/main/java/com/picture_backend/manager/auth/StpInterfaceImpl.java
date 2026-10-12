@@ -72,21 +72,19 @@ public class StpInterfaceImpl implements StpInterface {
         List<String> ADMIN_PERMISSIONS = spaceUserAuthManager.getPermissionsByRole(SpaceRoleEnum.ADMIN.getValue());
         // 获取上下文对象
         SpaceUserAuthContext authContext = getAuthContextByRequest();
-        // 如果所有字段都为空，表示查询公共图库，可以通过
-        if (isAllFieldsNull(authContext)) {
-            return ADMIN_PERMISSIONS;
-        }
         // 获取 userId
         User loginUser = (User) StpKit.SPACE.getSessionByLoginId(loginId).get(USER_LOGIN_STATE);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "用户未登录");
         }
-        Long userId = loginUser.getId();
-        // 优先从上下文中获取 SpaceUser 对象
-        SpaceUser spaceUser = authContext.getSpaceUser();
-        if (spaceUser != null) {
-            return spaceUserAuthManager.getPermissionsByRole(spaceUser.getSpaceRole());
+        // 如果所有字段都为空，表示明确的公共图库上下文。
+        if (isAllFieldsNull(authContext)) {
+            return ADMIN_PERMISSIONS;
         }
+        Long userId = loginUser.getId();
+        // 不信任请求体中的嵌套 spaceUser / space / picture 对象。权限只能由服务端按 id 查询，
+        // 否则客户端可以伪造 admin 角色绕过空间权限。
+        SpaceUser spaceUser = null;
         // 如果有 spaceUserId，必然是团队空间，通过数据库查询 SpaceUser 对象
         Long spaceUserId = authContext.getSpaceUserId();
         if (spaceUserId != null) {
@@ -102,18 +100,17 @@ public class StpInterfaceImpl implements StpInterface {
             if (loginSpaceUser == null) {
                 return new ArrayList<>();
             }
+            Space space = spaceService.getById(spaceUser.getSpaceId());
+            if (space != null && Objects.equals(space.getUserId(), userId)) {
+                return ADMIN_PERMISSIONS;
+            }
             // 这里会导致管理员在私有空间没有权限，可以再查一次库处理
             return spaceUserAuthManager.getPermissionsByRole(loginSpaceUser.getSpaceRole());
         }
-        // 如果没有 spaceUserId，尝试通过 spaceId 或 pictureId 获取 Space 对象并处理
+        // 图片权限必须以图片实际归属空间为准，不能让请求体中的 spaceId 覆盖 pictureId。
         Long spaceId = authContext.getSpaceId();
-        if (spaceId == null) {
-            // 如果没有 spaceId，通过 pictureId 获取 Picture 对象和 Space 对象
-            Long pictureId = authContext.getPictureId();
-            // 图片 id 也没有，则默认通过权限校验
-            if (pictureId == null) {
-                return ADMIN_PERMISSIONS;
-            }
+        Long pictureId = authContext.getPictureId();
+        if (pictureId != null) {
             Picture picture = pictureService.lambdaQuery()
                     .eq(Picture::getId, pictureId)
                     .select(Picture::getId, Picture::getSpaceId, Picture::getUserId)
@@ -121,16 +118,21 @@ public class StpInterfaceImpl implements StpInterface {
             if (picture == null) {
                 throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "未找到图片信息");
             }
-            spaceId = picture.getSpaceId();
-            // 公共图库，仅本人或管理员可操作
-            if (spaceId == null) {
-                if (picture.getUserId().equals(userId) || userService.isAdmin(loginUser)) {
-                    return ADMIN_PERMISSIONS;
-                } else {
-                    // 不是自己的图片，仅可查看
-                    return Collections.singletonList(SpaceUserPermissionConstant.PICTURE_VIEW);
-                }
+            if (spaceId != null && !Objects.equals(spaceId, picture.getSpaceId())) {
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "图片与空间不匹配");
             }
+            spaceId = picture.getSpaceId();
+            // 公共图库，仅本人或管理员可编辑；其他用户只允许查看。
+            if (spaceId == null) {
+                if (Objects.equals(picture.getUserId(), userId) || userService.isAdmin(loginUser)) {
+                    return ADMIN_PERMISSIONS;
+                }
+                return Collections.singletonList(SpaceUserPermissionConstant.PICTURE_VIEW);
+            }
+        }
+        if (spaceId == null) {
+            // 没有可解析的空间上下文时，仅允许明确的公共接口继续执行。
+            return ADMIN_PERMISSIONS;
         }
         // 获取 Space 对象
         Space space = spaceService.getById(spaceId);
@@ -174,7 +176,7 @@ public class StpInterfaceImpl implements StpInterface {
         String contentType = request.getHeader(Header.CONTENT_TYPE.getValue());
         SpaceUserAuthContext authRequest;
         // 获取请求参数
-        if (ContentType.JSON.getValue().equals(contentType)) {
+        if (contentType != null && contentType.toLowerCase(Locale.ROOT).startsWith(ContentType.JSON.getValue())) {
             String body = ServletUtil.getBody(request);
             authRequest = JSONUtil.toBean(body, SpaceUserAuthContext.class);
         } else {

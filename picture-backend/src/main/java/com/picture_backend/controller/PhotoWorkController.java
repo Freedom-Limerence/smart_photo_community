@@ -7,7 +7,7 @@ import com.picture_backend.model.dto.work.FollowRequest;
 import com.picture_backend.model.dto.work.PhotoWorkRequest;
 import com.picture_backend.model.dto.work.WorkCommentRequest;
 import com.picture_backend.model.dto.work.WorkInteractionRequest;
-import com.yupi.picture_backend.model.dto.work.*;
+import com.picture_backend.model.dto.work.*;
 import com.picture_backend.model.entity.PhotoWork;
 import com.picture_backend.model.entity.User;
 import com.picture_backend.model.entity.WorkComment;
