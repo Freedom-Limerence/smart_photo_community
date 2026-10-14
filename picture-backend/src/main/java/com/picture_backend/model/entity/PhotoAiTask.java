@@ -13,6 +13,8 @@ import java.util.Date;
 public class PhotoAiTask implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
+    /** 任务发起人，用于"我的任务"列表（迁移脚本 V2026_10_15 新增） */
+    private Long userId;
     private Long pictureId;
     private Long workId;
     private String taskType;

@@ -1,9 +1,10 @@
 export default class PictureEditWebSocket {
-  private pictureId: number
+  // 雪花 ID 以字符串流转，避免 Number 精度丢失导致协同编辑定位到错误的图片
+  private pictureId: string | number
   private socket: WebSocket | null
   private eventHandlers: any
 
-  constructor(pictureId: number) {
+  constructor(pictureId: string | number) {
     this.pictureId = pictureId // 当前编辑的图片 ID
     this.socket = null // WebSocket 实例
     this.eventHandlers = {} // 自定义事件处理器

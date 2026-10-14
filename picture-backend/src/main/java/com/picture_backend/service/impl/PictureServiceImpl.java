@@ -21,6 +21,7 @@ import com.picture_backend.manager.upload.FilePictureUpload;
 import com.picture_backend.manager.upload.PictureUploadTemplate;
 import com.picture_backend.manager.upload.UrlPictureUpload;
 import com.picture_backend.mapper.PictureMapper;
+import com.picture_backend.mapper.PhotoAssetMetaMapper;
 import com.picture_backend.mapper.PhotoAssetProcessMapper;
 import com.picture_backend.mapper.SpaceUserMapper;
 import com.picture_backend.manager.auth.model.SpaceUserPermissionConstant;
@@ -28,6 +29,7 @@ import com.picture_backend.model.dto.file.UploadPictureResult;
 import com.picture_backend.model.dto.picture.*;
 import com.picture_backend.model.dto.picture.*;
 import com.picture_backend.model.entity.Picture;
+import com.picture_backend.model.entity.PhotoAssetMeta;
 import com.picture_backend.model.entity.PhotoAssetProcess;
 import com.picture_backend.model.entity.Space;
 import com.picture_backend.model.entity.User;
@@ -98,10 +100,52 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
     private PhotoAssetProcessMapper photoAssetProcessMapper;
 
     @Resource
+    private PhotoAssetMetaMapper photoAssetMetaMapper;
+
+    @Resource
     private SpaceUserMapper spaceUserMapper;
 
     @Resource
     private SpaceUserAuthManager spaceUserAuthManager;
+
+    /**
+     * 保存上传阶段解析到的 EXIF 到摄影元数据表；人工已确认的标签字段不受影响。
+     */
+    private void saveExifSnapshot(Long pictureId, UploadPictureResult uploadPictureResult) {
+        if (pictureId == null || uploadPictureResult == null || StrUtil.isBlank(uploadPictureResult.getExifJson())) {
+            return;
+        }
+        PhotoAssetMeta meta = photoAssetMetaMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<PhotoAssetMeta>()
+                .eq(PhotoAssetMeta::getPictureId, pictureId));
+        boolean insert = meta == null;
+        if (insert) {
+            meta = new PhotoAssetMeta();
+            meta.setPictureId(pictureId);
+            meta.setConfirmed(0);
+            meta.setVersion(1);
+        }
+        meta.setExifJson(uploadPictureResult.getExifJson());
+        if (StrUtil.isNotBlank(uploadPictureResult.getCameraMake())) {
+            meta.setCameraMake(uploadPictureResult.getCameraMake());
+        }
+        if (StrUtil.isNotBlank(uploadPictureResult.getCameraModel())) {
+            meta.setCameraModel(uploadPictureResult.getCameraModel());
+        }
+        if (StrUtil.isNotBlank(uploadPictureResult.getLensModel())) {
+            meta.setLensModel(uploadPictureResult.getLensModel());
+        }
+        if (uploadPictureResult.getShootTime() != null) {
+            meta.setShootTime(uploadPictureResult.getShootTime());
+        }
+        if (StrUtil.isNotBlank(uploadPictureResult.getOrientation())) {
+            meta.setOrientation(uploadPictureResult.getOrientation());
+        }
+        if (insert) {
+            photoAssetMetaMapper.insert(meta);
+        } else {
+            photoAssetMetaMapper.updateById(meta);
+        }
+    }
 
     @Override
     public void validPicture(Picture picture) {
@@ -286,6 +330,8 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             // 插入数据
             boolean result = this.saveOrUpdate(picture);
             ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "图片上传失败，数据库操作失败");
+            // 落库上传阶段解析到的 EXIF（对象存储压缩后元数据会丢失，此处是唯一可靠时机）
+            saveExifSnapshot(picture.getId(), uploadPictureResult);
             if (finalSpaceId != null) {
                 // 更新空间的使用额度
                 long oldSize = finalOldPicture == null || finalOldPicture.getPicSize() == null ? 0L : finalOldPicture.getPicSize();

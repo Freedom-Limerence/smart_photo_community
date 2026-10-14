@@ -11,11 +11,13 @@ import com.picture_backend.exception.BusinessException;
 import com.picture_backend.exception.ErrorCode;
 import com.picture_backend.mapper.ExhibitionMapper;
 import com.picture_backend.mapper.ExhibitionPictureMapper;
+import com.picture_backend.mapper.ExhibitionWorkMapper;
 import com.picture_backend.model.dto.exhibition.ExhibitionAddRequest;
 import com.picture_backend.model.dto.exhibition.ExhibitionPictureRequest;
 import com.picture_backend.model.dto.exhibition.ExhibitionQueryRequest;
 import com.picture_backend.model.entity.Exhibition;
 import com.picture_backend.model.entity.ExhibitionPicture;
+import com.picture_backend.model.entity.ExhibitionWork;
 import com.picture_backend.model.entity.User;
 import com.picture_backend.model.vo.ExhibitionVO;
 import com.picture_backend.service.ExhibitionService;
@@ -41,6 +43,9 @@ public class ExhibitionServiceImpl extends ServiceImpl<ExhibitionMapper, Exhibit
 
     @Resource
     private ExhibitionPictureMapper exhibitionPictureMapper;
+
+    @Resource
+    private ExhibitionWorkMapper exhibitionWorkMapper;
 
     @Resource
     private PictureService pictureService;
@@ -103,10 +108,13 @@ public class ExhibitionServiceImpl extends ServiceImpl<ExhibitionMapper, Exhibit
                 && !UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-        // 发布前至少需要一件展品
+        // 发布前至少需要一件展品：原有图片展品或摄影作品展品均可。
+        // 修复：原实现只统计 exhibition_picture，导致仅添加摄影作品的专题无法发布（与实施文档 8.2 不一致）。
         if (status == 1) {
             List<ExhibitionPicture> pictureList = this.listPictures(id);
-            if (CollUtil.isEmpty(pictureList)) {
+            Long workCount = exhibitionWorkMapper.selectCount(
+                    new QueryWrapper<ExhibitionWork>().eq("exhibitionId", id));
+            if (CollUtil.isEmpty(pictureList) && (workCount == null || workCount == 0L)) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "发布前请至少添加一件展品");
             }
         }
@@ -126,8 +134,9 @@ public class ExhibitionServiceImpl extends ServiceImpl<ExhibitionMapper, Exhibit
         if (exhibitionQueryRequest == null) {
             return queryWrapper;
         }
-        User loginUser = userService.getLoginUser(request);
-        boolean isAdmin = UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole());
+        // 游客可浏览已发布专题：未登录时按非管理员处理，仅返回 status=1 的专题
+        User loginUser = userService.getLoginUserPermitNull(request);
+        boolean isAdmin = loginUser != null && UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole());
         Long id = exhibitionQueryRequest.getId();
         String searchText = exhibitionQueryRequest.getSearchText();
         String theme = exhibitionQueryRequest.getTheme();

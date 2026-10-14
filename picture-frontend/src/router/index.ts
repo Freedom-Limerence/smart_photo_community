@@ -16,7 +16,9 @@ import SpaceAnalyzePage from '@/pages/SpaceAnalyzePage.vue'
 import SpaceUserManagePage from '@/pages/admin/SpaceUserManagePage.vue'
 import UserExchangeVipPage from '@/pages/UserExchangeVipPage.vue'
 import PhotoCommunityPage from '@/pages/PhotoCommunityPage.vue'
-import AiWorkbenchPage from '@/pages/AiWorkbenchPage.vue'
+import AiCatalogPage from '@/pages/ai/AiCatalogPage.vue'
+import AiSearchPage from '@/pages/ai/AiSearchPage.vue'
+import AiSimilarPage from '@/pages/ai/AiSimilarPage.vue'
 import AccessCenterPage from '@/pages/AccessCenterPage.vue'
 import CreateWorkPage from '@/pages/CreateWorkPage.vue'
 import ExhibitionPage from '@/pages/ExhibitionPage.vue'
@@ -34,7 +36,11 @@ const router = createRouter({
       component: HomePage,
     },
     { path: '/community', name: '摄影社区', component: PhotoCommunityPage },
-    { path: '/ai-workbench', name: 'AI 摄影工作台', component: AiWorkbenchPage },
+    // 迭代 1（阶段 2 收口）：AI 工作台拆分为「编目」「检索」「相似选片」三个页面
+    { path: '/ai-workbench', redirect: '/ai/catalog' },
+    { path: '/ai/catalog', name: 'AI 摄影编目', component: AiCatalogPage },
+    { path: '/ai/search', name: 'AI 语义检索', component: AiSearchPage },
+    { path: '/ai/similar', name: 'AI 相似选片', component: AiSimilarPage },
     { path: '/access-center', name: '访问控制中心', component: AccessCenterPage },
     { path: '/community/create', name: '创建摄影作品', component: CreateWorkPage },
     { path: '/exhibitions', name: '专题展览', component: ExhibitionPage },

@@ -52,4 +52,34 @@ public class UploadPictureResult {
      * 图片主色调
      */
     private String picColor;
+
+    /**
+     * EXIF 原始 JSON（在本地临时文件阶段解析，COS 压缩后会丢失）
+     */
+    private String exifJson;
+
+    /**
+     * 相机品牌
+     */
+    private String cameraMake;
+
+    /**
+     * 相机型号
+     */
+    private String cameraModel;
+
+    /**
+     * 镜头型号
+     */
+    private String lensModel;
+
+    /**
+     * 拍摄时间
+     */
+    private java.util.Date shootTime;
+
+    /**
+     * 拍摄方向（LANDSCAPE / PORTRAIT）
+     */
+    private String orientation;
 }

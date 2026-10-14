@@ -158,6 +158,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return currentUser;
     }
 
+    @Override
+    public User getLoginUserPermitNull(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null || currentUser.getId() == null) {
+            return null;
+        }
+        return this.getById(currentUser.getId());
+    }
+
     /**
      * 获取脱敏类的用户信息
      *

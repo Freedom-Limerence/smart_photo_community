@@ -21,6 +21,7 @@ import com.picture_backend.model.entity.User;
 import com.picture_backend.model.entity.ExhibitionWork;
 import com.picture_backend.model.vo.ExhibitionVO;
 import com.picture_backend.service.ExhibitionService;
+import com.picture_backend.service.PhotoWorkService;
 import com.picture_backend.service.UserService;
 import com.picture_backend.service.ExhibitionWorkService;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,6 +47,9 @@ public class ExhibitionController {
 
     @Resource
     private ExhibitionWorkService exhibitionWorkService;
+
+    @Resource
+    private PhotoWorkService photoWorkService;
 
     // region 管理端
 
@@ -184,9 +189,26 @@ public class ExhibitionController {
     public BaseResponse<List<ExhibitionWork>> listWorks(@RequestParam Long exhibitionId, HttpServletRequest request) {
         Exhibition exhibition = exhibitionService.getById(exhibitionId);
         ThrowUtils.throwIf(exhibition == null, ErrorCode.NOT_FOUND_ERROR);
-        User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(exhibition.getStatus() != 1 && !UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole()), ErrorCode.NO_AUTH_ERROR, "该展览未发布");
-        return ResultUtils.success(exhibitionWorkService.listWorks(exhibitionId));
+        // 游客也可浏览已发布专题；未登录时只展示公开且已发布的作品
+        User loginUser = userService.getLoginUserPermitNull(request);
+        boolean isAdmin = loginUser != null && UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole());
+        ThrowUtils.throwIf(exhibition.getStatus() != 1 && !isAdmin, ErrorCode.NO_AUTH_ERROR, "该展览未发布");
+        List<ExhibitionWork> workList = exhibitionWorkService.listWorks(exhibitionId);
+        // 修复：普通用户/游客浏览专题时重新校验作品可见性，已下架或无权查看的作品不再展示（实施文档 8.2）。
+        if (isAdmin) {
+            return ResultUtils.success(workList);
+        }
+        Long viewerId = loginUser == null ? null : loginUser.getId();
+        List<ExhibitionWork> visibleList = new ArrayList<>();
+        for (ExhibitionWork relation : workList) {
+            try {
+                photoWorkService.getVisible(relation.getWorkId(), viewerId);
+                visibleList.add(relation);
+            } catch (BusinessException ignored) {
+                // 作品已下架或当前用户无权访问，跳过
+            }
+        }
+        return ResultUtils.success(visibleList);
     }
 
     // region 用户端
@@ -216,8 +238,9 @@ public class ExhibitionController {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         Exhibition exhibition = exhibitionService.getById(id);
         ThrowUtils.throwIf(exhibition == null, ErrorCode.NOT_FOUND_ERROR);
-        User loginUser = userService.getLoginUser(request);
-        boolean isAdmin = UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole());
+        // 游客可浏览已发布专题详情
+        User loginUser = userService.getLoginUserPermitNull(request);
+        boolean isAdmin = loginUser != null && UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole());
         ThrowUtils.throwIf(!isAdmin && exhibition.getStatus() != 1, ErrorCode.NO_AUTH_ERROR, "该展览未发布");
         // 浏览量 +1（草稿/下线状态不计）
         if (exhibition.getStatus() == 1) {

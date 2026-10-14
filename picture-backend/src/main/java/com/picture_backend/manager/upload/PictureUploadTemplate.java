@@ -14,6 +14,7 @@ import com.picture_backend.exception.BusinessException;
 import com.picture_backend.exception.ErrorCode;
 import com.picture_backend.manager.CosManager;
 import com.picture_backend.model.dto.file.UploadPictureResult;
+import com.picture_backend.utils.ExifUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Resource;
@@ -56,6 +57,9 @@ public abstract class PictureUploadTemplate {
             file = File.createTempFile(uploadPath, null);
             // 处理文件来源
             processFile(inputSource, file);
+            // 3.1 在对象存储压缩之前解析 EXIF：COS 数据万象压缩/生成缩略图会剥离元数据，
+            //     只有此刻的本地原始文件才保留真实拍摄信息。
+            ExifUtils.ExifInfo exifInfo = ExifUtils.parse(file);
             // 4. 上传图片到对象存储
             PutObjectResult putObjectResult = cosManager.putPictureObject(uploadPath, file);
             // 5. 获取图片信息对象，封装返回结果
@@ -73,9 +77,13 @@ public abstract class PictureUploadTemplate {
                     thumbnailCiObject = objectList.get(1);
                 }
                 // 封装压缩图的返回结果
-                return buildResult(originalFilename, compressedCiObject, thumbnailCiObject, imageInfo);
+                UploadPictureResult compressedResult = buildResult(originalFilename, compressedCiObject, thumbnailCiObject, imageInfo);
+                applyExif(compressedResult, exifInfo);
+                return compressedResult;
             }
-            return buildResult(originalFilename, file, uploadPath, imageInfo);
+            UploadPictureResult originalResult = buildResult(originalFilename, file, uploadPath, imageInfo);
+            applyExif(originalResult, exifInfo);
+            return originalResult;
         } catch (Exception e) {
             log.error("图片上传到对象存储失败", e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");
@@ -84,6 +92,21 @@ public abstract class PictureUploadTemplate {
             this.deleteTempFile(file);
         }
 
+    }
+
+    /**
+     * 把解析到的 EXIF 回填到上传结果
+     */
+    private void applyExif(UploadPictureResult result, ExifUtils.ExifInfo exifInfo) {
+        if (result == null || exifInfo == null || !exifInfo.isAvailable()) {
+            return;
+        }
+        result.setExifJson(exifInfo.toJson());
+        result.setCameraMake(exifInfo.getMake());
+        result.setCameraModel(exifInfo.getModel());
+        result.setLensModel(exifInfo.getLensModel());
+        result.setShootTime(exifInfo.getShootTime());
+        result.setOrientation(exifInfo.getOrientation());
     }
 
     /**

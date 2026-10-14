@@ -45,7 +45,8 @@ import { message } from 'ant-design-vue'
 
 interface Props {
   pictureList: API.PictureVO[]
-  spaceId: number
+  // 雪花 ID 以字符串流转，避免超出 JS 安全整数范围导致精度丢失
+  spaceId: number | string
   onSuccess: () => void
 }
 

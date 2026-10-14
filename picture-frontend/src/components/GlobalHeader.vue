@@ -26,9 +26,9 @@ import { useRouter } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
 import { userLogoutUsingPost } from '@/api/userController.ts'
 const router=useRouter();const loginUserStore=useLoginUserStore();const current=ref<string[]>([]);const isLoggedIn=computed(()=>Boolean(loginUserStore.loginUser.id));const avatarText=computed(()=> (loginUserStore.loginUser.userName||'摄').slice(0,1))
-const originItems:MenuProps['items']=[{key:'/',icon:()=>h(AppstoreOutlined),label:'发现'},{key:'/community',icon:()=>h(TeamOutlined),label:'作品社区'},{key:'/exhibitions',icon:()=>h(AppstoreOutlined),label:'专题展览'},{key:'/ai-workbench',icon:()=>h(RobotOutlined),label:'AI 工具'}]
+const originItems:MenuProps['items']=[{key:'/',icon:()=>h(AppstoreOutlined),label:'发现'},{key:'/community',icon:()=>h(TeamOutlined),label:'作品社区'},{key:'/exhibitions',icon:()=>h(AppstoreOutlined),label:'专题展览'},{key:'/ai/catalog',icon:()=>h(RobotOutlined),label:'AI 工具'}]
 const items=computed(()=>{const visible=[...(originItems||[])];if(loginUserStore.loginUser.userRole==='admin')visible.push({key:'/admin/pictureManage',label:'管理'});return visible})
-router.afterEach(to=>{current.value=[to.path==='/'?'/':`/${to.path.split('/')[1]}`]});function doMenuClick({key}:{key:string}){if(key?.startsWith('/'))router.push(key)}function go(path:string){router.push(path)}
+router.afterEach(to=>{const seg='/'+to.path.split('/')[1];current.value=[to.path==='/'?'/':(seg==='/ai'?'/ai/catalog':seg)]});function doMenuClick({key}:{key:string}){if(key?.startsWith('/'))router.push(key)}function go(path:string){router.push(path)}
 async function doLogout(){const res=await userLogoutUsingPost();if(res.data.code===0){loginUserStore.setLoginUser({userName:'未登录'});message.success('已退出登录');await router.push('/user/login')}else message.error(`退出登录失败，${res.data.message}`)}
 </script>
 <style scoped>
