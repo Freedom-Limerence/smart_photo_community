@@ -17,7 +17,7 @@ import com.picture_backend.model.dto.file.UploadPictureResult;
 import com.picture_backend.utils.ExifUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.io.File;
 import java.util.Date;
 import java.util.List;

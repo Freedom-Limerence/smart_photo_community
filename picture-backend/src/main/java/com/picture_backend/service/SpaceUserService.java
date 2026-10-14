@@ -9,7 +9,7 @@ import com.picture_backend.model.entity.Space;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.picture_backend.model.vo.SpaceUserVO;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**

@@ -23,7 +23,7 @@ import com.picture_backend.service.SpaceService;
 import com.picture_backend.service.UserService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

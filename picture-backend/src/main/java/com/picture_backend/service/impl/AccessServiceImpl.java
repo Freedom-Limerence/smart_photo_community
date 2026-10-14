@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.dao.DuplicateKeyException;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;

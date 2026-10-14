@@ -8,17 +8,32 @@
     <name>picture-backend</name>
     <description>smart photo community backend</description>
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot.version>2.7.6</spring-boot.version>
-        <!-- JDK 21 需要使用支持新版 javac 的 Lombok -->
+        <!-- Spring Boot 3.5.8：与 spring-ai-alibaba 1.1.2.1 要求的 Boot 版本精确对齐 -->
+        <spring-boot.version>3.5.8</spring-boot.version>
+        <mybatis-plus.version>3.5.9</mybatis-plus.version>
+        <sa-token.version>1.39.0</sa-token.version>
+        <spring-ai-alibaba.version>1.1.2.1</spring-ai-alibaba.version>
+        <!-- JDK 17+ 需要使用支持新版 javac 的 Lombok -->
         <lombok.version>1.18.36</lombok.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- 参数校验（Boot 3 起需显式引入提供者） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- AI 能力：Spring AI Alibaba（DashScope / 百炼），提供 ChatClient 与流式对话 -->
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
+            <version>${spring-ai-alibaba.version}</version>
         </dependency>
         <!-- 切面编程 -->
         <dependency>
@@ -28,8 +43,8 @@
         <!-- 数据库操作：https://mp.baomidou.com/ -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>3.5.9</version>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
         </dependency>
         <!-- MyBatis Plus 分页插件 -->
         <dependency>
@@ -63,28 +78,22 @@
             <artifactId>disruptor</artifactId>
             <version>3.4.2</version>
         </dependency>
-        <!-- Sa-Token 权限认证 -->
+        <!-- Sa-Token 权限认证（Boot 3 专用 starter） -->
         <dependency>
             <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-spring-boot-starter</artifactId>
-            <version>1.39.0</version>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+            <version>${sa-token.version}</version>
         </dependency>
         <!-- Sa-Token 整合 Redis （使用 jackson 序列化方式） -->
         <dependency>
             <groupId>cn.dev33</groupId>
             <artifactId>sa-token-redis-jackson</artifactId>
-            <version>1.39.0</version>
+            <version>${sa-token.version}</version>
         </dependency>
         <!-- 提供Redis连接池 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
-        </dependency>
-        <!-- 分库分表 -->
-        <dependency>
-            <groupId>org.apache.shardingsphere</groupId>
-            <artifactId>shardingsphere-jdbc-core-spring-boot-starter</artifactId>
-            <version>5.2.0</version>
         </dependency>
         <!-- HTML 解析：https://jsoup.org/ -->
         <dependency>
@@ -104,11 +113,12 @@
             <artifactId>hutool-all</artifactId>
             <version>5.8.26</version>
         </dependency>
-        <!-- 接口文档：https://doc.xiaominfo.com/docs/quick-start#spring-boot-2-->
+        <!-- 接口文档：springdoc-openapi（knife4j 4.5.0 依赖的 springdoc 2.3.0 与 Spring Framework 6.2 不兼容，改用官方 UI）
+             访问地址：http://127.0.0.1:8123/api/swagger-ui/index.html -->
         <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
-            <version>4.4.0</version>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.17</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>
@@ -132,9 +142,15 @@
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-bom</artifactId>
-                <version>3.5.9</version>
+                <version>${mybatis-plus.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- knife4j 4.5.0 传递 springdoc 2.3.0，与 Spring Framework 6.2 不兼容，统一钉到 2.8.x -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>2.8.17</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
@@ -151,11 +167,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <release>17</release>
                     <encoding>UTF-8</encoding>
+                    <parameters>true</parameters>
                 </configuration>
             </plugin>
             <plugin>

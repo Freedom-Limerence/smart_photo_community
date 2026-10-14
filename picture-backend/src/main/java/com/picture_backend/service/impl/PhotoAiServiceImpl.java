@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -481,6 +481,10 @@ public class PhotoAiServiceImpl extends ServiceImpl<PhotoAssetMetaMapper, PhotoA
             item.put("name", picture.getName());
             item.put("thumbnailUrl", picture.getThumbnailUrl());
             item.put("url", picture.getUrl());
+            item.put("picColor", picture.getPicColor());
+            item.put("picWidth", picture.getPicWidth());
+            item.put("picHeight", picture.getPicHeight());
+            item.put("createTime", picture.getCreateTime());
             item.put("score", matchedFields.size() * 10 + matchedTags.size() * 5);
             item.put("matchedFields", matchedFields);
             item.put("matchedTags", matchedTags);

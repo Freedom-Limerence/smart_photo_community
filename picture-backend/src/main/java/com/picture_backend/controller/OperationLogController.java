@@ -14,7 +14,7 @@ import com.picture_backend.model.entity.OperationLog;
 import com.picture_backend.service.OperationLogService;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 操作日志接口（仅管理员）

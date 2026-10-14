@@ -13,12 +13,12 @@ import com.picture_backend.service.AccessService;
 import com.picture_backend.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import org.springframework.util.StreamUtils;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import com.qcloud.cos.model.COSObject;
 
 @RestController

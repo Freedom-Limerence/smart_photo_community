@@ -1,0 +1,682 @@
+{
+  "timestamp": "2026-10-14T22:46:10",
+  "base": "http://127.0.0.1:8123/api",
+  "total": 92,
+  "pass": 75,
+  "fail": 17,
+  "accounts": {
+    "A": "e2e_a_1791989164@test.com",
+    "B": "e2e_b_1791989164@test.com",
+    "C": "e2e_c_1791989164@test.com",
+    "ADMIN": "e2e_admin_1791989164@test.com"
+  },
+  "context": {
+    "quotaBefore": 0,
+    "picA": "2110381634709237761",
+    "picATask": "494a795e3747421383ea0a3327f7eb43",
+    "picAUrl": "https://wzx-1428719669.cos.ap-beijing.myqcloud.com/public/2110381631152467970/2026-10-14_Xw5baXSB8AHBqh5L.webp",
+    "inviteCode": "LVBWCKUZ4Y",
+    "CId": "2110381631668367361",
+    "picAThumb": "https://wzx-1428719669.cos.ap-beijing.myqcloud.com/public/2110381631152467970/2026-10-14_Xw5baXSB8AHBqh5L_thumbnail.png",
+    "recordId": "1",
+    "exhId": "2110381653445193730",
+    "inviteId": "1",
+    "aiTaskId": "1",
+    "BId": "2110381631471235073",
+    "picPrivate": "2110381639729819650",
+    "token": "8655e292171442bdab5123ddc5f05b81",
+    "AId": "2110381631152467970",
+    "collId": "2110381654795759618",
+    "privateSpaceId": "2110381632448507906",
+    "teamSpaceId": "2110381632515616769",
+    "picUrlUpload": "2110381643454361601",
+    "workId": "",
+    "picTeam": "2110381637318094849"
+  },
+  "results": [
+    {
+      "name": "register A",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "login A",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "register B",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "login B",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "register C",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "login C",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "register ADMIN",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "login ADMIN (role=admin)",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "未登录访问 /user/get/login",
+      "expect": "fail",
+      "code": "40100",
+      "pass": true,
+      "message": "未登录"
+    },
+    {
+      "name": "profile/update A",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "space/add 私有空间 A",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "space/add 团队空间 A",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "picture/upload 上传到公共图库",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "上传原图 URL 可匿名访问(HTTP 200)",
+      "expect": "ok",
+      "code": "EXC",
+      "pass": false,
+      "message": "响应状态代码未指示成功: 404 ()。"
+    },
+    {
+      "name": "picture/upload/status 查询处理状态",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "picture/upload 上传到团队空间(owner)",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "picture/upload 上传到私有空间(owner)",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "picture/upload/url 通过 URL 上传",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "picture/get/vo 自己的图片",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "picture/list/page/vo 公共图库",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "admin picture/review 审核通过",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "审核后公共图库可见自己的图片",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "picture/update 修改名称(owner)",
+      "expect": "ok",
+      "code": "40101",
+      "pass": false,
+      "message": "无权限"
+    },
+    {
+      "name": "越权: B 修改 A 的图片",
+      "expect": "fail",
+      "code": "40101",
+      "pass": true,
+      "message": "无权限"
+    },
+    {
+      "name": "越权: B 删除 A 的图片",
+      "expect": "fail",
+      "code": "40101",
+      "pass": true,
+      "message": "无此权限：picture:delete"
+    },
+    {
+      "name": "space/get/vo 团队空间",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "space/update 团队空间(owner)",
+      "expect": "ok",
+      "code": "40101",
+      "pass": false,
+      "message": "无权限"
+    },
+    {
+      "name": "spaceUser/add B 为 viewer",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "spaceUser/list 团队成员",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "spaceUser/edit B 升级为 editor",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "viewer 上传团队图片应被拒绝",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "越权: B 修改 A 的团队空间名",
+      "expect": "fail",
+      "code": "40101",
+      "pass": true,
+      "message": "无权限"
+    },
+    {
+      "name": "越权: C 删除 A 的团队空间",
+      "expect": "fail",
+      "code": "40101",
+      "pass": true,
+      "message": "无权限"
+    },
+    {
+      "name": "space/analyze/usage(owner)",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "space/list/page/vo 我的空间",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "access/quota/today",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "invite/create (viewer)",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "invite/create 非法角色 admin 应拒绝",
+      "expect": "fail",
+      "code": "40000",
+      "pass": true,
+      "message": "邀请码角色只能是 viewer 或 editor"
+    },
+    {
+      "name": "invite/list",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "invite/redeem C 兑换邀请码",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "invite/redeem 重复兑换幂等",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "invite/revoke 撤销邀请码",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "download/authorize B 下载公开图",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "download/authorize 同 requestId 幂等",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "download/authorize 作者本人下载不扣配额",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "download/file 令牌换流",
+      "expect": "ok",
+      "code": "200",
+      "pass": true,
+      "message": "bytes=4512"
+    },
+    {
+      "name": "download/records 下载审计",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "越权: C 下载 A 私有空间的图片",
+      "expect": "fail",
+      "code": "40101",
+      "pass": true,
+      "message": "没有团队访问权限"
+    },
+    {
+      "name": "ai/catalog 生成编目",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "ai/meta 查询元数据",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "ai/task/get 任务详情",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "ai/meta/confirm 人工确认",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "重新编目不覆盖人工确认字段",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "ai/meta 人工字段仍保留",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "ai/search 关键词检索",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "ai/search/semantic 语义检索",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "ai/search/rebuild-index 重建索引",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "ai/task/exif EXIF 任务",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "越权: B 对 A 的图片做编目",
+      "expect": "fail",
+      "code": "40101",
+      "pass": true,
+      "message": "只能处理自己的图片"
+    },
+    {
+      "name": "work/save 创建作品(公开)",
+      "expect": "ok",
+      "code": "40000",
+      "pass": false,
+      "message": "下载策略不合法"
+    },
+    {
+      "name": "work/publish 发布作品",
+      "expect": "ok",
+      "code": "EXC",
+      "pass": false,
+      "message": "响应状态代码未指示成功: 400 ()。"
+    },
+    {
+      "name": "work/get/vo B 查看作品",
+      "expect": "ok",
+      "code": "EXC",
+      "pass": false,
+      "message": "响应状态代码未指示成功: 400 ()。"
+    },
+    {
+      "name": "work/page 公开作品流",
+      "expect": "ok",
+      "code": "0",
+      "pass": false,
+      "message": "ok | assertion failed"
+    },
+    {
+      "name": "越权: B 发布 A 的作品",
+      "expect": "fail",
+      "code": "EXC",
+      "pass": true,
+      "message": "响应状态代码未指示成功: 400 ()。"
+    },
+    {
+      "name": "work/like B 点赞",
+      "expect": "ok",
+      "code": "40400",
+      "pass": false,
+      "message": "请求数据不存在"
+    },
+    {
+      "name": "work/like 重复点赞幂等(计数=1)",
+      "expect": "ok",
+      "code": "40400",
+      "pass": false,
+      "message": "请求数据不存在"
+    },
+    {
+      "name": "work/comment B 评论",
+      "expect": "ok",
+      "code": "40400",
+      "pass": false,
+      "message": "请求数据不存在"
+    },
+    {
+      "name": "work/comments 评论列表",
+      "expect": "ok",
+      "code": "EXC",
+      "pass": false,
+      "message": "响应状态代码未指示成功: 400 ()。"
+    },
+    {
+      "name": "work/favorite B 收藏",
+      "expect": "ok",
+      "code": "40400",
+      "pass": false,
+      "message": "请求数据不存在"
+    },
+    {
+      "name": "work/follow B 关注 A",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "work/unlike 取消点赞",
+      "expect": "ok",
+      "code": "40400",
+      "pass": false,
+      "message": "请求数据不存在"
+    },
+    {
+      "name": "work/unfavorite 取消收藏",
+      "expect": "ok",
+      "code": "40400",
+      "pass": false,
+      "message": "请求数据不存在"
+    },
+    {
+      "name": "work/unfollow 取消关注",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "越权: A 创建展览(非管理员)",
+      "expect": "fail",
+      "code": "40101",
+      "pass": true,
+      "message": "无权限"
+    },
+    {
+      "name": "exhibition/add 管理员建展",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "exhibition/work/add 加入已发布作品",
+      "expect": "ok",
+      "code": "50001",
+      "pass": false,
+      "message": "只能添加已发布作品"
+    },
+    {
+      "name": "exhibition/work/list 展品列表",
+      "expect": "ok",
+      "code": "0",
+      "pass": false,
+      "message": "ok | assertion failed"
+    },
+    {
+      "name": "exhibition/publish 仅作品发布(预期受老展品门禁影响)",
+      "expect": "ok",
+      "code": "50001",
+      "pass": false,
+      "message": "发布前请至少添加一件展品"
+    },
+    {
+      "name": "exhibition/picture/add 加入图片展品",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "exhibition/publish 发布专题",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "exhibition/list/page 公开列表",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "exhibition/get/vo 详情",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "exhibition/work/remove 移除展品",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "exhibition/offline 下架专题",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "picture/tag_category 标签分类",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "history/record 记录浏览",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "history/list/my 我的浏览",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "collection/add 创建图集",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "collection/list/my 我的图集",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "user/list/page/vo 管理员用户列表",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "log/list/page 操作日志(admin)",
+      "expect": "ok",
+      "code": "0",
+      "pass": true,
+      "message": "ok"
+    },
+    {
+      "name": "越权: B 查看操作日志",
+      "expect": "fail",
+      "code": "40101",
+      "pass": true,
+      "message": "无权限"
+    }
+  ]
+}
