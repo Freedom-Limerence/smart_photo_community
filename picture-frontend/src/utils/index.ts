@@ -38,3 +38,16 @@ export function toHexColor(input: string) {
   return `#${hexColor}`
 }
 
+
+/**
+ * 安全解析雪花 ID（Long）。
+ * 雪花 ID 超出 JS 安全整数范围（2^53），Number() 转换会丢失末尾精度，
+ * 因此 ID 一律以字符串形式流转，仅做格式校验。
+ * @param value 任意来源的 ID（route query / props / 后端返回等）
+ * @returns 合法时返回纯数字字符串，否则返回 undefined
+ */
+export function parseId(value: unknown): string | undefined {
+  if (value == null) return undefined
+  const str = typeof value === 'string' ? value.trim() : String(value)
+  return /^\d+$/.test(str) ? str : undefined
+}

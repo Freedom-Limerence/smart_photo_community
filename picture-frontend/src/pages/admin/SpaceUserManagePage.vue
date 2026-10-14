@@ -55,6 +55,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { SPACE_ROLE_OPTIONS } from '../../constants/space.ts'
+import { parseId } from '@/utils'
 import {
   addSpaceUserUsingPost,
   deleteSpaceUserUsingPost,
@@ -93,8 +94,8 @@ const dataList = ref<API.SpaceUserVO[]>([])
 
 // 获取数据
 const fetchData = async () => {
-  const spaceId = Number(props.id)
-  if (!Number.isFinite(spaceId) || spaceId <= 0) {
+  const spaceId = parseId(props.id)
+  if (!spaceId) {
     return
   }
   const res = await listSpaceUserUsingPost({
@@ -117,8 +118,8 @@ const formData = reactive<API.SpaceUserAddRequest>({})
 
 // 创建成员
 const handleSubmit = async () => {
-  const spaceId = Number(props.id)
-  if (!Number.isFinite(spaceId) || spaceId <= 0) {
+  const spaceId = parseId(props.id)
+  if (!spaceId) {
     return
   }
   const res = await addSpaceUserUsingPost({

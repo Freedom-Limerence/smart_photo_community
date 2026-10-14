@@ -97,7 +97,7 @@ import {
 } from '@ant-design/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { saveAs } from 'file-saver'
-import { formatSize, toHexColor } from '@/utils'
+import { formatSize, toHexColor, parseId } from '@/utils'
 import { authorizeDownload, downloadAuthorizedFile } from '@/api/photoCommunity'
 import ShareModal from '@/components/ShareModal.vue'
 import { SPACE_PERMISSION_ENUM } from '@/constants/space.ts'
@@ -109,10 +109,7 @@ interface Props {
 const props = defineProps<Props>()
 const route = useRoute()
 const picture = ref<API.PictureVO>({})
-const pictureId = computed(() => {
-  const value = Number(props.id)
-  return Number.isFinite(value) && value > 0 ? value : undefined
-})
+const pictureId = computed(() => parseId(props.id))
 
 // 通用权限检查函数
 function createPermissionChecker(permission: string) {
@@ -181,8 +178,7 @@ const doDownload = async () => {
     const requestId = typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const workIdValue = Number(route.query.workId)
-    const workId = Number.isInteger(workIdValue) && workIdValue > 0 ? workIdValue : undefined
+    const workId = parseId(route.query.workId)
     const authorizeRes: any = await authorizeDownload({ pictureId: pictureId.value, workId, requestId })
     if (authorizeRes.data.code !== 0 || !authorizeRes.data.data?.downloadToken) {
       message.error(authorizeRes.data.message || '暂无下载权限')

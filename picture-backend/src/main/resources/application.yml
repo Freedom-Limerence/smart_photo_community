@@ -9,6 +9,9 @@ server:
 spring:
   application:
     name: picture-backend
+  # 默认激活本地开发环境配置（application-local-dev.yml）
+  profiles:
+    active: local-dev
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -86,7 +89,7 @@ cos:
     host: ${COS_HOST:}
     secretId: ${COS_SECRET_ID:local-dev}
     secretKey: ${COS_SECRET_KEY:local-dev}
-    region: ${COS_REGION:ap-shanghai}
+    region: ${COS_REGION:local-dev}
     bucket: ${COS_BUCKET:local-dev}
 
 ## 阿里云 AI 配置（可选；留空时不影响本地摄影 AI 工作台启动）

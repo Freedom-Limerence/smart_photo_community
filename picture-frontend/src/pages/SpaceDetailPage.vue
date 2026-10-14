@@ -94,6 +94,7 @@ import 'vue3-colorpicker/style.css'
 import BatchEditPictureModal from '@/components/BatchEditPictureModal.vue'
 import { BarChartOutlined, EditOutlined, TeamOutlined } from '@ant-design/icons-vue'
 import { SPACE_PERMISSION_ENUM, SPACE_TYPE_MAP } from '../constants/space.ts'
+import { parseId } from '@/utils'
 
 interface Props {
   id: string | number
@@ -101,10 +102,7 @@ interface Props {
 
 const props = defineProps<Props>()
 const space = ref<API.SpaceVO>({})
-const spaceId = computed(() => {
-  const value = Number(props.id)
-  return Number.isFinite(value) && value > 0 ? value : undefined
-})
+const spaceId = computed(() => parseId(props.id))
 
 // 通用权限检查函数
 function createPermissionChecker(permission: string) {

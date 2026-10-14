@@ -8,23 +8,23 @@ export function saveWork(data: any) {
   return request('/api/work/save', { method: 'POST', data })
 }
 
-export function publishWork(params: { workId: number; publish?: boolean }) {
+export function publishWork(params: { workId: number | string; publish?: boolean }) {
   return request('/api/work/publish', { method: 'POST', params })
 }
 
-export function likeWork(data: { workId: number }) {
+export function likeWork(data: { workId: number | string }) {
   return request('/api/work/like', { method: 'POST', data })
 }
 
-export function favoriteWork(data: { workId: number }) {
+export function favoriteWork(data: { workId: number | string }) {
   return request('/api/work/favorite', { method: 'POST', data })
 }
 
-export function unfavoriteWork(data: { workId: number }) {
+export function unfavoriteWork(data: { workId: number | string }) {
   return request('/api/work/unfavorite', { method: 'POST', data })
 }
 
-export function commentWork(data: { workId: number; content: string; parentId?: number }) {
+export function commentWork(data: { workId: number | string; content: string; parentId?: number | string }) {
   return request('/api/work/comment', { method: 'POST', data })
 }
 
@@ -32,11 +32,11 @@ export function searchAi(query: string, topK = 20) {
   return request('/api/ai/search', { method: 'GET', params: { query, topK } })
 }
 
-export function catalogPicture(pictureId: number) {
+export function catalogPicture(pictureId: number | string) {
   return request('/api/ai/catalog', { method: 'POST', params: { pictureId } })
 }
 
-export function getAiMeta(pictureId: number) {
+export function getAiMeta(pictureId: number | string) {
   return request('/api/ai/meta', { method: 'GET', params: { pictureId } })
 }
 
@@ -44,7 +44,7 @@ export function getTodayQuota() {
   return request('/api/access/quota/today', { method: 'GET' })
 }
 
-export function authorizeDownload(data: { pictureId: number; workId?: number; requestId: string }) {
+export function authorizeDownload(data: { pictureId: number | string; workId?: number | string; requestId: string }) {
   return request('/api/access/download/authorize', { method: 'POST', data })
 }
 

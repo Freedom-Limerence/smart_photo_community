@@ -211,8 +211,8 @@ declare namespace API {
   }
 
   type getPictureVOByIdUsingGETParams = {
-    /** id */
-    id?: number
+    /** id（雪花 ID 超出 JS 安全整数范围，以字符串传递） */
+    id?: number | string
   }
 
   type getSpaceByIdUsingGETParams = {

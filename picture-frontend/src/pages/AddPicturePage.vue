@@ -94,6 +94,7 @@ import {
 } from '@/api/pictureController.ts'
 import { useRoute, useRouter } from 'vue-router'
 import UrlPictureUpload from '@/components/UrlPictureUpload.vue'
+import { parseId } from '@/utils'
 import ImageCropper from '@/components/ImageCropper.vue'
 import { EditOutlined, FullscreenOutlined } from '@ant-design/icons-vue'
 import ImageOutPainting from '@/components/ImageOutPainting.vue'
@@ -181,10 +182,10 @@ onMounted(() => {
 
 // 获取老数据
 const getOldPicture = async () => {
-  // 获取到 id
+  // 获取到 id（雪花 ID 超出 JS 安全整数范围，必须按字符串流转，不能用 Number 转换）
   const idValue = route.query?.id
-  const id = Number(Array.isArray(idValue) ? idValue[0] : idValue)
-  if (Number.isFinite(id) && id > 0) {
+  const id = parseId(Array.isArray(idValue) ? idValue[0] : idValue)
+  if (id) {
     const res = await getPictureVoByIdUsingGet({
       id,
     })
