@@ -163,28 +163,24 @@ public class AutoReviewServiceImpl implements AutoReviewService {
         if (author == null || author.getId() == null) {
             return manual("无法识别作者", "NO_AUTHOR");
         }
+        if ("banned".equals(author.getUserRole())) {
+            return manual("作者账号已被封禁", "BANNED_AUTHOR");
+        }
+        // 作品 = 组图 + 文案：图片已单独过审，这里只拦违规文案，不再叠加作者信誉门槛
         String text = (work.getTitle() == null ? "" : work.getTitle()) + " " + (work.getDescription() == null ? "" : work.getDescription());
         String risk = firstRiskWord(text);
         if (risk != null) {
             return manual("作品文本命中风险词「" + risk + "」，转人工复核", "TEXT_RISK");
         }
-        Long reviewed = pictureMapper.selectCount(new LambdaQueryWrapper<Picture>()
+        Long recent = pictureMapper.selectCount(new LambdaQueryWrapper<Picture>()
                 .eq(Picture::getUserId, author.getId()).eq(Picture::getIsDelete, 0)
-                .in(Picture::getReviewStatus, PictureReviewStatusEnum.PASS.getValue(), PictureReviewStatusEnum.REJECT.getValue()));
-        Long passed = pictureMapper.selectCount(new LambdaQueryWrapper<Picture>()
-                .eq(Picture::getUserId, author.getId()).eq(Picture::getIsDelete, 0)
-                .eq(Picture::getReviewStatus, PictureReviewStatusEnum.PASS.getValue()));
-        long reviewedCount = reviewed == null ? 0L : reviewed;
-        long passedCount = passed == null ? 0L : passed;
-        double passRate = reviewedCount == 0 ? 0D : (double) passedCount / reviewedCount;
-        if (reviewedCount < intOf("autoReview.minHistory", 3)) {
-            return manual("作者历史样本不足（已审 " + reviewedCount + " 张），转人工", "NEW_AUTHOR");
+                .ge(Picture::getCreateTime, Date.from(java.time.LocalDateTime.now()
+                        .minusMinutes(intOf("autoReview.burstWindowMinutes", 10))
+                        .atZone(java.time.ZoneId.systemDefault()).toInstant())));
+        if (recent != null && recent > intOf("autoReview.burstLimit", 15)) {
+            return manual("短时间内上传过多，转人工", "BURST_UPLOAD");
         }
-        if (passRate < doubleOf("autoReview.minPassRate", 0.8)) {
-            return manual(String.format("作者历史通过率 %.0f%% 偏低，转人工", passRate * 100), "LOW_PASS_RATE");
-        }
-        return new Decision(PictureReviewStatusEnum.PASS.getValue(),
-                String.format("机审通过：作者历史通过率 %.0f%%，作品文本无风险", passRate * 100), "AUTO_PASS", true);
+        return new Decision(PictureReviewStatusEnum.PASS.getValue(), "机审通过：作品文本无风险", "AUTO_PASS", true);
     }
 
     @Override
