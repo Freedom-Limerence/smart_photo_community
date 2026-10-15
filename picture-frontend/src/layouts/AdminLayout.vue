@@ -26,7 +26,7 @@
           <a-breadcrumb-item>{{ currentTitle }}</a-breadcrumb-item>
         </a-breadcrumb>
         <div class="admin-header-right">
-          <a-tag color="green">{{ loginUser.userRole === 'admin' ? '管理员' : '用户' }}</a-tag>
+          <a-tag color="green">{{ roleLabel }}</a-tag>
           <a-avatar :src="loginUser.userAvatar" :size="32">{{ avatarText }}</a-avatar>
           <span class="admin-user-name">{{ loginUser.userName }}</span>
         </div>
@@ -50,6 +50,7 @@ import {
   FundProjectionScreenOutlined, PictureOutlined, SafetyCertificateOutlined, TeamOutlined, UserOutlined,
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
+import { useAdminPermissionStore } from '@/stores/useAdminPermissionStore'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,25 +59,31 @@ const collapsed = ref(false)
 const loginUser = computed(() => loginUserStore.loginUser || ({} as any))
 const avatarText = computed(() => (loginUser.value.userName || 'A').slice(0, 1))
 
-const menuItems = [
-  { key: '/admin/dashboard', icon: () => h(DashboardOutlined), label: '数据看板' },
-  { key: '/admin/review', icon: () => h(AuditOutlined), label: '内容审核' },
-  { key: '/admin/users', icon: () => h(TeamOutlined), label: '用户与权限' },
-  { key: '/admin/pictures', icon: () => h(PictureOutlined), label: '图片管理' },
-  { key: '/admin/spaces', icon: () => h(UserOutlined), label: '空间管理' },
-  { key: '/admin/monitor', icon: () => h(FundProjectionScreenOutlined), label: '系统监控' },
-  { key: '/admin/rbac', icon: () => h(SafetyCertificateOutlined), label: '角色权限' },
-  { key: '/admin/logs', icon: () => h(FileTextOutlined), label: '操作日志' },
-]
+/** 后台角色标签：显示真实角色（管理员 / 策展人 / 已封禁） */
+const roleLabel = computed(
+  () =>
+    ({
+      admin: '管理员',
+      curator: '策展人',
+      banned: '已封禁',
+    } as Record<string, string>)[adminPermissionStore.roleCode] || '普通用户',
+)
+
+const adminPermissionStore = useAdminPermissionStore()
+
+/** 菜单按 RBAC 权限过滤：策展人看不到用户封禁/角色权限/系统监控 */
+const menuItems = computed(() =>
+  adminPermissionStore.visibleMenu.map((item) => ({ key: item.key, icon: () => h(item.icon), label: item.label })),
+)
 
 const selectedKeys = computed(() => {
-  const match = menuItems
+  const match = menuItems.value
     .filter((i) => route.path === i.key || route.path.startsWith(i.key + '/'))
     .sort((a, b) => b.key.length - a.key.length)[0]
   return match ? [match.key] : ['/admin/dashboard']
 })
 
-const currentTitle = computed(() => menuItems.find((i) => i.key === selectedKeys.value[0])?.label ?? '')
+const currentTitle = computed(() => menuItems.value.find((i) => i.key === selectedKeys.value[0])?.label ?? '')
 
 function onMenuClick({ key }: { key: string }) {
   router.push(key)

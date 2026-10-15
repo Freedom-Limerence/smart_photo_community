@@ -1,5 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
+import { message } from 'ant-design-vue'
+import { findMenuByPath } from '@/config/adminMenu'
+import { useAdminPermissionStore } from '@/stores/useAdminPermissionStore'
 
 // ---- 三套布局 ----
 import PublicLayout from '@/layouts/PublicLayout.vue'
@@ -168,8 +171,20 @@ router.beforeEach(async (to) => {
   if (!loginUserStore.loginUser?.id) {
     return { path: '/user/login', query: { redirect: to.fullPath } }
   }
-  if (needsAdmin && loginUserStore.loginUser.userRole !== 'admin') {
-    return { path: '/' }
+
+  // 后台：按 RBAC 权限点判断（admin / curator 等任意拥有后台权限的角色都可进入）
+  if (needsAdmin) {
+    const adminPermissionStore = useAdminPermissionStore()
+    await adminPermissionStore.load()
+    if (!adminPermissionStore.canEnterAdmin) {
+      message.error('当前账号没有后台权限')
+      return { path: '/' }
+    }
+    const required = findMenuByPath(to.path)?.permission
+    if (required && !adminPermissionStore.has(required)) {
+      message.error('缺少权限：' + required)
+      return { path: adminPermissionStore.firstAccessiblePath() }
+    }
   }
   return true
 })

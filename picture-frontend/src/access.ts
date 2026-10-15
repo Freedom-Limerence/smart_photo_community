@@ -17,14 +17,6 @@ router.beforeEach(async (to, from, next) => {
     loginUser = loginUserStore.loginUser
     firstFetchLoginUser = false
   }
-  const toUrl = to.fullPath
-  // 可以自己定义权限校验逻辑，比如管理员才能访问 /admin 开头的页面
-  if (toUrl.startsWith('/admin')) {
-    if (!loginUser || loginUser.userRole !== 'admin') {
-      message.error('没有权限')
-      next(`/user/login?redirect=${to.fullPath}`)
-      return
-    }
-  }
+  // 后台权限统一由 router 守卫按 RBAC 权限点判断（admin / curator 等有权限的角色都可进入）
   next()
 })
