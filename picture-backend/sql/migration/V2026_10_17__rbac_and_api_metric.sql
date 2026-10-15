@@ -77,12 +77,11 @@ INSERT IGNORE INTO sys_permission (permCode, permName, module, sortOrder, descri
 INSERT IGNORE INTO sys_role_permission (roleCode, permCode)
 SELECT 'admin', permCode FROM sys_permission;
 
--- 策展人：审核 + 治理 + 图片/专题 + 看板/日志，**不含** user:ban / rbac:manage / system:monitor
+-- 策展人：审核 + 治理 + 专题 + 看板/日志，**不含** user:ban / rbac:manage / system:monitor / picture:manage（图片管理页依赖仅管理员可用的老接口）
 INSERT IGNORE INTO sys_role_permission (roleCode, permCode) VALUES
  ('curator', 'stats:view'),
  ('curator', 'content:review'),
  ('curator', 'content:moderate'),
- ('curator', 'picture:manage'),
  ('curator', 'exhibition:manage'),
  ('curator', 'log:view');
 

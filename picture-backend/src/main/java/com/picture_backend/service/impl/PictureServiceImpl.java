@@ -469,6 +469,10 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         }
         // 排序
         queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), "ascend".equalsIgnoreCase(sortOrder), sortField);
+        if (StrUtil.isEmpty(sortField)) {
+            // 未指定排序时默认按创建时间倒序：保证最新图片出现在第一页（图库数据增长后原实现无排序会漏图）
+            queryWrapper.orderByDesc("createTime");
+        }
         return queryWrapper;
     }
 
