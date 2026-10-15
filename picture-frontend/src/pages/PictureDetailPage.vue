@@ -13,8 +13,16 @@
                  message="这张图片正在等待审核"
                  description="审核通过后才会出现在公共图库、被其他人看到。在此之前只有你自己能在这里看到它。" />
         <a-alert v-else-if="isOwner && reviewStatus === 2" type="error" show-icon class="review-alert"
-                 :message="'这张图片未通过审核'"
-                 :description="picture.reviewMessage || '可以修改分类与标签后重新提交审核。'" />
+                 message="这张图片未通过审核">
+          <template #description>
+            <div>{{ picture.reviewMessage || '可以修改分类与标签后重新提交审核。' }}</div>
+            <a-button type="link" size="small" @click="appealOpen = true">认为审核有误？提交申诉 →</a-button>
+          </template>
+        </a-alert>
+        <a-modal v-model:open="appealOpen" title="提交申诉" @ok="submitAppeal">
+          <p class="muted">请说明这张图片应当通过审核的理由（例如原创证明、分辨率说明、内容无违规）。</p>
+          <a-textarea v-model:value="appealReason" :rows="4" placeholder="申诉理由" />
+        </a-modal>
         <a-card title="图片信息">
           <a-descriptions :column="1">
             <a-descriptions-item label="审核状态">
@@ -99,6 +107,7 @@ import { computed, h, onMounted, ref } from 'vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
+import { submitAppeal as submitAppealApi } from '@/api/notification'
 import {
   DeleteOutlined,
   DownloadOutlined,
@@ -126,6 +135,24 @@ const reviewStatus = computed(() => (picture.value as any).reviewStatus)
 const isOwner = computed(() => String(picture.value.userId) === String(loginUserStore.loginUser?.id))
 const reviewText = computed(() => (({ 0: "待审核", 1: "已通过", 2: "已拒绝" } as any)[reviewStatus.value as any] ?? "未知"))
 const reviewColor = computed(() => (({ 0: "orange", 1: "green", 2: "red" } as any)[reviewStatus.value as any] ?? "default"))
+
+/** 申诉：被拒绝的图片可由作者提交申诉 */
+const appealOpen = ref(false)
+const appealReason = ref("")
+async function submitAppeal() {
+  if (!appealReason.value.trim()) {
+    message.warning("请填写申诉理由")
+    return
+  }
+  const res: any = await submitAppealApi({ pictureId: String(picture.value.id), reason: appealReason.value.trim() })
+  if (res.data.code === 0) {
+    message.success("申诉已提交，我们会尽快复核")
+    appealOpen.value = false
+    appealReason.value = ""
+  } else {
+    message.error(res.data.message || "提交失败")
+  }
+}
 const pictureId = computed(() => parseId(props.id))
 
 // 通用权限检查函数

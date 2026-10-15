@@ -34,3 +34,9 @@ export const getMyWorkStats = () => request('/api/work/stats/mine', { method: 'G
 /* ===== 社交关系 ===== */
 export const getSocialStats = (userId: string | number) =>
   request('/api/social/stats', { method: 'GET', params: { userId } })
+
+/* ===== 审核申诉 ===== */
+export const submitAppeal = (data: { pictureId: string | number; reason: string }) => request('/api/appeal/submit', { method: 'POST', data })
+export const listMyAppeals = (params: { current?: number; size?: number } = {}) => request('/api/appeal/mine', { method: 'GET', params })
+export const listAdminAppeals = (params: { status?: string; current?: number; size?: number }) => request('/api/admin/console/appeals', { method: 'GET', params })
+export const handleAppeal = (data: { id: string | number; action: 'ACCEPT' | 'REJECT'; result?: string }) => request('/api/admin/console/appeals/handle', { method: 'POST', data })
