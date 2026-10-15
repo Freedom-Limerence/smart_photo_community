@@ -9,6 +9,25 @@
       <a-button @click="load">刷新</a-button>
     </div>
 
+    <!-- 成就等级与徽章：由真实数据推导（作品/获赞/收藏/粉丝） -->
+    <div v-if="achievement.level" class="ach surface-card">
+      <div class="ach-head">
+        <div class="ach-level">
+          <span class="lv">Lv.{{ achievement.level }}</span>
+          <div>
+            <strong>{{ achievement.levelName }}</strong>
+            <em>成就值 {{ achievement.score }} · 距下一级还差 {{ Math.max(0, (achievement.nextLevelScore || 0) - (achievement.score || 0)) }}</em>
+          </div>
+        </div>
+        <a-button type="text" @click="router.push('/wall')">去大屏看看 →</a-button>
+      </div>
+      <div class="ach-bar"><i :style="{ width: (achievement.progress || 0) + '%' }" /></div>
+      <div class="ach-badges">
+        <span v-for="b in achievement.badges || []" :key="b.name" class="badge" :class="{ owned: b.owned }" :title="b.description">
+          {{ b.owned ? '★' : '☆' }} {{ b.name }}
+        </span>
+      </div>
+    </div>
     <a-spin :spinning="loading">
       <a-row :gutter="16" class="stats-row">
         <a-col :xs="12" :md="6"><div class="stat surface-card"><span>作品数</span><strong>{{ data.workCount ?? 0 }}</strong></div></a-col>
@@ -40,10 +59,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getMyWorkStats } from '@/api/notification'
+import { getAchievement, getMyWorkStats } from '@/api/notification'
 
 const router = useRouter()
 const data = ref<Record<string, any>>({})
+const achievement = ref<Record<string, any>>({})
 const loading = ref(false)
 
 const columns = [
@@ -69,6 +89,9 @@ function barWidth(record: any) {
 }
 
 async function load() {
+  const ach: any = await getAchievement()
+  if (ach.data.code === 0) achievement.value = ach.data.data || {}
+
   loading.value = true
   try {
     const res: any = await getMyWorkStats()
@@ -84,6 +107,17 @@ onMounted(load)
 <style scoped>
 .me-page { display: flex; flex-direction: column; }
 .stats-row { margin-bottom: var(--space-5); }
+.ach { padding: var(--space-5); margin-bottom: var(--space-5); }
+.ach-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.ach-level { display: flex; align-items: center; gap: 14px; }
+.ach-level .lv { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 12px; background: var(--accent-soft); color: #4F5F53; font-weight: 600; }
+.ach-level strong { display: block; font-size: var(--font-4); }
+.ach-level em { color: var(--text-3); font-size: var(--font-1); font-style: normal; }
+.ach-bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
+.ach-bar i { display: block; height: 100%; background: var(--accent); }
+.ach-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge { padding: 4px 10px; border-radius: var(--radius-pill); background: var(--surface-2); color: var(--text-3); font-size: 12px; }
+.badge.owned { background: var(--accent-soft); color: #4F5F53; }
 .stat { display: flex; flex-direction: column; gap: 4px; padding: var(--space-5); text-align: center; }
 .stat span { color: var(--text-3); font-size: var(--font-1); }
 .stat strong { font-size: var(--font-7); }

@@ -40,3 +40,6 @@ export const submitAppeal = (data: { pictureId: string | number; reason: string 
 export const listMyAppeals = (params: { current?: number; size?: number } = {}) => request('/api/appeal/mine', { method: 'GET', params })
 export const listAdminAppeals = (params: { status?: string; current?: number; size?: number }) => request('/api/admin/console/appeals', { method: 'GET', params })
 export const handleAppeal = (data: { id: string | number; action: 'ACCEPT' | 'REJECT'; result?: string }) => request('/api/admin/console/appeals/handle', { method: 'POST', data })
+
+/* ===== 用户成就 ===== */
+export const getAchievement = (userId?: string | number) => request('/api/user/achievement', { method: 'GET', params: userId ? { userId } : {} })
