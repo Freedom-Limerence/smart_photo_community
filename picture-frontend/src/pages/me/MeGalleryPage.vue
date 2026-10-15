@@ -8,6 +8,14 @@
       </a-space>
     </div>
 
+    <a-alert v-if="pendingCount > 0" type="warning" show-icon class="pending-alert">
+      <template #message>有 <strong>{{ pendingCount }}</strong> 张图片待审核</template>
+      <template #description>
+        <span>审核通过后会自动出现在公共图库；你也可以先在「AI 编目」里为它们生成标签与场景描述。</span>
+        <a-button type="link" size="small" @click="showPending">只看待审核 →</a-button>
+      </template>
+    </a-alert>
+
     <a-card :bordered="false" class="surface-card">
       <div class="filters">
         <a-input v-model:value="query.name" placeholder="按名称搜索" allow-clear style="width: 200px" @press-enter="reload" />
@@ -65,6 +73,7 @@ const loginUserStore = useLoginUserStore()
 const list = ref<any[]>([])
 const total = ref(0)
 const loading = ref(false)
+const pendingCount = ref(0)
 const query = reactive<{ name?: string; reviewStatus?: number; category?: string; current: number; pageSize: number }>({
   current: 1,
   pageSize: 10,
@@ -154,11 +163,33 @@ async function remove(record: any) {
   } else message.error(res.data.message)
 }
 
-onMounted(load)
+/** 只看待审核 */
+function showPending() {
+  query.reviewStatus = 0
+  reload()
+}
+
+/** 拉取待审核数量（不受当前筛选影响） */
+async function loadPendingCount() {
+  if (!loginUserStore.loginUser?.id) return
+  const res: any = await listPictureVoByPageUsingPost({
+    current: 1,
+    pageSize: 1,
+    userId: loginUserStore.loginUser.id,
+    reviewStatus: 0,
+  })
+  if (res.data.code === 0) pendingCount.value = Number(res.data.data?.total || 0)
+}
+
+onMounted(() => {
+  void load()
+  void loadPendingCount()
+})
 </script>
 
 <style scoped>
 .gallery-page { display: flex; flex-direction: column; gap: var(--space-5); }
+.pending-alert { border-radius: var(--radius-lg); }
 .filters { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4); }
 .row-cover { width: 64px; height: 48px; object-fit: cover; border-radius: var(--radius-sm); display: block; }
 </style>

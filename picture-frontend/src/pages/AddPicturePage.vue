@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import PictureUpload from '@/components/PictureUpload.vue'
 import { computed, h, onMounted, reactive, ref, watchEffect } from 'vue'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 import {
   editPictureUsingPost,
   getPictureVoByIdUsingGet,
@@ -139,10 +139,18 @@ const handleSubmit = async (values: any) => {
   })
   // 操作成功
   if (res.data.code === 0 && res.data.data) {
-    message.success('创建成功')
-    // 跳转到图片详情页
-    router.push({
-      path: `/picture/${pictureId}`,
+    // 上传结果反馈：明确告知审核状态，并给出下一步入口
+    const reviewStatus = (res.data.data as any)?.reviewStatus
+    const pending = reviewStatus !== 1
+    Modal.success({
+      title: pending ? '图片已上传，正在等待审核' : '图片已上传',
+      content: pending
+        ? '它已经出现在「我的图库」中（状态：待审核），审核通过后会自动进入公共图库。你可以在图库中继续整理分类与标签。'
+        : '审核已通过，图片已进入公共图库。',
+      okText: '查看我的图库',
+      cancelText: '继续上传',
+      onOk: () => router.push('/me/gallery'),
+      onCancel: () => router.push('/me/upload'),
     })
   } else {
     message.error('创建失败，' + res.data.message)
