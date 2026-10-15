@@ -31,6 +31,7 @@ public class AdminGovernanceController {
     @Resource private UserService userService;
     @Resource private RbacService rbacService;
     @Resource private ReportService reportService;
+    @Resource private com.picture_backend.service.AppealService appealService;
     @Resource private AnnouncementService announcementService;
 
     private User require(HttpServletRequest request, String permCode) {
@@ -97,6 +98,43 @@ public class AdminGovernanceController {
                 !Boolean.FALSE.equals(body.getBroadcast())));
     }
 
+    /* ================= 申诉处理 ================= */
+
+    @GetMapping("/appeals")
+    public BaseResponse<Map<String, Object>> appeals(@RequestParam(required = false) String status,
+                                                     @RequestParam(defaultValue = "1") Long current,
+                                                     @RequestParam(defaultValue = "10") Long size,
+                                                     HttpServletRequest request) {
+        require(request, "report:manage");
+        com.baomidou.mybatisplus.extension.plugins.pagination.Page<com.picture_backend.model.entity.Appeal> page =
+                appealService.page(status, current, size);
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("records", appealService.decorate(page.getRecords()));
+        data.put("total", page.getTotal());
+        data.put("pendingCount", appealService.pendingCount());
+        return ResultUtils.success(data);
+    }
+
+    @PostMapping("/appeals/handle")
+    public BaseResponse<Boolean> handleAppeal(@RequestBody AppealHandleRequest body, HttpServletRequest request) {
+        User handler = require(request, "report:manage");
+        if (body == null || body.getId() == null || body.getAction() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean accepted = "ACCEPT".equalsIgnoreCase(body.getAction());
+        if (!accepted && !"REJECT".equalsIgnoreCase(body.getAction())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "不支持的处理动作");
+        }
+        return ResultUtils.success(appealService.handle(handler, body.getId(), accepted, body.getResult()));
+    }
+
+    @Data
+    public static class AppealHandleRequest {
+        private Long id;
+        /** ACCEPT / REJECT */
+        private String action;
+        private String result;
+    }
     @Data
     public static class HandleRequest {
         private Long id;
