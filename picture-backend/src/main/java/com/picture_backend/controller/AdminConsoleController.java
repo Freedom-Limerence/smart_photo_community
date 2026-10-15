@@ -4,9 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.picture_backend.annotation.LogRecord;
 import com.picture_backend.common.BaseResponse;
-import com.picture_backend.exception.ErrorCode;
 import com.picture_backend.common.ResultUtils;
 import com.picture_backend.exception.BusinessException;
+import com.picture_backend.exception.ErrorCode;
 import com.picture_backend.model.dto.picture.PictureReviewRequest;
 import com.picture_backend.model.entity.PhotoWork;
 import com.picture_backend.model.entity.Picture;
@@ -15,6 +15,7 @@ import com.picture_backend.model.enums.PictureReviewStatusEnum;
 import com.picture_backend.service.ExhibitionService;
 import com.picture_backend.service.PhotoWorkService;
 import com.picture_backend.service.PictureService;
+import com.picture_backend.service.RbacService;
 import com.picture_backend.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,8 +34,8 @@ import java.util.Map;
 /**
  * 管理后台控制台：数据看板、内容审核与治理。
  *
- * <p>与前台彻底分离：所有接口都要求管理员身份（userRole = admin），
- * 且只做治理动作，不提供上传/点赞/评论等前台行为。</p>
+ * <p>与前台彻底分离：所有接口都按 RBAC 权限点校验（sys_role_permission），
+ * 因此「管理员」与「策展人」看到的后台能力不同；且只做治理动作，不提供上传/点赞/评论。</p>
  */
 @RestController
 @RequestMapping("/admin/console")
@@ -44,11 +45,13 @@ public class AdminConsoleController {
     @Resource private PictureService pictureService;
     @Resource private PhotoWorkService workService;
     @Resource private ExhibitionService exhibitionService;
+    @Resource private RbacService rbacService;
 
-    private User requireAdmin(HttpServletRequest request) {
+    /** 按权限点校验（RBAC） */
+    private User requirePermission(HttpServletRequest request, String permCode) {
         User user = userService.getLoginUser(request);
-        if (!userService.isAdmin(user)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "需要管理员权限");
+        if (!rbacService.hasPermission(user, permCode)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "缺少权限：" + permCode);
         }
         return user;
     }
@@ -60,7 +63,7 @@ public class AdminConsoleController {
     /** 看板总览：总量 + 今日新增 + 待处理事项 */
     @GetMapping("/overview")
     public BaseResponse<Map<String, Object>> overview(HttpServletRequest request) {
-        requireAdmin(request);
+        requirePermission(request, "stats:view");
         LocalDate today = LocalDate.now();
         Date start = dayStart(today);
         Date end = dayStart(today.plusDays(1));
@@ -82,11 +85,11 @@ public class AdminConsoleController {
         return ResultUtils.success(data);
     }
 
-    /** 近 N 日增长趋势（默认 7 天），供 ECharts 折线使用 */
+    /** 近 N 日增长趋势（默认 7 天） */
     @GetMapping("/trend")
     public BaseResponse<List<Map<String, Object>>> trend(@RequestParam(defaultValue = "7") Integer days,
                                                          HttpServletRequest request) {
-        requireAdmin(request);
+        requirePermission(request, "stats:view");
         int span = Math.max(1, Math.min(days == null ? 7 : days, 90));
         List<Map<String, Object>> list = new ArrayList<>();
         LocalDate today = LocalDate.now();
@@ -113,7 +116,7 @@ public class AdminConsoleController {
                                                @RequestParam(required = false) String status,
                                                @RequestParam(required = false) String keyword,
                                                HttpServletRequest request) {
-        requireAdmin(request);
+        requirePermission(request, "content:review");
         return ResultUtils.success(workService.pageForAdmin(current, size, status, keyword));
     }
 
@@ -123,7 +126,7 @@ public class AdminConsoleController {
                                                 @RequestParam(defaultValue = "10") Long size,
                                                 @RequestParam(required = false) Integer reviewStatus,
                                                 HttpServletRequest request) {
-        requireAdmin(request);
+        requirePermission(request, "content:review");
         LambdaQueryWrapper<Picture> wrapper = new LambdaQueryWrapper<Picture>()
                 .eq(reviewStatus != null, Picture::getReviewStatus, reviewStatus)
                 .orderByDesc(Picture::getCreateTime);
@@ -137,7 +140,7 @@ public class AdminConsoleController {
     @PostMapping("/moderate")
     @LogRecord(action = "内容审核", module = "管理后台")
     public BaseResponse<Integer> moderate(@RequestBody ModerateRequest body, HttpServletRequest request) {
-        User admin = requireAdmin(request);
+        User admin = requirePermission(request, "content:moderate");
         if (body == null || body.getIds() == null || body.getIds().isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请选择要处理的内容");
         }
