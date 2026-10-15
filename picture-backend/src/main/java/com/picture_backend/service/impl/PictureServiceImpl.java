@@ -77,6 +77,9 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private UserService userService;
+    /** 机审依赖通知/作品服务，用 @Lazy 打断与 PictureService 的循环依赖 */
+    @org.springframework.context.annotation.Lazy
+    @Resource private com.picture_backend.service.AutoReviewService autoReviewService;
 
     @Resource
     private SpaceService spaceService;
@@ -519,7 +522,11 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
             picture.setReviewTime(new Date());
         } else {
             // 非管理员，无论是编辑还是创建默认都是待审核
-            picture.setReviewStatus(PictureReviewStatusEnum.REVIEWING.getValue());
+            // 机审：符合规则的直接通过，只把高风险内容转人工（策略见 sys_config）
+            com.picture_backend.service.AutoReviewService.Decision decision = autoReviewService.decide(picture, loginUser);
+            picture.setReviewStatus(decision.getReviewStatus());
+            picture.setReviewMessage(decision.getMessage());
+            picture.setReviewTime(new Date());
         }
     }
 

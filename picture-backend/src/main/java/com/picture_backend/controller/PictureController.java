@@ -61,6 +61,7 @@ public class PictureController {
 
     @Resource
     private UserService userService;
+    @Resource private com.picture_backend.service.NotificationService notificationService;
 
     @Resource
     private PictureService pictureService;
@@ -347,6 +348,16 @@ public class PictureController {
         ThrowUtils.throwIf(pictureReviewRequest == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         pictureService.doPictureReview(pictureReviewRequest, loginUser);
+        // 审核结果通知作者（通过/拒绝都会告知，避免作者不知道为什么看不到）
+        com.picture_backend.model.entity.Picture reviewed = pictureService.getById(pictureReviewRequest.getId());
+        if (reviewed != null && reviewed.getUserId() != null) {
+            boolean pass = Integer.valueOf(PictureReviewStatusEnum.PASS.getValue()).equals(pictureReviewRequest.getReviewStatus());
+            notificationService.push(reviewed.getUserId(), "SYSTEM",
+                    pass ? "图片已通过审核" : "图片未通过审核",
+                    (pass ? "《" : "《") + (reviewed.getName() == null ? "未命名" : reviewed.getName()) + "》"
+                            + (pass ? "已进入公共图库。" : "未通过：" + (pictureReviewRequest.getReviewMessage() == null ? "内容不符合规范" : pictureReviewRequest.getReviewMessage())),
+                    null, "picture", reviewed.getId());
+        }
         return ResultUtils.success(true);
     }
 

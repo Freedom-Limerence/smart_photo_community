@@ -46,6 +46,7 @@ public class AdminConsoleController {
     @Resource private PhotoWorkService workService;
     @Resource private ExhibitionService exhibitionService;
     @Resource private RbacService rbacService;
+    @Resource private com.picture_backend.service.NotificationService notificationService;
 
     /** 按权限点校验（RBAC） */
     private User requirePermission(HttpServletRequest request, String permCode) {
@@ -164,6 +165,16 @@ public class AdminConsoleController {
                 reviewRequest.setReviewStatus(target);
                 reviewRequest.setReviewMessage(StringUtils.hasText(body.getReason()) ? body.getReason() : null);
                 pictureService.doPictureReview(reviewRequest, admin);
+                // 批量审核同样通知作者，避免作者不知道为什么图片没出现在公共图库
+                Picture reviewedPicture = pictureService.getById(id);
+                if (reviewedPicture != null && reviewedPicture.getUserId() != null) {
+                    boolean pass = Integer.valueOf(PictureReviewStatusEnum.PASS.getValue()).equals(target);
+                    notificationService.push(reviewedPicture.getUserId(), "SYSTEM",
+                            pass ? "图片已通过审核" : "图片未通过审核",
+                            "《" + (reviewedPicture.getName() == null ? "未命名" : reviewedPicture.getName()) + "》"
+                                    + (pass ? "已进入公共图库。" : "未通过：" + (StringUtils.hasText(body.getReason()) ? body.getReason() : "内容不符合规范")),
+                            null, "picture", reviewedPicture.getId());
+                }
                 affected++;
             }
             return ResultUtils.success(affected);
