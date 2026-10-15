@@ -16,6 +16,17 @@
       </template>
     </a-alert>
 
+    <a-card v-if="recent.length" :bordered="false" class="surface-card recent-card" title="最近上传">
+      <template #extra><span class="muted">审核通过后自动进入公共图库</span></template>
+      <div class="recent-strip">
+        <button v-for="item in recent" :key="item.id" class="recent-item" type="button"
+                @click="router.push('/picture/' + item.id)">
+          <img :src="item.thumbnailUrl || item.url" alt="" loading="lazy" />
+          <span class="recent-badge" :class="'s' + item.reviewStatus">{{ reviewText(item.reviewStatus) }}</span>
+        </button>
+      </div>
+    </a-card>
+
     <a-card :bordered="false" class="surface-card">
       <div class="filters">
         <a-input v-model:value="query.name" placeholder="按名称搜索" allow-clear style="width: 200px" @press-enter="reload" />
@@ -74,6 +85,7 @@ const list = ref<any[]>([])
 const total = ref(0)
 const loading = ref(false)
 const pendingCount = ref(0)
+const recent = ref<any[]>([])
 const query = reactive<{ name?: string; reviewStatus?: number; category?: string; current: number; pageSize: number }>({
   current: 1,
   pageSize: 10,
@@ -169,6 +181,17 @@ function showPending() {
   reload()
 }
 
+/** 最近上传：上传后立刻在图库顶部看到自己的图片与审核状态 */
+async function loadRecent() {
+  if (!loginUserStore.loginUser?.id) return
+  const res: any = await listPictureVoByPageUsingPost({
+    current: 1,
+    pageSize: 8,
+    userId: loginUserStore.loginUser.id,
+  })
+  if (res.data.code === 0) recent.value = res.data.data?.records || []
+}
+
 /** 拉取待审核数量（不受当前筛选影响） */
 async function loadPendingCount() {
   if (!loginUserStore.loginUser?.id) return
@@ -184,12 +207,22 @@ async function loadPendingCount() {
 onMounted(() => {
   void load()
   void loadPendingCount()
+  void loadRecent()
 })
 </script>
 
 <style scoped>
 .gallery-page { display: flex; flex-direction: column; gap: var(--space-5); }
 .pending-alert { border-radius: var(--radius-lg); }
+.recent-card { border-radius: var(--radius-lg); }
+.recent-strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+.recent-item { position: relative; flex: 0 0 auto; width: 112px; height: 84px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface-2); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
+.recent-item:hover { border-color: var(--accent); box-shadow: var(--shadow-2); }
+.recent-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.recent-badge { position: absolute; left: 6px; bottom: 6px; padding: 1px 7px; border-radius: var(--radius-pill); background: rgba(20,20,22,.7); color: #fff; font-size: 10px; }
+.recent-badge.s0 { background: rgba(194,168,120,.92); }
+.recent-badge.s1 { background: rgba(124,139,127,.92); }
+.recent-badge.s2 { background: rgba(180,116,106,.92); }
 .filters { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4); }
 .row-cover { width: 64px; height: 48px; object-fit: cover; border-radius: var(--radius-sm); display: block; }
 </style>

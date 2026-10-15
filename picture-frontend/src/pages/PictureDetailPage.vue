@@ -9,8 +9,17 @@
       </a-col>
       <!-- 图片信息区域 -->
       <a-col :sm="24" :md="8" :xl="6">
+        <a-alert v-if="isOwner && reviewStatus === 0" type="warning" show-icon class="review-alert"
+                 message="这张图片正在等待审核"
+                 description="审核通过后才会出现在公共图库、被其他人看到。在此之前只有你自己能在这里看到它。" />
+        <a-alert v-else-if="isOwner && reviewStatus === 2" type="error" show-icon class="review-alert"
+                 :message="'这张图片未通过审核'"
+                 :description="picture.reviewMessage || '可以修改分类与标签后重新提交审核。'" />
         <a-card title="图片信息">
           <a-descriptions :column="1">
+            <a-descriptions-item label="审核状态">
+              <a-tag :color="reviewColor">{{ reviewText }}</a-tag>
+            </a-descriptions-item>
             <a-descriptions-item label="作者">
               <a-space>
                 <a-avatar :size="24" :src="picture.user?.userAvatar" />
@@ -89,6 +98,7 @@
 import { computed, h, onMounted, ref } from 'vue'
 import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
 import { message } from 'ant-design-vue'
+import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import {
   DeleteOutlined,
   DownloadOutlined,
@@ -109,6 +119,13 @@ interface Props {
 const props = defineProps<Props>()
 const route = useRoute()
 const picture = ref<API.PictureVO>({})
+const loginUserStore = useLoginUserStore()
+
+/** 审核状态：作者需要看到自己图片的审核进度 */
+const reviewStatus = computed(() => (picture.value as any).reviewStatus)
+const isOwner = computed(() => String(picture.value.userId) === String(loginUserStore.loginUser?.id))
+const reviewText = computed(() => (({ 0: "待审核", 1: "已通过", 2: "已拒绝" } as any)[reviewStatus.value as any] ?? "未知"))
+const reviewColor = computed(() => (({ 0: "orange", 1: "green", 2: "red" } as any)[reviewStatus.value as any] ?? "default"))
 const pictureId = computed(() => parseId(props.id))
 
 // 通用权限检查函数
@@ -210,4 +227,8 @@ const doShare = () => {
 #pictureDetailPage {
   margin-bottom: 16px;
 }
+</style>
+
+<style scoped>
+.review-alert { margin-bottom: 12px; border-radius: var(--radius); }
 </style>

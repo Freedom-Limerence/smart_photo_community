@@ -426,6 +426,9 @@ declare namespace API {
   }
 
   type PictureVO = {
+    /** 审核状态：0 待审核 / 1 已通过 / 2 已拒绝 */
+    reviewStatus?: number
+    reviewMessage?: string
     category?: string
     createTime?: string
     editTime?: string
