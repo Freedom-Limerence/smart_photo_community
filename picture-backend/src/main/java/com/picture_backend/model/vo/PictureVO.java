@@ -77,6 +77,9 @@ public class PictureVO implements Serializable {
      * 图片主色调
      */
     private String picColor;
+    /** 审核状态：0 待审核 / 1 已通过 / 2 已拒绝（作者需要看到自己的审核状态） */
+    private Integer reviewStatus;
+    private String reviewMessage;
 
     /**
      * 用户 id
