@@ -47,6 +47,7 @@ public class AdminConsoleController {
     @Resource private ExhibitionService exhibitionService;
     @Resource private RbacService rbacService;
     @Resource private com.picture_backend.service.NotificationService notificationService;
+    @Resource private com.picture_backend.service.ReviewLogService reviewLogService;
 
     /** 按权限点校验（RBAC） */
     private User requirePermission(HttpServletRequest request, String permCode) {
@@ -165,6 +166,7 @@ public class AdminConsoleController {
                 reviewRequest.setReviewStatus(target);
                 reviewRequest.setReviewMessage(StringUtils.hasText(body.getReason()) ? body.getReason() : null);
                 pictureService.doPictureReview(reviewRequest, admin);
+                reviewLogService.record("picture", id, Integer.valueOf(1).equals(target) ? "MANUAL_PASS" : "REJECT", null, target, admin, reviewRequest.getReviewMessage());
                 // 批量审核同样通知作者，避免作者不知道为什么图片没出现在公共图库
                 Picture reviewedPicture = pictureService.getById(id);
                 if (reviewedPicture != null && reviewedPicture.getUserId() != null) {
@@ -181,6 +183,33 @@ public class AdminConsoleController {
         }
 
         if ("work".equals(type)) {
+            // 作品审核通过 / 拒绝（reviewStatus），与封禁/恢复（status）区分开
+            if ("PASS".equals(action) || "REJECT".equals(action)) {
+                boolean pass = "PASS".equals(action);
+                int affected = 0;
+                for (Long id : body.getIds()) {
+                    if (id == null) continue;
+                    PhotoWork work = workService.getById(id);
+                    if (work == null) continue;
+                    Integer from = work.getReviewStatus();
+                    com.picture_backend.model.entity.PhotoWork patch = new com.picture_backend.model.entity.PhotoWork();
+                    patch.setId(id);
+                    patch.setReviewStatus(pass ? 1 : 2);
+                    patch.setReviewMessage(pass ? "人工审核通过" : (StringUtils.hasText(body.getReason()) ? body.getReason() : "内容不符合规范"));
+                    patch.setReviewTime(new Date());
+                    patch.setReviewerId(admin.getId());
+                    workService.updateReview(id, patch.getReviewStatus(), patch.getReviewMessage(), admin.getId());
+                    reviewLogService.record("work", id, pass ? "MANUAL_PASS" : "REJECT", from, pass ? 1 : 2, admin, patch.getReviewMessage());
+                    if (work.getAuthorId() != null) {
+                        notificationService.push(work.getAuthorId(), "SYSTEM", pass ? "作品已通过审核" : "作品未通过审核",
+                                "《" + (work.getTitle() == null ? "未命名作品" : work.getTitle()) + "》"
+                                        + (pass ? "已进入社区作品流。" : "未通过：" + patch.getReviewMessage()),
+                                null, "work", id);
+                    }
+                    affected++;
+                }
+                return ResultUtils.success(affected);
+            }
             String target;
             if ("BAN".equals(action)) {
                 target = "BANNED";

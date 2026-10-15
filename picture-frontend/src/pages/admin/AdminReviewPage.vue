@@ -13,13 +13,16 @@
           <a-button v-if="type === 'picture'" danger :loading="submitting" @click="openReason('REJECT')">批量拒绝</a-button>
           <a-button v-if="type === 'work'" danger :loading="submitting" @click="openReason('BAN')">批量封禁</a-button>
           <a-button v-if="type === 'work'" :loading="submitting" @click="moderate('RESTORE')">批量恢复</a-button>
+          <a-button v-if="type === 'work'" type="primary" :loading="submitting" @click="moderate('PASS')">批量审核通过</a-button>
+          <a-button v-if="type === 'work'" danger :loading="submitting" @click="openReason('REJECT')">批量审核拒绝</a-button>
         </a-space>
       </div>
       <a-table :columns="type === 'picture' ? pictureColumns : workColumns" :data-source="records" :loading="loading" row-key="id" :row-selection="rowSelection" :pagination="pagination" :scroll="{ x: 800 }" @change="onPageChange">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'preview'"><img :src="record.thumbnailUrl || record.url" class="preview" alt="" /></template>
           <template v-else-if="column.key === 'pictureStatus'"><a-tag :color="pictureColor(record.reviewStatus)">{{ pictureLabel(record.reviewStatus) }}</a-tag></template>
-          <template v-else-if="column.key === 'workStatus'"><a-tag :color="record.status === 'BANNED' ? 'red' : record.status === 'PUBLISHED' ? 'green' : 'default'">{{ workLabel(record.status) }}</a-tag></template>
+          <template v-else-if="column.key === 'workReview'"><a-tag :color="record.reviewStatus === 1 ? 'green' : record.reviewStatus === 2 ? 'red' : 'orange'">{{ record.reviewStatus === 1 ? '已通过' : record.reviewStatus === 2 ? '已拒绝' : '待审核' }}</a-tag></template>
+                    <template v-else-if="column.key === 'workStatus'"><a-tag :color="record.status === 'BANNED' ? 'red' : record.status === 'PUBLISHED' ? 'green' : 'default'">{{ workLabel(record.status) }}</a-tag></template>
           <template v-else-if="column.key === 'date'">{{ formatDate(record.createTime) }}</template>
           <template v-else-if="column.key === 'actions'"><a-space><a-button v-if="type === 'picture' && record.reviewStatus !== 1" size="small" type="link" @click="moderate('PASS', [record.id])">通过</a-button><a-button v-if="type === 'picture' && record.reviewStatus !== 2" size="small" type="link" danger @click="openReason('REJECT', [record.id])">拒绝</a-button><a-button v-if="type === 'work' && record.status === 'PUBLISHED'" size="small" type="link" danger @click="openReason('BAN', [record.id])">封禁</a-button><a-button v-if="type === 'work' && record.status === 'BANNED'" size="small" type="link" @click="moderate('RESTORE', [record.id])">恢复</a-button></a-space></template>
         </template>
@@ -38,7 +41,7 @@ const type = ref<'picture' | 'work'>('picture'); const pictureStatus = ref('0');
 const loading = ref(false); const submitting = ref(false); const records = ref<any[]>([]); const selectedKeys = ref<(string | number)[]>([]); const page = ref(1); const total = ref(0)
 const reasonOpen = ref(false); const reason = ref(''); const pendingAction = ref<Action>('REJECT'); const pendingIds = ref<(string | number)[]>([])
 const pictureColumns = [{ title: '预览', key: 'preview', width: 90 }, { title: '图片名称', dataIndex: 'name', ellipsis: true }, { title: '分类', dataIndex: 'category', width: 115 }, { title: '上传者 ID', dataIndex: 'userId', width: 190 }, { title: '状态', key: 'pictureStatus', width: 100 }, { title: '上传时间', key: 'date', width: 150 }, { title: '操作', key: 'actions', width: 130 }]
-const workColumns = [{ title: '作品标题', dataIndex: 'title', ellipsis: true }, { title: '作者 ID', dataIndex: 'authorId', width: 200 }, { title: '可见范围', dataIndex: 'visibility', width: 120 }, { title: '状态', key: 'workStatus', width: 100 }, { title: '发布时间', key: 'date', width: 150 }, { title: '操作', key: 'actions', width: 100 }]
+const workColumns = [{ title: '作品标题', dataIndex: 'title', ellipsis: true }, { title: '审核', key: 'workReview', width: 96 }, { title: '作者 ID', dataIndex: 'authorId', width: 200 }, { title: '可见范围', dataIndex: 'visibility', width: 120 }, { title: '状态', key: 'workStatus', width: 100 }, { title: '发布时间', key: 'date', width: 150 }, { title: '操作', key: 'actions', width: 100 }]
 const pagination = computed(() => ({ current: page.value, pageSize: 20, total: total.value, showSizeChanger: false, showTotal: (n: number) => `共 ${n} 项` }))
 const rowSelection = computed(() => ({ selectedRowKeys: selectedKeys.value, onChange: (keys: (string | number)[]) => { selectedKeys.value = keys } }))
 function pictureColor(n: number) { return n === 0 ? 'orange' : n === 1 ? 'green' : 'red' }

@@ -31,6 +31,9 @@ public interface PhotoWorkService {
     /** 管理端：统计作品数（可带时间范围） */
     long countForAdmin(String status, String keyword, java.util.Date start, java.util.Date end);
 
+    /** 管理端：写入作品审核结论（通过/拒绝） */
+    int updateReview(Long workId, Integer reviewStatus, String reviewMessage, Long reviewerId);
+
     /** 管理端：批量修改作品状态（封禁/恢复），返回影响行数 */
     int updateStatusByIds(java.util.List<Long> ids, String status);
 

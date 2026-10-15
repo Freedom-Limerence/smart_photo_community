@@ -261,6 +261,18 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         update(new LambdaUpdateWrapper<PhotoWork>().eq(PhotoWork::getId, workId).setSql("viewCount = viewCount + 1"));
     }
 
+    @Override
+    public int updateReview(Long workId, Integer reviewStatus, String reviewMessage, Long reviewerId) {
+        if (workId == null || reviewStatus == null) {
+            return 0;
+        }
+        return update(new LambdaUpdateWrapper<PhotoWork>()
+                .eq(PhotoWork::getId, workId)
+                .set(PhotoWork::getReviewStatus, reviewStatus)
+                .set(PhotoWork::getReviewMessage, reviewMessage)
+                .set(PhotoWork::getReviewTime, new java.util.Date())
+                .set(PhotoWork::getReviewerId, reviewerId)) ? 1 : 0;
+    }
     /** 管理端查询条件：不受可见性限制，可按状态与标题模糊筛选 */
     private LambdaQueryWrapper<PhotoWork> adminWrapper(String status, String keyword) {
         return new LambdaQueryWrapper<PhotoWork>()

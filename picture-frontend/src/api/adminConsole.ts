@@ -28,3 +28,8 @@ export const changeAnnouncementStatus = (data: { id: string | number; status: st
 export const getAutoReviewConfig = () => request('/api/admin/console/auto-review/config', { method: 'GET' })
 export const saveAutoReviewConfig = (data: Record<string, unknown>) => request('/api/admin/console/auto-review/config', { method: 'POST', data })
 export const runAutoReview = (limit = 200) => request('/api/admin/console/auto-review/run', { method: 'POST', params: { limit } })
+
+/* ===== 评论治理与审核流水 ===== */
+export const listAdminComments = (params: { status?: string; current?: number; size?: number }) => request('/api/admin/console/comments', { method: 'GET', params })
+export const moderateComment = (data: { id: string | number; action: 'HIDE' | 'RESTORE'; reason?: string }) => request('/api/admin/console/comments/moderate', { method: 'POST', data })
+export const listReviewLogs = (params: { targetType?: string; targetId?: string; current?: number; size?: number }) => request('/api/admin/console/review-logs', { method: 'GET', params })
