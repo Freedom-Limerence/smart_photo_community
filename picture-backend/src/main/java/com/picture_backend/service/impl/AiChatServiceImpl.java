@@ -147,6 +147,9 @@ public class AiChatServiceImpl implements AiChatService {
         List<ToolResult> results = new ArrayList<>();
         String type = intent.getType() == null ? "HELP" : intent.getType();
         switch (type) {
+            case "SEARCH_WORKS":
+                results.add(aiToolRegistry.searchWorks(intent));
+                break;
             case "SEARCH_PICTURES":
                 results.add(aiToolRegistry.searchPictures(intent, userId));
                 break;
@@ -251,11 +254,14 @@ public class AiChatServiceImpl implements AiChatService {
 
     @Override
     public List<AiConversation> listMyConversations(Long userId, int current, int size) {
+        int limit = Math.max(1, Math.min(size, 50));
+        long offset = (long) (Math.max(1, current) - 1) * limit;
         return aiConversationMapper.selectList(new LambdaQueryWrapper<AiConversation>()
                 .eq(AiConversation::getUserId, userId)
                 .ne(AiConversation::getIsDelete, 1)
                 .orderByDesc(AiConversation::getLastMessageAt)
-                .last("limit " + Math.max(1, Math.min(size, 50))));
+                .orderByDesc(AiConversation::getId)
+                .last("limit " + offset + ", " + limit));
     }
 
     @Override
@@ -267,11 +273,15 @@ public class AiChatServiceImpl implements AiChatService {
         if (!userId.equals(conversation.getUserId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权访问该会话");
         }
+        if (Integer.valueOf(1).equals(conversation.getIsDelete())) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "会话不存在");
+        }
         int limit = Math.max(1, Math.min(size, 100));
+        long offset = (long) (Math.max(1, current) - 1) * limit;
         List<AiMessage> desc = aiMessageMapper.selectList(new LambdaQueryWrapper<AiMessage>()
                 .eq(AiMessage::getConversationId, sessionId)
                 .orderByDesc(AiMessage::getId)
-                .last("limit " + limit));
+                .last("limit " + offset + ", " + limit));
         List<AiMessage> asc = new ArrayList<>(desc);
         Collections.reverse(asc);
         return asc;
@@ -286,11 +296,9 @@ public class AiChatServiceImpl implements AiChatService {
         if (!userId.equals(conversation.getUserId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权删除该会话");
         }
-        AiConversation update = new AiConversation();
-        update.setId(sessionId);
-        update.setIsDelete(1);
-        update.setUpdateTime(new Date());
-        return aiConversationMapper.updateById(update) > 0;
+        // isDelete is configured as MyBatis-Plus's global logical-delete field.
+        // updateById intentionally omits it, so use deleteById to persist the flag.
+        return aiConversationMapper.deleteById(sessionId) > 0;
     }
 
     /** 非流式收集器 */

@@ -50,6 +50,46 @@ public class AiToolRegistry {
     @Resource
     private SpaceUserService spaceUserService;
 
+    /** 从已发布的公开作品中检索，返回可以直接进入沉浸详情页的站内资源。 */
+    public ToolResult searchWorks(ChatIntent intent) {
+        ToolResult result = new ToolResult();
+        result.setTool("searchWorks");
+        String subject = (String) intent.slot("subject");
+        String mood = (String) intent.slot("mood");
+        String orientation = (String) intent.slot("orientation");
+        int topK = intent.slot("topK") == null ? 6 : (Integer) intent.slot("topK");
+        result.getArgs().put("subject", subject);
+        result.getArgs().put("mood", mood);
+        result.getArgs().put("orientation", orientation);
+        Page<PhotoWork> page = photoWorkService.page(1, 200, null);
+        for (PhotoWork work : page.getRecords()) {
+            if (subject != null && !contains(work.getTitle(), subject) && !contains(work.getDescription(), subject)
+                    && (work.getPictures() == null || work.getPictures().stream().noneMatch(pic ->
+                    contains(pic.getCategory(), subject) || (pic.getTags() != null && pic.getTags().stream().anyMatch(tag -> contains(tag, subject)))))) {
+                continue;
+            }
+            var cover = work.getPictures() == null || work.getPictures().isEmpty() ? null : work.getPictures().get(0);
+            if (mood != null && (cover == null || !matchMood(mood, cover.getPicColor()))) continue;
+            if (orientation != null && cover != null && cover.getPicWidth() != null && cover.getPicHeight() != null) {
+                boolean landscape = cover.getPicWidth() >= cover.getPicHeight();
+                if (landscape != "landscape".equals(orientation)) continue;
+            }
+            ChatReferenceVO ref = new ChatReferenceVO();
+            ref.setType("work"); ref.setId(String.valueOf(work.getId()));
+            ref.setTitle(work.getTitle());
+            ref.setSubtitle(work.getAuthor() == null ? "摄影师" : work.getAuthor().getUserName());
+            ref.setThumbnailUrl(work.getThumbnailUrl() == null ? work.getCoverUrl() : work.getThumbnailUrl());
+            ref.setReason(work.getDescription());
+            ref.setUrl("/works/" + work.getId());
+            result.getReferences().add(ref);
+            result.getItems().add(Map.of("id", work.getId(), "title", work.getTitle(), "authorId", work.getAuthorId()));
+            if (result.getReferences().size() >= topK) break;
+        }
+        result.setHitCount(result.getReferences().size());
+        result.setSummary("检索到 " + result.getHitCount() + " 组社区公开作品");
+        return result;
+    }
+
     public ToolResult searchPictures(ChatIntent intent, Long userId) {
         ToolResult result = new ToolResult();
         result.setTool("searchPictures");

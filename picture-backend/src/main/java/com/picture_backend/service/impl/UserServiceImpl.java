@@ -120,6 +120,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.info("user login failed, userAccount cannot match userPassword");
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或者密码错误");
         }
+        if ("banned".equals(user.getUserRole())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "账号已被封禁");
+        }
         // 4. 保存用户的登录态
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, user);
         // 记录用户登录态到 Sa-token，便于空间鉴权时使用，注意保证该用户信息与 SpringSession 中的信息过期时间一致
@@ -155,6 +158,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (currentUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
+        if ("banned".equals(currentUser.getUserRole())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "账号已被封禁");
+        }
         return currentUser;
     }
 
@@ -165,7 +171,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (currentUser == null || currentUser.getId() == null) {
             return null;
         }
-        return this.getById(currentUser.getId());
+        User user = this.getById(currentUser.getId());
+        return user != null && !"banned".equals(user.getUserRole()) ? user : null;
     }
 
     /**

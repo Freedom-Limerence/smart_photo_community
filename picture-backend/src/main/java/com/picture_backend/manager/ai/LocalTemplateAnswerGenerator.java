@@ -51,6 +51,8 @@ public class LocalTemplateAnswerGenerator implements AnswerGenerator {
         }
         String type = intent.getType() == null ? "HELP" : intent.getType();
         switch (type) {
+            case "SEARCH_WORKS":
+                return workAnswer(first);
             case "SEARCH_PICTURES":
                 return searchAnswer(first, intent);
             case "FIND_PHOTOGRAPHERS":
@@ -89,6 +91,20 @@ public class LocalTemplateAnswerGenerator implements AnswerGenerator {
             sb.append("\n想换个风格的话，可以试试「明亮」或「暖色调」。");
         }
         return sb.toString();
+    }
+
+    private String workAnswer(ToolResult result) {
+        if (result.getReferences().isEmpty()) {
+            return "我查过了社区公开作品，暂时没有找到符合这次描述的创作。可以换个题材或风格再试一次。";
+        }
+        StringBuilder answer = new StringBuilder("在社区里找到 " + result.getReferences().size() + " 组相关作品。你可以点开下面的卡片，沉浸浏览作者的完整创作：\n");
+        int index = 1;
+        for (var ref : result.getReferences()) {
+            answer.append(index++).append(". 《").append(ref.getTitle()).append("》");
+            if (StringUtils.hasText(ref.getSubtitle())) answer.append(" · ").append(ref.getSubtitle());
+            answer.append("\n");
+        }
+        return answer.toString();
     }
 
     private String photographerAnswer(ToolResult result) {

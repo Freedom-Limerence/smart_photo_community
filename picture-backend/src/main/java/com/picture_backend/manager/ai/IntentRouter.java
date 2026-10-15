@@ -82,7 +82,7 @@ public class IntentRouter {
         String subject = firstSubject(lower);
         String mood = firstMood(lower);
         if (searchVerb || subject != null || mood != null) {
-            intent.setType("SEARCH_PICTURES");
+            intent.setType(containsAny(lower, "作品", "创作", "社区") ? "SEARCH_WORKS" : "SEARCH_PICTURES");
             if (subject != null) {
                 intent.slot("subject", subject);
             }

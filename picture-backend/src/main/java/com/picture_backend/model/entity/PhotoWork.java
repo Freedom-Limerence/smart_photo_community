@@ -43,4 +43,10 @@ public class PhotoWork implements Serializable {
     private java.util.List<PictureVO> pictures;
     @TableField(exist = false)
     private UserVO author;
+    @TableField(exist = false)
+    private Boolean liked;
+    @TableField(exist = false)
+    private Boolean favorited;
+    @TableField(exist = false)
+    private Boolean followed;
 }

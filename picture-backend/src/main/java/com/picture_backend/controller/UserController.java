@@ -162,9 +162,32 @@ public class UserController {
      */
     @GetMapping("/get/vo")
     public BaseResponse<UserVO> getUserVOById(long id) {
-        BaseResponse<User> response = getUserById(id);
-        User user = response.getData();
-        return ResultUtils.success(userService.getUserVO(user));
+        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+        User user = userService.getById(id);
+        ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
+        UserVO profile = new UserVO();
+        profile.setId(user.getId());
+        profile.setUserName(user.getUserName());
+        profile.setUserAvatar(user.getUserAvatar());
+        profile.setUserProfile(user.getUserProfile());
+        return ResultUtils.success(profile);
+    }
+
+    /** 管理员封禁或恢复账号；封禁后现有会话也会在下一次请求失效。 */
+    @PostMapping("/ban")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> banUser(@RequestBody UserBanRequest body, HttpServletRequest request) {
+        ThrowUtils.throwIf(body == null || body.getId() == null, ErrorCode.PARAMS_ERROR);
+        User operator = userService.getLoginUser(request);
+        User target = userService.getById(body.getId());
+        ThrowUtils.throwIf(target == null, ErrorCode.NOT_FOUND_ERROR);
+        if (operator.getId().equals(target.getId()) || UserConstant.ADMIN_ROLE.equals(target.getUserRole())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "不能封禁管理员账号");
+        }
+        User patch = new User();
+        patch.setId(target.getId());
+        patch.setUserRole(Boolean.TRUE.equals(body.getBanned()) ? "banned" : "user");
+        return ResultUtils.success(userService.updateById(patch));
     }
 
     /**
