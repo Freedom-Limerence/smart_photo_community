@@ -209,6 +209,37 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         }
         return result;
     }
+    @Override
+    public Page<PhotoWork> pageForAdmin(long current, long size, String status, String keyword) {
+        Page<PhotoWork> result = page(new Page<>(current, size), adminWrapper(status, keyword));
+        result.getRecords().forEach(this::fillPictures);
+        return result;
+    }
+
+    @Override
+    public long countForAdmin(String status, String keyword, java.util.Date start, java.util.Date end) {
+        return count(adminWrapper(status, keyword)
+                .ge(start != null, PhotoWork::getCreateTime, start)
+                .lt(end != null, PhotoWork::getCreateTime, end));
+    }
+
+    @Override
+    public int updateStatusByIds(java.util.List<Long> ids, String status) {
+        if (ids == null || ids.isEmpty() || status == null) {
+            return 0;
+        }
+        PhotoWork patch = new PhotoWork();
+        patch.setStatus(status);
+        return baseMapper.update(patch, new LambdaUpdateWrapper<PhotoWork>().in(PhotoWork::getId, ids));
+    }
+
+    /** 管理端查询条件：不受可见性限制，可按状态与标题模糊筛选 */
+    private LambdaQueryWrapper<PhotoWork> adminWrapper(String status, String keyword) {
+        return new LambdaQueryWrapper<PhotoWork>()
+                .eq(org.springframework.util.StringUtils.hasText(status), PhotoWork::getStatus, status)
+                .like(org.springframework.util.StringUtils.hasText(keyword), PhotoWork::getTitle, keyword)
+                .orderByDesc(PhotoWork::getCreateTime);
+    }
     private PhotoWork fillPictures(PhotoWork work) {
         User author = userService.getById(work.getAuthorId());
         if (author != null) {

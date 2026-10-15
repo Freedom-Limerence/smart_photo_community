@@ -25,6 +25,15 @@ public interface PhotoWorkService {
     /** 我收藏的作品（按收藏时间倒序） */
     List<PhotoWork> listFavorites(Long userId, int limit);
 
+    /** 管理端：按状态/标题分页（不限可见性） */
+    Page<PhotoWork> pageForAdmin(long current, long size, String status, String keyword);
+
+    /** 管理端：统计作品数（可带时间范围） */
+    long countForAdmin(String status, String keyword, java.util.Date start, java.util.Date end);
+
+    /** 管理端：批量修改作品状态（封禁/恢复），返回影响行数 */
+    int updateStatusByIds(java.util.List<Long> ids, String status);
+
     /** 我点赞的作品（按点赞时间倒序） */
     List<PhotoWork> listLikes(Long userId, int limit);
     WorkComment addComment(Long workId, Long userId, Long parentId, String content);
