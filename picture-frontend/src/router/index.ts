@@ -55,6 +55,10 @@ const AdminReviewPage = () => import('@/pages/admin/AdminReviewPage.vue')
 const AdminLogsPage = () => import('@/pages/admin/AdminLogsPage.vue')
 const AdminRbacPage = () => import('@/pages/admin/AdminRbacPage.vue')
 const AdminMonitorPage = () => import('@/pages/admin/AdminMonitorPage.vue')
+const AdminReportPage = () => import('@/pages/admin/AdminReportPage.vue')
+const AdminAnnouncementPage = () => import('@/pages/admin/AdminAnnouncementPage.vue')
+const NotificationPage = () => import('@/pages/notification/NotificationPage.vue')
+const MeStatsPage = () => import('@/pages/me/MeStatsPage.vue')
 
 // ---- 账号（无布局）----
 const UserLoginPage = () => import('@/pages/user/UserLoginPage.vue')
@@ -76,6 +80,7 @@ const router = createRouter({
         { path: 'photographers/:id/followers', component: FollowListPage, meta: { title: '粉丝' } },
         { path: 'photographers/:id/following', component: FollowListPage, meta: { title: '关注' } },
         { path: 'search', name: 'search', component: SearchPage, meta: { title: '搜索' } },
+        { path: 'notifications', name: 'notifications', component: NotificationPage, meta: { title: '通知中心', requiresAuth: true } },
         { path: 'tags', name: 'tag-index', component: TagIndexPage, meta: { title: '标签广场' } },
         { path: 'tags/:tag', name: 'tag', component: TagPage, props: true, meta: { title: '标签' } },
         { path: 'exhibitions', name: 'exhibitions', component: ExhibitionPage, meta: { title: '专题展览' } },
@@ -101,6 +106,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'me-overview', component: MeOverviewPage, meta: { title: '我的主页' } },
         { path: 'works', name: 'me-works', component: MeWorksPage, meta: { title: '我的作品' } },
+        { path: 'stats', name: 'me-stats', component: MeStatsPage, meta: { title: '数据表现' } },
         { path: 'favorites', name: 'me-favorites', component: MeFavoritesPage, meta: { title: '我的收藏' } },
         { path: 'followers', component: FollowListPage, meta: { title: '我的粉丝' } },
         { path: 'following', component: FollowListPage, meta: { title: '我的关注' } },
@@ -128,6 +134,8 @@ const router = createRouter({
         { path: 'pictures', component: PictureManagePage, meta: { title: '图片管理' } },
         { path: 'spaces', component: SpaceManagePage, meta: { title: '空间管理' } },
         { path: 'spaceUser/:id', component: SpaceUserManagePage, props: true, meta: { title: '空间成员' } },
+        { path: 'report', component: AdminReportPage, meta: { title: '举报处理' } },
+        { path: 'announcement', component: AdminAnnouncementPage, meta: { title: '公告管理' } },
         { path: 'monitor', component: AdminMonitorPage, meta: { title: '系统监控' } },
         { path: 'rbac', component: AdminRbacPage, meta: { title: '角色与权限' } },
         { path: 'logs', component: AdminLogsPage, meta: { title: '操作日志' } },

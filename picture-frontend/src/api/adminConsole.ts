@@ -16,3 +16,10 @@ export const assignUserRole = (data: { userId: string | number; roleCode: string
 
 /* ===== 系统监控 ===== */
 export const getAdminMetrics = (hours = 24) => request('/api/admin/console/metrics', { method: 'GET', params: { hours } })
+
+/* ===== 举报与公告（治理扩展）===== */
+export const listAdminReports = (params: { status?: string; current?: number; size?: number }) => request('/api/admin/console/reports', { method: 'GET', params })
+export const handleReport = (data: { id: string | number; action: 'RESOLVE' | 'REJECT'; result?: string }) => request('/api/admin/console/reports/handle', { method: 'POST', data })
+export const listAdminAnnouncements = (params: { status?: string; current?: number; size?: number }) => request('/api/admin/console/announcements', { method: 'GET', params })
+export const saveAnnouncement = (data: { id?: string; title: string; content: string; level: string }) => request('/api/admin/console/announcements/save', { method: 'POST', data })
+export const changeAnnouncementStatus = (data: { id: string | number; status: string; broadcast?: boolean }) => request('/api/admin/console/announcements/status', { method: 'POST', data })

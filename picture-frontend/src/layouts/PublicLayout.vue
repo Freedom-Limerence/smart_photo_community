@@ -1,6 +1,7 @@
 <template>
   <div class="public-layout">
     <PublicHeader v-if="!isWorkDetail" />
+    <AnnouncementBar v-if="!isWorkDetail" />
     <main class="public-main">
       <router-view v-slot="{ Component, route }">
         <transition name="page" mode="out-in">
@@ -19,6 +20,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import PublicHeader from '@/components/layout/PublicHeader.vue'
 import PublicFooter from '@/components/layout/PublicFooter.vue'
+import AnnouncementBar from '@/components/layout/AnnouncementBar.vue'
 import AiChatDock from '@/components/chat/AiChatDock.vue'
 const route = useRoute()
 const isWorkDetail = computed(() => route.name === 'work-detail')

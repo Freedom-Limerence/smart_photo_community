@@ -24,6 +24,8 @@
           发布作品
         </a-button>
 
+        <NotificationBell v-if="loginUser.id" />
+
         <a-dropdown v-if="loginUser.id" placement="bottomRight">
           <button class="user-trigger" type="button">
             <a-avatar :src="loginUser.userAvatar" :size="34">{{ avatarText }}</a-avatar>
@@ -66,6 +68,7 @@ import {
   SettingOutlined, UserOutlined,
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
+import NotificationBell from '@/components/layout/NotificationBell.vue'
 import { userLogoutUsingPost } from '@/api/userController'
 
 const router = useRouter()

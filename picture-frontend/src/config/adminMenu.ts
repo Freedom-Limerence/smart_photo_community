@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 import {
-  AuditOutlined, DashboardOutlined, FileTextOutlined, FundProjectionScreenOutlined,
+  AuditOutlined, DashboardOutlined, FileTextOutlined, FlagOutlined, FundProjectionScreenOutlined, NotificationOutlined,
   PictureOutlined, SafetyCertificateOutlined, TeamOutlined, UserOutlined,
 } from '@ant-design/icons-vue'
 
@@ -25,6 +25,8 @@ export const ADMIN_MENU: AdminMenuItem[] = [
   { key: '/admin/spaces', label: '空间管理', icon: UserOutlined, permission: 'space:manage', description: '团队与私有空间治理' },
   { key: '/admin/monitor', label: '系统监控', icon: FundProjectionScreenOutlined, permission: 'system:monitor', description: '接口调用量、耗时与错误率' },
   { key: '/admin/rbac', label: '角色权限', icon: SafetyCertificateOutlined, permission: 'rbac:manage', description: '角色权限矩阵与角色分配' },
+  { key: '/admin/report', label: '举报处理', icon: FlagOutlined, permission: 'report:manage', description: '用户举报的受理与处置' },
+  { key: '/admin/announcement', label: '公告管理', icon: NotificationOutlined, permission: 'announcement:manage', description: '发布平台公告并推送全体用户' },
   { key: '/admin/logs', label: '操作日志', icon: FileTextOutlined, permission: 'log:view', description: '后台操作审计记录' },
 ]
 
