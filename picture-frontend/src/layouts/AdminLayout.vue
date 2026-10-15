@@ -1,0 +1,123 @@
+<template>
+  <div class="admin-layout">
+    <aside class="admin-sider" :class="{ collapsed }">
+      <div class="admin-brand">
+        <span class="admin-mark">光</span>
+        <div v-if="!collapsed" class="admin-brand-text">
+          <strong>光影集 · 管理后台</strong>
+          <em>内容治理与数据看板</em>
+        </div>
+      </div>
+      <a-menu class="admin-menu" mode="inline" theme="dark" :items="menuItems" :selected-keys="selectedKeys"
+              @click="onMenuClick" />
+      <div v-if="!collapsed" class="admin-sider-foot">
+        <a-button type="text" block @click="router.push('/')">返回前台</a-button>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-header">
+        <a-button type="text" class="collapse-btn" @click="collapsed = !collapsed">
+          <MenuFoldOutlined v-if="!collapsed" />
+          <MenuUnfoldOutlined v-else />
+        </a-button>
+        <a-breadcrumb class="admin-breadcrumb">
+          <a-breadcrumb-item>管理后台</a-breadcrumb-item>
+          <a-breadcrumb-item>{{ currentTitle }}</a-breadcrumb-item>
+        </a-breadcrumb>
+        <div class="admin-header-right">
+          <a-tag color="green">{{ loginUser.userRole === 'admin' ? '管理员' : '用户' }}</a-tag>
+          <a-avatar :src="loginUser.userAvatar" :size="32">{{ avatarText }}</a-avatar>
+          <span class="admin-user-name">{{ loginUser.userName }}</span>
+        </div>
+      </header>
+      <section class="admin-content">
+        <router-view v-slot="{ Component, route }">
+          <transition name="page" mode="out-in">
+            <component :is="Component" :key="route.path" />
+          </transition>
+        </router-view>
+      </section>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, h, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import {
+  AuditOutlined, DashboardOutlined, FileTextOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
+  PictureOutlined, TeamOutlined, UserOutlined,
+} from '@ant-design/icons-vue'
+import { useLoginUserStore } from '@/stores/useLoginUserStore'
+
+const route = useRoute()
+const router = useRouter()
+const loginUserStore = useLoginUserStore()
+const collapsed = ref(false)
+const loginUser = computed(() => loginUserStore.loginUser || ({} as any))
+const avatarText = computed(() => (loginUser.value.userName || 'A').slice(0, 1))
+
+const menuItems = [
+  { key: '/admin/dashboard', icon: () => h(DashboardOutlined), label: '数据看板' },
+  { key: '/admin/review', icon: () => h(AuditOutlined), label: '内容审核' },
+  { key: '/admin/users', icon: () => h(TeamOutlined), label: '用户与权限' },
+  { key: '/admin/pictures', icon: () => h(PictureOutlined), label: '图片管理' },
+  { key: '/admin/spaces', icon: () => h(UserOutlined), label: '空间管理' },
+  { key: '/admin/logs', icon: () => h(FileTextOutlined), label: '操作日志' },
+]
+
+const selectedKeys = computed(() => {
+  const match = menuItems
+    .filter((i) => route.path === i.key || route.path.startsWith(i.key + '/'))
+    .sort((a, b) => b.key.length - a.key.length)[0]
+  return match ? [match.key] : ['/admin/dashboard']
+})
+
+const currentTitle = computed(() => menuItems.find((i) => i.key === selectedKeys.value[0])?.label ?? '')
+
+function onMenuClick({ key }: { key: string }) {
+  router.push(key)
+}
+</script>
+
+<style scoped>
+.admin-layout { display: flex; min-height: 100vh; background: #F4F5F3; }
+
+.admin-sider {
+  display: flex;
+  flex-direction: column;
+  width: 236px;
+  background: #22302A;
+  transition: width var(--dur) var(--ease);
+  flex: 0 0 auto;
+}
+
+.admin-sider.collapsed { width: 76px; }
+
+.admin-brand { display: flex; align-items: center; gap: var(--space-3); padding: 18px 18px 14px; }
+.admin-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 600; flex: 0 0 auto; }
+.admin-brand-text strong { display: block; color: #F2F4F1; font-size: var(--font-3); }
+.admin-brand-text em { color: rgba(242, 244, 241, .55); font-size: 11px; font-style: normal; }
+
+.admin-menu { flex: 1 1 auto; background: transparent; border-inline-end: none !important; }
+.admin-sider-foot { padding: var(--space-4); }
+
+.admin-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 60px;
+  padding: 0 var(--space-5);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-breadcrumb { flex: 1 1 auto; }
+.admin-header-right { display: flex; align-items: center; gap: var(--space-3); }
+.admin-user-name { color: var(--text-2); font-size: var(--font-2); }
+
+.admin-content { flex: 1 1 auto; padding: var(--space-5); }
+</style>

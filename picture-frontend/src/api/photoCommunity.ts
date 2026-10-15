@@ -87,3 +87,28 @@ export function listExhibitionPictures(exhibitionId: number) {
 export function listExhibitionWorks(exhibitionId: number) {
   return request('/api/exhibition/work/list', { method: 'GET', params: { exhibitionId } })
 }
+
+/* ===== 作品详情与社交（迭代 2 补齐）===== */
+export function getWorkDetail(id: string | number) {
+  return request('/api/work/get/vo', { method: 'GET', params: { id } })
+}
+
+export function listWorksByAuthor(params: { authorId: string | number; current?: number; size?: number }) {
+  return request('/api/work/page', { method: 'GET', params })
+}
+
+export function unlikeWork(data: { workId: string | number }) {
+  return request('/api/work/unlike', { method: 'POST', data })
+}
+
+export function listComments(workId: string | number) {
+  return request('/api/work/comments', { method: 'GET', params: { workId } })
+}
+
+export function followUser(data: { userId: string | number }) {
+  return request('/api/work/follow', { method: 'POST', data })
+}
+
+export function unfollowUser(data: { userId: string | number }) {
+  return request('/api/work/unfollow', { method: 'POST', data })
+}
