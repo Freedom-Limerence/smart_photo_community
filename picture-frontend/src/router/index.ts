@@ -56,6 +56,7 @@ const AdminLogsPage = () => import('@/pages/admin/AdminLogsPage.vue')
 const AdminRbacPage = () => import('@/pages/admin/AdminRbacPage.vue')
 const AdminMonitorPage = () => import('@/pages/admin/AdminMonitorPage.vue')
 const AdminReportPage = () => import('@/pages/admin/AdminReportPage.vue')
+const AdminAutoReviewPage = () => import('@/pages/admin/AdminAutoReviewPage.vue')
 const AdminAnnouncementPage = () => import('@/pages/admin/AdminAnnouncementPage.vue')
 const NotificationPage = () => import('@/pages/notification/NotificationPage.vue')
 const MeStatsPage = () => import('@/pages/me/MeStatsPage.vue')
@@ -134,6 +135,7 @@ const router = createRouter({
         { path: 'pictures', component: PictureManagePage, meta: { title: '图片管理' } },
         { path: 'spaces', component: SpaceManagePage, meta: { title: '空间管理' } },
         { path: 'spaceUser/:id', component: SpaceUserManagePage, props: true, meta: { title: '空间成员' } },
+        { path: 'auto-review', component: AdminAutoReviewPage, meta: { title: '自动审核' } },
         { path: 'report', component: AdminReportPage, meta: { title: '举报处理' } },
         { path: 'announcement', component: AdminAnnouncementPage, meta: { title: '公告管理' } },
         { path: 'monitor', component: AdminMonitorPage, meta: { title: '系统监控' } },

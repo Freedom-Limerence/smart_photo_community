@@ -23,3 +23,8 @@ export const handleReport = (data: { id: string | number; action: 'RESOLVE' | 'R
 export const listAdminAnnouncements = (params: { status?: string; current?: number; size?: number }) => request('/api/admin/console/announcements', { method: 'GET', params })
 export const saveAnnouncement = (data: { id?: string; title: string; content: string; level: string }) => request('/api/admin/console/announcements/save', { method: 'POST', data })
 export const changeAnnouncementStatus = (data: { id: string | number; status: string; broadcast?: boolean }) => request('/api/admin/console/announcements/status', { method: 'POST', data })
+
+/* ===== 机审（自动审核）===== */
+export const getAutoReviewConfig = () => request('/api/admin/console/auto-review/config', { method: 'GET' })
+export const saveAutoReviewConfig = (data: Record<string, unknown>) => request('/api/admin/console/auto-review/config', { method: 'POST', data })
+export const runAutoReview = (limit = 200) => request('/api/admin/console/auto-review/run', { method: 'POST', params: { limit } })
