@@ -13,3 +13,6 @@ export const getRbacMy = () => request('/api/admin/rbac/my', { method: 'GET' })
 export const getRbacMatrix = () => request('/api/admin/rbac/matrix', { method: 'GET' })
 export const updateRolePermissions = (data: { roleCode: string; permCodes: string[] }) => request('/api/admin/rbac/role/permissions', { method: 'POST', data })
 export const assignUserRole = (data: { userId: string | number; roleCode: string }) => request('/api/admin/rbac/user/role', { method: 'POST', data })
+
+/* ===== 系统监控 ===== */
+export const getAdminMetrics = (hours = 24) => request('/api/admin/console/metrics', { method: 'GET', params: { hours } })

@@ -47,7 +47,7 @@ import { computed, h, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   AuditOutlined, DashboardOutlined, FileTextOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
-  PictureOutlined, SafetyCertificateOutlined, TeamOutlined, UserOutlined,
+  FundProjectionScreenOutlined, PictureOutlined, SafetyCertificateOutlined, TeamOutlined, UserOutlined,
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 
@@ -64,6 +64,7 @@ const menuItems = [
   { key: '/admin/users', icon: () => h(TeamOutlined), label: '用户与权限' },
   { key: '/admin/pictures', icon: () => h(PictureOutlined), label: '图片管理' },
   { key: '/admin/spaces', icon: () => h(UserOutlined), label: '空间管理' },
+  { key: '/admin/monitor', icon: () => h(FundProjectionScreenOutlined), label: '系统监控' },
   { key: '/admin/rbac', icon: () => h(SafetyCertificateOutlined), label: '角色权限' },
   { key: '/admin/logs', icon: () => h(FileTextOutlined), label: '操作日志' },
 ]

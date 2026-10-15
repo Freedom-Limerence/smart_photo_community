@@ -51,6 +51,7 @@ const AdminDashboardPage = () => import('@/pages/admin/AdminDashboardPage.vue')
 const AdminReviewPage = () => import('@/pages/admin/AdminReviewPage.vue')
 const AdminLogsPage = () => import('@/pages/admin/AdminLogsPage.vue')
 const AdminRbacPage = () => import('@/pages/admin/AdminRbacPage.vue')
+const AdminMonitorPage = () => import('@/pages/admin/AdminMonitorPage.vue')
 
 // ---- 账号（无布局）----
 const UserLoginPage = () => import('@/pages/user/UserLoginPage.vue')
@@ -124,6 +125,7 @@ const router = createRouter({
         { path: 'pictures', component: PictureManagePage, meta: { title: '图片管理' } },
         { path: 'spaces', component: SpaceManagePage, meta: { title: '空间管理' } },
         { path: 'spaceUser/:id', component: SpaceUserManagePage, props: true, meta: { title: '空间成员' } },
+        { path: 'monitor', component: AdminMonitorPage, meta: { title: '系统监控' } },
         { path: 'rbac', component: AdminRbacPage, meta: { title: '角色与权限' } },
         { path: 'logs', component: AdminLogsPage, meta: { title: '操作日志' } },
       ],
