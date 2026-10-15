@@ -233,6 +233,14 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         return baseMapper.update(patch, new LambdaUpdateWrapper<PhotoWork>().in(PhotoWork::getId, ids));
     }
 
+    @Override
+    public void increaseViewCount(Long workId) {
+        if (workId == null) {
+            return;
+        }
+        update(new LambdaUpdateWrapper<PhotoWork>().eq(PhotoWork::getId, workId).setSql("viewCount = viewCount + 1"));
+    }
+
     /** 管理端查询条件：不受可见性限制，可按状态与标题模糊筛选 */
     private LambdaQueryWrapper<PhotoWork> adminWrapper(String status, String keyword) {
         return new LambdaQueryWrapper<PhotoWork>()

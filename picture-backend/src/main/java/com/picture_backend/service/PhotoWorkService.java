@@ -34,6 +34,9 @@ public interface PhotoWorkService {
     /** 管理端：批量修改作品状态（封禁/恢复），返回影响行数 */
     int updateStatusByIds(java.util.List<Long> ids, String status);
 
+    /** 浏览量 +1（详情页访问时调用） */
+    void increaseViewCount(Long workId);
+
     /** 我点赞的作品（按点赞时间倒序） */
     List<PhotoWork> listLikes(Long userId, int limit);
     WorkComment addComment(Long workId, Long userId, Long parentId, String content);
