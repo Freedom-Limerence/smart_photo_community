@@ -3,52 +3,57 @@ import { useLoginUserStore } from '@/stores/useLoginUserStore'
 
 // ---- 三套布局 ----
 import PublicLayout from '@/layouts/PublicLayout.vue'
-import UserLayout from '@/layouts/UserLayout.vue'
-import AdminLayout from '@/layouts/AdminLayout.vue'
+const UserLayout = () => import('@/layouts/UserLayout.vue')
+const AdminLayout = () => import('@/layouts/AdminLayout.vue')
 
 // ---- 发现与社区（公共布局）----
 import DiscoverHomePage from '@/pages/discover/HomePage.vue'
-import PhotoCommunityPage from '@/pages/PhotoCommunityPage.vue'
-import WorkDetailPage from '@/pages/work/WorkDetailPage.vue'
-import PhotographerPage from '@/pages/photographer/PhotographerPage.vue'
-import SearchPage from '@/pages/search/SearchPage.vue'
-import ExhibitionPage from '@/pages/ExhibitionPage.vue'
-import PictureDetailPage from '@/pages/PictureDetailPage.vue'
-import AccessCenterPage from '@/pages/AccessCenterPage.vue'
-import SpaceDetailPage from '@/pages/SpaceDetailPage.vue'
-import SpaceAnalyzePage from '@/pages/SpaceAnalyzePage.vue'
-import SearchPicturePage from '@/pages/SearchPicturePage.vue'
-import AddPictureBatchPage from '@/pages/AddPictureBatchPage.vue'
-import UserExchangeVipPage from '@/pages/UserExchangeVipPage.vue'
+const PhotoCommunityPage = () => import('@/pages/PhotoCommunityPage.vue')
+const WorkDetailPage = () => import('@/pages/work/WorkDetailPage.vue')
+const PhotographerPage = () => import('@/pages/photographer/PhotographerPage.vue')
+const FollowListPage = () => import('@/pages/photographer/FollowListPage.vue')
+const SearchPage = () => import('@/pages/search/SearchPage.vue')
+const TagPage = () => import('@/pages/tags/TagPage.vue')
+const TagIndexPage = () => import('@/pages/tags/TagIndexPage.vue')
+const ExhibitionPage = () => import('@/pages/ExhibitionPage.vue')
+const PictureDetailPage = () => import('@/pages/PictureDetailPage.vue')
+const AccessCenterPage = () => import('@/pages/AccessCenterPage.vue')
+const SpaceDetailPage = () => import('@/pages/SpaceDetailPage.vue')
+const SpaceAnalyzePage = () => import('@/pages/SpaceAnalyzePage.vue')
+const SearchPicturePage = () => import('@/pages/SearchPicturePage.vue')
+const AddPictureBatchPage = () => import('@/pages/AddPictureBatchPage.vue')
+const UserExchangeVipPage = () => import('@/pages/UserExchangeVipPage.vue')
 
 // ---- AI 助手 ----
-import AiCatalogPage from '@/pages/ai/AiCatalogPage.vue'
-import AiSearchPage from '@/pages/ai/AiSearchPage.vue'
-import AiSimilarPage from '@/pages/ai/AiSimilarPage.vue'
+const AiCatalogPage = () => import('@/pages/ai/AiCatalogPage.vue')
+const AiSearchPage = () => import('@/pages/ai/AiSearchPage.vue')
+const AiSimilarPage = () => import('@/pages/ai/AiSimilarPage.vue')
 
 // ---- 个人中心（UserLayout）----
-import MeOverviewPage from '@/pages/me/MeOverviewPage.vue'
-import MeWorksPage from '@/pages/me/MeWorksPage.vue'
-import MeFavoritesPage from '@/pages/me/MeFavoritesPage.vue'
-import MeGalleryPage from '@/pages/me/MeGalleryPage.vue'
-import CreateWorkPage from '@/pages/CreateWorkPage.vue'
-import AddPicturePage from '@/pages/AddPicturePage.vue'
-import AddSpacePage from '@/pages/AddSpacePage.vue'
-import MySpacePage from '@/pages/MySpacePage.vue'
-import UserProfilePage from '@/pages/user/UserProfilePage.vue'
-import UserSettingsPage from '@/pages/user/UserSettingsPage.vue'
-import UserPasswordPage from '@/pages/user/UserPasswordPage.vue'
+const MeOverviewPage = () => import('@/pages/me/MeOverviewPage.vue')
+const MeWorksPage = () => import('@/pages/me/MeWorksPage.vue')
+const MeFavoritesPage = () => import('@/pages/me/MeFavoritesPage.vue')
+const MeGalleryPage = () => import('@/pages/me/MeGalleryPage.vue')
+const CreateWorkPage = () => import('@/pages/CreateWorkPage.vue')
+const AddPicturePage = () => import('@/pages/AddPicturePage.vue')
+const AddSpacePage = () => import('@/pages/AddSpacePage.vue')
+const MySpacePage = () => import('@/pages/MySpacePage.vue')
+const UserProfilePage = () => import('@/pages/user/UserProfilePage.vue')
+const UserSettingsPage = () => import('@/pages/user/UserSettingsPage.vue')
+const UserPasswordPage = () => import('@/pages/user/UserPasswordPage.vue')
 
 // ---- 管理后台（AdminLayout）----
-import UserManagePage from '@/pages/admin/UserManagePage.vue'
-import PictureManagePage from '@/pages/admin/PictureManagePage.vue'
-import SpaceManagePage from '@/pages/admin/SpaceManagePage.vue'
-import SpaceUserManagePage from '@/pages/admin/SpaceUserManagePage.vue'
-import AdminComingSoon from '@/pages/admin/AdminComingSoon.vue'
+const UserManagePage = () => import('@/pages/admin/UserManagePage.vue')
+const PictureManagePage = () => import('@/pages/admin/PictureManagePage.vue')
+const SpaceManagePage = () => import('@/pages/admin/SpaceManagePage.vue')
+const SpaceUserManagePage = () => import('@/pages/admin/SpaceUserManagePage.vue')
+const AdminDashboardPage = () => import('@/pages/admin/AdminDashboardPage.vue')
+const AdminReviewPage = () => import('@/pages/admin/AdminReviewPage.vue')
+const AdminLogsPage = () => import('@/pages/admin/AdminLogsPage.vue')
 
 // ---- 账号（无布局）----
-import UserLoginPage from '@/pages/user/UserLoginPage.vue'
-import UserRegisterPage from '@/pages/user/UserRegisterPage.vue'
+const UserLoginPage = () => import('@/pages/user/UserLoginPage.vue')
+const UserRegisterPage = () => import('@/pages/user/UserRegisterPage.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -63,7 +68,11 @@ const router = createRouter({
         { path: 'community', name: 'community', component: PhotoCommunityPage, meta: { title: '作品社区' } },
         { path: 'works/:id', name: 'work-detail', component: WorkDetailPage, props: true, meta: { title: '作品详情' } },
         { path: 'photographers/:id', name: 'photographer', component: PhotographerPage, props: true, meta: { title: '摄影师主页' } },
+        { path: 'photographers/:id/followers', component: FollowListPage, meta: { title: '粉丝' } },
+        { path: 'photographers/:id/following', component: FollowListPage, meta: { title: '关注' } },
         { path: 'search', name: 'search', component: SearchPage, meta: { title: '搜索' } },
+        { path: 'tags', name: 'tag-index', component: TagIndexPage, meta: { title: '标签广场' } },
+        { path: 'tags/:tag', name: 'tag', component: TagPage, props: true, meta: { title: '标签' } },
         { path: 'exhibitions', name: 'exhibitions', component: ExhibitionPage, meta: { title: '专题展览' } },
         { path: 'picture/:id', name: 'picture-detail', component: PictureDetailPage, props: true, meta: { title: '图片详情' } },
         { path: 'access-center', name: 'access-center', component: AccessCenterPage, meta: { title: '访问控制中心' } },
@@ -88,6 +97,8 @@ const router = createRouter({
         { path: '', name: 'me-overview', component: MeOverviewPage, meta: { title: '我的主页' } },
         { path: 'works', name: 'me-works', component: MeWorksPage, meta: { title: '我的作品' } },
         { path: 'favorites', name: 'me-favorites', component: MeFavoritesPage, meta: { title: '我的收藏' } },
+        { path: 'followers', component: FollowListPage, meta: { title: '我的粉丝' } },
+        { path: 'following', component: FollowListPage, meta: { title: '我的关注' } },
         { path: 'gallery', name: 'me-gallery', component: MeGalleryPage, meta: { title: '我的图库' } },
         { path: 'upload', name: 'me-upload', component: AddPicturePage, meta: { title: '上传图片' } },
         { path: 'create-work', name: 'me-create-work', component: CreateWorkPage, meta: { title: '发布作品' } },
@@ -106,13 +117,13 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true },
       children: [
         { path: '', redirect: '/admin/dashboard' },
-        { path: 'dashboard', component: AdminComingSoon, meta: { title: '数据看板' } },
-        { path: 'review', component: AdminComingSoon, meta: { title: '内容审核' } },
+        { path: 'dashboard', component: AdminDashboardPage, meta: { title: '数据看板' } },
+        { path: 'review', component: AdminReviewPage, meta: { title: '内容审核' } },
         { path: 'users', component: UserManagePage, meta: { title: '用户与权限' } },
         { path: 'pictures', component: PictureManagePage, meta: { title: '图片管理' } },
         { path: 'spaces', component: SpaceManagePage, meta: { title: '空间管理' } },
         { path: 'spaceUser/:id', component: SpaceUserManagePage, props: true, meta: { title: '空间成员' } },
-        { path: 'logs', component: AdminComingSoon, meta: { title: '操作日志' } },
+        { path: 'logs', component: AdminLogsPage, meta: { title: '操作日志' } },
       ],
     },
 

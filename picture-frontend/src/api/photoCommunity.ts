@@ -1,6 +1,6 @@
 import request from '@/request'
 
-export function listWorks(params: { current?: number; size?: number }) {
+export function listWorks(params: { current?: number; size?: number; sort?: 'latest' | 'hot' }) {
   return request('/api/work/page', { method: 'GET', params })
 }
 
@@ -111,4 +111,24 @@ export function followUser(data: { userId: string | number }) {
 
 export function unfollowUser(data: { userId: string | number }) {
   return request('/api/work/unfollow', { method: 'POST', data })
+}
+
+export function getFollowStats(userId: string | number) {
+  return request('/api/social/stats', { method: 'GET', params: { userId } })
+}
+
+export function listFollowers(userId: string | number, current = 1, size = 20) {
+  return request('/api/social/followers', { method: 'GET', params: { userId, current, size } })
+}
+
+export function listFollowing(userId: string | number, current = 1, size = 20) {
+  return request('/api/social/following', { method: 'GET', params: { userId, current, size } })
+}
+
+export function listMyFavorites(limit = 60) {
+  return request('/api/work/favorites', { method: 'GET', params: { limit } })
+}
+
+export function listMyLikes(limit = 60) {
+  return request('/api/work/likes', { method: 'GET', params: { limit } })
 }
