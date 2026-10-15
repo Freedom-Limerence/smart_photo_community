@@ -1,132 +1,475 @@
 <template>
-  <div class="work-detail">
-    <div v-if="loading" class="detail-loading"><div class="skeleton" /></div>
-    <template v-else-if="work">
-      <section class="viewer" aria-label="作品图片浏览">
-        <div class="viewer-backdrop" :style="{ backgroundImage: `url('${activePicture?.url || activePicture?.thumbnailUrl || ''}')` }" />
-        <div class="viewer-frame">
-          <img v-if="activePicture?.url || activePicture?.thumbnailUrl" :src="activePicture.url || activePicture.thumbnailUrl" :alt="work.title" @click="toggleFullscreen" />
-          <div v-else class="no-image">影像暂不可用</div>
-        </div>
-        <div class="viewer-top viewer-reveal">
-          <button class="icon-button" aria-label="返回" @click="router.back()"><ArrowLeftOutlined /></button>
-          <router-link class="viewer-author" :to="'/photographers/' + work.authorId"><a-avatar :src="work.author?.userAvatar" :size="30">{{ authorText }}</a-avatar><span>{{ work.author?.userName || '摄影师' }}</span></router-link>
-          <button class="icon-button top-close" aria-label="关闭作品" @click="router.push('/')"><CloseOutlined /></button>
-        </div>
-        <button v-if="pictures.length > 1" class="viewer-arrow left viewer-reveal" aria-label="上一张" @click="step(-1)"><LeftOutlined /></button>
-        <button v-if="pictures.length > 1" class="viewer-arrow right viewer-reveal" aria-label="下一张" @click="step(1)"><RightOutlined /></button>
-        <div class="viewer-bottom viewer-reveal">
-          <span class="viewer-index">{{ String(activeIndex + 1).padStart(2, '0') }} <i>/</i> {{ String(pictures.length).padStart(2, '0') }}</span>
-          <div class="viewer-actions">
-            <button :class="{ on: liked }" @click="toggleLike" aria-label="喜欢作品"><HeartFilled v-if="liked" /><HeartOutlined v-else /> <span>{{ work.likeCount || 0 }}</span></button>
-            <button :class="{ on: favorited }" @click="toggleFavorite" aria-label="收藏作品"><StarFilled v-if="favorited" /><StarOutlined v-else /></button>
-            <button @click="scrollToDetails" aria-label="查看评论"><MessageOutlined /></button>
-            <button @click="toggleFullscreen" :aria-label="fullscreen ? '退出全屏' : '全屏看图'"><FullscreenExitOutlined v-if="fullscreen" /><FullscreenOutlined v-else /></button>
+  <div class="work-page" data-theme="immersive">
+    <a-spin :spinning="loading">
+      <div v-if="work" class="work-layout">
+        <!-- ============ 主区：沉浸式看图 ============ -->
+        <section class="viewer">
+          <div class="stage" :class="{ fullscreen }">
+            <img v-if="activePicture" :src="activePicture.url || activePicture.thumbnailUrl" :alt="work.title"
+                 class="stage-img" @click="toggleFullscreen" />
+            <button class="nav prev" type="button" :disabled="pictures.length < 2" aria-label="上一张" @click="step(-1)">
+              <LeftOutlined />
+            </button>
+            <button class="nav next" type="button" :disabled="pictures.length < 2" aria-label="下一张" @click="step(1)">
+              <RightOutlined />
+            </button>
+            <div class="stage-bar">
+              <a-button type="text" class="stage-btn" @click="toggleFullscreen">
+                <FullscreenOutlined /> {{ fullscreen ? '退出全屏' : '全屏看图' }}
+              </a-button>
+              <span class="stage-meta">
+                <EyeOutlined /> {{ work.viewCount ?? 0 }} 次浏览
+                <em v-if="pictures.length > 1">· {{ activeIndex + 1 }} / {{ pictures.length }}</em>
+                <em class="hint">← → 切换</em>
+              </span>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <div v-if="pictures.length > 1" class="filmstrip"><button v-for="(pic, i) in pictures" :key="pic.id" :class="{ active: i === activeIndex }" :aria-label="`查看第 ${i + 1} 张`" @click="activeIndex = i"><img :src="pic.thumbnailUrl || pic.url" alt="" /></button></div>
+          <div v-if="pictures.length > 1" class="filmstrip">
+            <button v-for="(pic, i) in pictures" :key="pic.id" type="button" class="strip"
+                    :class="{ active: i === activeIndex }" @click="activeIndex = i">
+              <img :src="pic.thumbnailUrl || pic.url" alt="" loading="lazy" />
+            </button>
+          </div>
+        </section>
 
-      <section id="work-story" class="story">
-        <div class="story-heading"><span class="eyebrow">A PHOTOGRAPHIC STORY</span><h1>{{ work.title }}</h1><p>{{ formatDate(work.createTime) }} <span v-if="work.shootLocation"> · {{ work.shootLocation }}</span></p></div>
-        <div class="story-content">
-          <div class="story-main"><p v-if="work.description" class="description">{{ work.description }}</p><p v-else class="description muted">作者还没有写下这组照片背后的故事。</p><div class="story-author"><router-link :to="'/photographers/' + work.authorId"><a-avatar :src="work.author?.userAvatar" :size="46">{{ authorText }}</a-avatar><span><strong>{{ work.author?.userName || '摄影师' }}</strong><small>查看摄影师主页 ↗</small></span></router-link><a-button v-if="!isSelf" size="small" @click="toggleFollow">{{ followed ? '已关注' : '+ 关注' }}</a-button></div></div>
-          <div class="story-details"><span class="eyebrow">IMAGE NOTES</span><dl><div v-if="meta.picWidth"><dt>画幅</dt><dd>{{ meta.picWidth }} × {{ meta.picHeight }}</dd></div><div v-if="meta.picFormat"><dt>格式</dt><dd>{{ String(meta.picFormat).toUpperCase() }}</dd></div><div v-if="work.shootTime"><dt>拍摄于</dt><dd>{{ formatDate(work.shootTime) }}</dd></div><div v-if="work.copyrightNotice"><dt>版权</dt><dd>{{ work.copyrightNotice }}</dd></div></dl><a-button :loading="downloading" @click="download">下载原图 ↗</a-button></div>
-        </div>
-        <div class="comments"><div class="comments-title"><span class="eyebrow">CONVERSATION</span><h2>关于这组作品 <small>{{ comments.length }}</small></h2></div><div class="comment-composer"><a-textarea v-model:value="commentDraft" :auto-size="{ minRows: 2, maxRows: 4 }" maxlength="1000" placeholder="分享你看到的、感受到的…" /><a-button type="primary" :loading="commenting" :disabled="!commentDraft.trim()" @click="submitComment">发表评论</a-button></div><ul><li v-for="c in comments" :key="c.id"><a-avatar :src="c.user?.userAvatar" :size="34">{{ (c.user?.userName || '光').slice(0, 1) }}</a-avatar><div><strong>{{ c.user?.userName || '用户' }}</strong><time>{{ formatDate(c.createTime) }}</time><p>{{ c.content }}</p></div></li></ul><p v-if="!comments.length" class="no-comments">还没有评论，来留下第一句吧。</p></div>
-      </section>
-    </template>
-    <div v-else class="not-found"><h1>作品暂不可见</h1><p>作品可能已下线，或你没有查看权限。</p><a-button @click="router.push('/')">返回发现</a-button></div>
+        <!-- ============ 副区：故事与互动 ============ -->
+        <aside class="story">
+          <header class="author">
+            <router-link class="author-main" :to="'/photographers/' + work.authorId">
+              <a-avatar :src="work.author?.userAvatar" :size="44">{{ authorText }}</a-avatar>
+              <div>
+                <strong>{{ work.author?.userName || '摄影师' }}</strong>
+                <span class="muted">{{ formatDate(work.createTime) }} 发布</span>
+              </div>
+            </router-link>
+            <a-space>
+              <a-button v-if="!isSelf" :type="followed ? 'default' : 'primary'" size="small" @click="toggleFollow">
+                {{ followed ? '已关注' : '+ 关注' }}
+              </a-button>
+              <a-dropdown v-if="!isSelf">
+                <a-button type="text" size="small"><MoreOutlined /></a-button>
+                <template #overlay>
+                  <a-menu>
+                    <a-menu-item key="report" @click="reportOpen = true">举报该作品</a-menu-item>
+                    <a-menu-item key="copy" @click="copyLink">复制链接</a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+            </a-space>
+          </header>
+
+          <h1 class="title">{{ work.title || '未命名作品' }}</h1>
+          <p v-if="work.description" class="description">{{ work.description }}</p>
+
+          <dl class="notes">
+            <div v-if="meta.picWidth"><dt>画幅</dt><dd>{{ meta.picWidth }} × {{ meta.picHeight }}</dd></div>
+            <div v-if="meta.picFormat"><dt>格式</dt><dd>{{ String(meta.picFormat).toUpperCase() }}</dd></div>
+            <div v-if="meta.picColor"><dt>主色</dt><dd><i class="dot" :style="{ background: meta.picColor }" />{{ meta.picColor }}</dd></div>
+            <div v-if="work.shootTime"><dt>拍摄</dt><dd>{{ formatDate(work.shootTime) }}</dd></div>
+            <div v-if="work.shootLocation"><dt>地点</dt><dd>{{ work.shootLocation }}</dd></div>
+            <div v-if="work.copyrightNotice"><dt>版权</dt><dd>{{ work.copyrightNotice }}</dd></div>
+          </dl>
+
+          <div class="actions">
+            <button class="act" :class="{ on: liked }" type="button" @click="toggleLike">
+              <LikeFilled v-if="liked" /><LikeOutlined v-else /> {{ work.likeCount ?? 0 }}
+            </button>
+            <button class="act" :class="{ on: favorited }" type="button" @click="toggleFavorite">
+              <StarFilled v-if="favorited" /><StarOutlined v-else /> {{ work.favoriteCount ?? 0 }}
+            </button>
+            <button class="act" type="button" @click="scrollToComments">
+              <MessageOutlined /> {{ comments.length || work.commentCount || 0 }}
+            </button>
+            <a-button size="small" class="download" :loading="downloading" @click="download">下载原图</a-button>
+          </div>
+
+          <!-- ============ 评论区（二级回复 + 点赞） ============ -->
+          <section id="work-comments" class="comments">
+            <div class="section-title">
+              <span class="eyebrow">CONVERSATION</span>
+              <h2>关于这组作品 <small>{{ comments.length }}</small></h2>
+            </div>
+
+            <div class="composer">
+              <a-textarea v-model:value="commentDraft" :auto-size="{ minRows: 2, maxRows: 4 }"
+                          :placeholder="replyTo ? ('回复 @' + replyTo.userName + '：') : '写下你的想法…'" />
+              <div class="composer-bar">
+                <a-button v-if="replyTo" type="text" size="small" @click="replyTo = null">取消回复</a-button>
+                <a-button type="primary" size="small" :loading="commenting" :disabled="!commentDraft.trim()" @click="submitComment">
+                  发表
+                </a-button>
+              </div>
+            </div>
+
+            <ul v-if="commentTree.length" class="comment-list">
+              <li v-for="node in commentTree" :key="node.id" class="comment">
+                <a-avatar :src="node.user?.userAvatar" :size="32">{{ (node.user?.userName || '光').slice(0, 1) }}</a-avatar>
+                <div class="comment-main">
+                  <div class="comment-head">
+                    <strong>{{ node.user?.userName || '用户' }}</strong>
+                    <span class="muted">{{ formatTime(node.createTime) }}</span>
+                  </div>
+                  <p class="comment-text">{{ node.content }}</p>
+                  <div class="comment-ops">
+                    <button type="button" :class="{ on: node.liked }" @click="toggleCommentLike(node)">
+                      <LikeOutlined /> {{ node.likeCount ?? 0 }}
+                    </button>
+                    <button type="button" @click="startReply(node)">回复</button>
+                  </div>
+
+                  <ul v-if="node.children?.length" class="reply-list">
+                    <li v-for="child in node.children" :key="child.id" class="reply">
+                      <a-avatar :src="child.user?.userAvatar" :size="24">{{ (child.user?.userName || '光').slice(0, 1) }}</a-avatar>
+                      <div class="comment-main">
+                        <div class="comment-head">
+                          <strong>{{ child.user?.userName || '用户' }}</strong>
+                          <span class="muted">{{ formatTime(child.createTime) }}</span>
+                        </div>
+                        <p class="comment-text">{{ child.content }}</p>
+                        <div class="comment-ops">
+                          <button type="button" :class="{ on: child.liked }" @click="toggleCommentLike(child)">
+                            <LikeOutlined /> {{ child.likeCount ?? 0 }}
+                          </button>
+                          <button type="button" @click="startReply(node)">回复</button>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+            <a-empty v-else description="还没有评论，来说点什么" />
+          </section>
+
+          <!-- ============ 相关推荐 ============ -->
+          <section v-if="related.length" class="related">
+            <div class="section-title">
+              <span class="eyebrow">MORE LIKE THIS</span>
+              <h2>你可能也喜欢</h2>
+            </div>
+            <div class="related-grid">
+              <WorkCard v-for="item in related" :key="item.id" :work="item" ratio="70%" @open="openRelated" />
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <a-empty v-else-if="!loading" description="作品暂不可见">
+        <a-button type="primary" @click="router.push('/')">返回发现</a-button>
+      </a-empty>
+    </a-spin>
+
+    <!-- 举报 -->
+    <a-modal v-model:open="reportOpen" title="举报该作品" @ok="doReport">
+      <a-select v-model:value="reportReason" style="width: 100%; margin-bottom: 12px">
+        <a-select-option value="内容违规">内容违规</a-select-option>
+        <a-select-option value="侵权盗用">侵权盗用</a-select-option>
+        <a-select-option value="色情低俗">色情低俗</a-select-option>
+        <a-select-option value="广告营销">广告营销</a-select-option>
+        <a-select-option value="其他">其他</a-select-option>
+      </a-select>
+      <a-textarea v-model:value="reportDetail" :rows="3" placeholder="补充说明（可选）" />
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { ArrowLeftOutlined, CloseOutlined, FullscreenExitOutlined, FullscreenOutlined, HeartFilled, HeartOutlined, LeftOutlined, MessageOutlined, RightOutlined, StarFilled, StarOutlined } from '@ant-design/icons-vue'
-import { authorizeDownload, commentWork, favoriteWork, followUser, getWorkDetail, likeWork, listComments, unfavoriteWork, unfollowUser, unlikeWork } from '@/api/photoCommunity'
+import {
+  EyeOutlined, FullscreenOutlined, LeftOutlined, LikeFilled, LikeOutlined, MessageOutlined,
+  MoreOutlined, RightOutlined, StarFilled, StarOutlined,
+} from '@ant-design/icons-vue'
+import WorkCard from '@/components/common/WorkCard.vue'
+import {
+  authorizeDownload, commentWork, favoriteWork, followUser, getWorkDetail, likeComment, likeWork,
+  listComments, listRelatedWorks, unfavoriteWork, unfollowUser, unlikeComment, unlikeWork,
+} from '@/api/photoCommunity'
+import { submitReport } from '@/api/notification'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
-import { API_BASE_URL } from '@/request'
 
-const route = useRoute(); const router = useRouter(); const loginUserStore = useLoginUserStore()
-const loading = ref(true); const work = ref<any>(null); const comments = ref<any[]>([]); const activeIndex = ref(0)
-const fullscreen = ref(false); const commentDraft = ref(''); const commenting = ref(false); const downloading = ref(false)
-const liked = ref(false); const favorited = ref(false); const followed = ref(false)
+const route = useRoute()
+const router = useRouter()
+const loginUserStore = useLoginUserStore()
+
+const loading = ref(true)
+const work = ref<any>(null)
+const comments = ref<any[]>([])
+const related = ref<any[]>([])
+const activeIndex = ref(0)
+const fullscreen = ref(false)
+const liked = ref(false)
+const favorited = ref(false)
+const followed = ref(false)
+const downloading = ref(false)
+const commentDraft = ref('')
+const commenting = ref(false)
+const replyTo = ref<any>(null)
+const reportOpen = ref(false)
+const reportReason = ref('内容违规')
+const reportDetail = ref('')
+
 const workId = computed(() => String(route.params.id))
-const pictures = computed<any[]>(() => work.value?.pictures?.length ? work.value.pictures : [])
-const activePicture = computed<any>(() => pictures.value[activeIndex.value] || { url: work.value?.coverUrl })
-const meta = computed<any>(() => activePicture.value || {})
+const pictures = computed(() => (work.value?.pictures?.length ? work.value.pictures : []))
+const activePicture = computed(() => pictures.value[activeIndex.value] || pictures.value[0] || null)
+const meta = computed(() => activePicture.value || {})
 const authorText = computed(() => (work.value?.author?.userName || '光').slice(0, 1))
 const isSelf = computed(() => String(work.value?.authorId) === String(loginUserStore.loginUser?.id))
-function formatDate(value?: string) { if (!value) return ''; const d = new Date(value); return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) }
-function step(delta: number) { if (pictures.value.length > 1) activeIndex.value = (activeIndex.value + delta + pictures.value.length) % pictures.value.length }
-function onKeydown(e: KeyboardEvent) { if (e.key === 'ArrowLeft') step(-1); if (e.key === 'ArrowRight') step(1) }
-function onFullscreenChange() { fullscreen.value = !!document.fullscreenElement }
-function toggleFullscreen() { if (document.fullscreenElement) void document.exitFullscreen(); else void document.querySelector('.viewer')?.requestFullscreen() }
-function scrollToDetails() { document.querySelector('#work-story')?.scrollIntoView({ behavior: 'smooth' }) }
-async function load() { loading.value = true; activeIndex.value = 0; try { const res: any = await getWorkDetail(workId.value); work.value = res.data.code === 0 ? res.data.data : null; liked.value = Boolean(work.value?.liked); favorited.value = Boolean(work.value?.favorited); followed.value = Boolean(work.value?.followed); if (work.value) { const cr: any = await listComments(workId.value); comments.value = cr.data.code === 0 ? cr.data.data || [] : [] } } catch { work.value = null } finally { loading.value = false } }
-async function toggleLike() { try { const res: any = liked.value ? await unlikeWork({ workId: workId.value }) : await likeWork({ workId: workId.value }); if (res.data.code !== 0) throw new Error(res.data.message); liked.value = !liked.value; work.value.likeCount = Math.max(0, Number(work.value.likeCount || 0) + (liked.value ? 1 : -1)) } catch (e: any) { message.error(e?.message || '请先登录') } }
-async function toggleFavorite() { try { const res: any = favorited.value ? await unfavoriteWork({ workId: workId.value }) : await favoriteWork({ workId: workId.value }); if (res.data.code !== 0) throw new Error(res.data.message); favorited.value = !favorited.value; work.value.favoriteCount = Math.max(0, Number(work.value.favoriteCount || 0) + (favorited.value ? 1 : -1)) } catch (e: any) { message.error(e?.message || '请先登录') } }
-async function toggleFollow() { try { const res: any = followed.value ? await unfollowUser({ userId: work.value.authorId }) : await followUser({ userId: work.value.authorId }); if (res.data.code !== 0) throw new Error(res.data.message); followed.value = !followed.value } catch (e: any) { message.error(e?.message || '请先登录') } }
-async function submitComment() { if (!commentDraft.value.trim()) return; commenting.value = true; try { const res: any = await commentWork({ workId: workId.value, content: commentDraft.value.trim() }); if (res.data.code !== 0) throw new Error(res.data.message); commentDraft.value = ''; const cr: any = await listComments(workId.value); comments.value = cr.data.code === 0 ? cr.data.data || [] : []; work.value.commentCount = Number(work.value.commentCount || 0) + 1 } catch (e: any) { message.error(e?.message || '评论失败') } finally { commenting.value = false } }
-async function download() { if (!activePicture.value?.id) return message.warning('没有可下载的原图'); downloading.value = true; try { const res: any = await authorizeDownload({ pictureId: activePicture.value.id, workId: workId.value, requestId: `web-${Date.now()}` }); if (res.data.code !== 0) throw new Error(res.data.message); window.open(new URL(res.data.data.downloadPath, API_BASE_URL).toString(), '_blank') } catch (e: any) { message.error(e?.message || '下载失败') } finally { downloading.value = false } }
-onMounted(() => { void load(); window.addEventListener('keydown', onKeydown); document.addEventListener('fullscreenchange', onFullscreenChange) })
-onBeforeUnmount(() => { window.removeEventListener('keydown', onKeydown); document.removeEventListener('fullscreenchange', onFullscreenChange) })
-watch(() => route.params.id, load)
+
+/** 评论二级结构：parentId 分组（后端一直支持回复） */
+const commentTree = computed(() => {
+  const roots = comments.value.filter((c) => !c.parentId)
+  const byParent: Record<string, any[]> = {}
+  for (const c of comments.value) {
+    if (c.parentId) {
+      const key = String(c.parentId)
+      byParent[key] = byParent[key] || []
+      byParent[key].push(c)
+    }
+  }
+  return roots.map((root) => ({ ...root, children: byParent[String(root.id)] || [] }))
+})
+
+function formatDate(value?: string) {
+  if (!value) return '-'
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? '-' : d.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+function formatTime(value?: string) {
+  if (!value) return ''
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function step(delta: number) {
+  const total = pictures.value.length
+  if (total < 2) return
+  activeIndex.value = (activeIndex.value + delta + total) % total
+}
+
+function toggleFullscreen() {
+  fullscreen.value = !fullscreen.value
+  const el: any = document.querySelector('.work-page')
+  if (fullscreen.value) el?.requestFullscreen?.().catch(() => {})
+  else document.exitFullscreen?.().catch(() => {})
+}
+
+function scrollToComments() {
+  document.querySelector('#work-comments')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+function openRelated(item: any) {
+  router.push('/works/' + item.id)
+}
+
+/** 键盘翻页 */
+function onKeydown(e: KeyboardEvent) {
+  if ((e.target as HTMLElement)?.tagName === 'TEXTAREA' || (e.target as HTMLElement)?.tagName === 'INPUT') return
+  if (e.key === 'ArrowLeft') step(-1)
+  if (e.key === 'ArrowRight') step(1)
+}
+
+async function load() {
+  loading.value = true
+  try {
+    const res: any = await getWorkDetail(workId.value)
+    work.value = res.data.code === 0 ? res.data.data : null
+    if (!work.value) return
+    liked.value = !!work.value.liked
+    favorited.value = !!work.value.favorited
+    followed.value = !!work.value.followed
+    const [cRes, rRes]: any[] = await Promise.all([
+      listComments(workId.value),
+      listRelatedWorks(workId.value, 6),
+    ])
+    comments.value = cRes.data.code === 0 ? (cRes.data.data || []) : []
+    related.value = rRes.data.code === 0 ? (rRes.data.data || []) : []
+  } finally {
+    loading.value = false
+  }
+}
+
+async function reloadComments() {
+  const res: any = await listComments(workId.value)
+  if (res.data.code === 0) comments.value = res.data.data || []
+}
+
+async function toggleLike() {
+  const res: any = liked.value ? await unlikeWork({ workId: workId.value }) : await likeWork({ workId: workId.value })
+  if (res.data.code === 0) {
+    liked.value = !liked.value
+    work.value.likeCount = Math.max(0, (work.value.likeCount || 0) + (liked.value ? 1 : -1))
+  } else message.error(res.data.message)
+}
+
+async function toggleFavorite() {
+  const res: any = favorited.value ? await unfavoriteWork({ workId: workId.value }) : await favoriteWork({ workId: workId.value })
+  if (res.data.code === 0) {
+    favorited.value = !favorited.value
+    work.value.favoriteCount = Math.max(0, (work.value.favoriteCount || 0) + (favorited.value ? 1 : -1))
+    message.success(favorited.value ? '已收藏' : '已取消收藏')
+  } else message.error(res.data.message)
+}
+
+async function toggleFollow() {
+  const next = !followed.value
+  const res: any = next ? await followUser({ userId: work.value.authorId }) : await unfollowUser({ userId: work.value.authorId })
+  if (res.data.code === 0) {
+    followed.value = next
+    message.success(next ? '已关注该作者' : '已取消关注')
+  } else message.error(res.data.message)
+}
+
+function startReply(node: any) {
+  replyTo.value = node
+  const box = document.querySelector('.composer textarea') as HTMLTextAreaElement | null
+  box?.focus()
+}
+
+async function submitComment() {
+  if (!commentDraft.value.trim()) return
+  commenting.value = true
+  try {
+    const res: any = await commentWork({
+      workId: workId.value,
+      content: commentDraft.value.trim(),
+      parentId: replyTo.value?.id,
+    })
+    if (res.data.code === 0) {
+      commentDraft.value = ''
+      replyTo.value = null
+      await reloadComments()
+      work.value.commentCount = (work.value.commentCount || 0) + 1
+    } else message.error(res.data.message)
+  } finally {
+    commenting.value = false
+  }
+}
+
+async function toggleCommentLike(node: any) {
+  const next = !node.liked
+  const res: any = next ? await likeComment({ workId: node.id }) : await unlikeComment({ workId: node.id })
+  if (res.data.code === 0) {
+    node.liked = next
+    node.likeCount = Math.max(0, (node.likeCount || 0) + (next ? 1 : -1))
+  } else message.error(res.data.message)
+}
+
+async function copyLink() {
+  try {
+    await navigator.clipboard.writeText(location.href)
+    message.success('链接已复制')
+  } catch {
+    message.warning('复制失败，请手动复制地址栏链接')
+  }
+}
+
+async function doReport() {
+  const res: any = await submitReport({
+    targetType: 'work',
+    targetId: workId.value,
+    reason: reportReason.value,
+    detail: reportDetail.value,
+  })
+  if (res.data.code === 0) {
+    message.success('举报已提交，我们会尽快处理')
+    reportOpen.value = false
+    reportDetail.value = ''
+  } else message.error(res.data.message || '提交失败')
+}
+
+async function download() {
+  const pic = activePicture.value
+  if (!pic?.id) return message.warning('该作品没有可下载的原图')
+  downloading.value = true
+  try {
+    const requestId = 'web-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+    const res: any = await authorizeDownload({ pictureId: pic.id, workId: workId.value, requestId })
+    if (res.data.code !== 0) return message.error(res.data.message || '下载授权失败')
+    message.success('已授权下载')
+    window.open('http://localhost:8123' + res.data.data.downloadPath, '_blank')
+  } finally {
+    downloading.value = false
+  }
+}
+
+onMounted(() => {
+  void load()
+  window.addEventListener('keydown', onKeydown)
+})
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <style scoped>
-.work-detail { min-height: 100vh; background: #f9f9f7; }
-.viewer { position: relative; height: 100vh; min-height: 550px; background: #0b0c0b; color: #fff; overflow: hidden; }
-.viewer-backdrop { position:absolute; inset:-60px; background-size:cover; background-position:center; opacity:.12; filter:blur(55px) brightness(.6); }
-.viewer-frame { position:relative; display: grid; place-items: center; width: 100%; height: 100%; padding: 42px 8vw; }
-.viewer-frame img { display: block; width: min(74vw, 1200px); height: min(82vh, 900px); max-width: 100%; max-height: 100%; object-fit: contain; cursor: zoom-in; }
-.no-image { color: #8d908d; letter-spacing: .2em; font-size: 12px; }
-.viewer-top { position: absolute; left: 28px; right: 28px; top: 24px; display: flex; align-items: center; gap: 16px; }
-.viewer-author { display: flex; align-items: center; gap: 9px; color: rgba(255,255,255,.86); font-size: 12px; }
-.top-close { margin-left: auto; }
-.icon-button, .viewer-arrow, .viewer-actions button { display: grid; place-items: center; padding: 0; border: 0; background: rgba(15,17,16,.45); color: #fff; cursor: pointer; }
-.icon-button { width: 36px; height: 36px; border-radius: 50%; }
-.viewer-arrow { position: absolute; top: 50%; width: 45px; height: 45px; border-radius: 50%; transform: translateY(-50%); }
-.viewer-arrow.left { left: 24px; } .viewer-arrow.right { right: 24px; }
-.viewer-bottom { position: absolute; left: 34px; right: 34px; bottom: 27px; display: flex; justify-content: space-between; align-items: center; }
-.viewer-index { font-size: 12px; letter-spacing: .16em; } .viewer-index i { color: #8e928d; font-style: normal; padding: 0 5px; }
-.viewer-actions { display: flex; gap: 10px; }
-.viewer-actions button { display: inline-flex; gap: 6px; width: auto; min-width: 34px; height: 34px; padding: 0 8px; border-radius: 50%; font-size: 13px; }
-.viewer-actions button.on { color: #eabdb7; }
-.viewer-reveal { opacity: 0; transition: opacity .24s; }
-.viewer:hover .viewer-reveal, .viewer:focus-within .viewer-reveal { opacity: 1; }
-.filmstrip { display: flex; justify-content: center; gap: 8px; padding: 18px; background: #151615; overflow-x: auto; }
-.filmstrip button { width: 56px; height: 48px; padding: 0; border: 2px solid transparent; background: #333; cursor: pointer; opacity: .54; }
-.filmstrip button.active { opacity: 1; border-color: #fff; }
-.filmstrip img { width: 100%; height: 100%; object-fit: cover; }
-.story { max-width: 1080px; margin: auto; padding: 90px 30px 120px; }
-.eyebrow { color: #969b94; font-size: 10px; font-weight: 600; letter-spacing: .2em; }
-.story-heading { padding-bottom: 45px; border-bottom: 1px solid #e4e6e1; }
-.story-heading h1 { margin: 14px 0 10px; font-family: 'Noto Serif SC','Songti SC',serif; font-size: clamp(34px,4vw,54px); font-weight: 400; color: #262b26; }
-.story-heading p { color: #929791; font-size: 12px; }
-.story-content { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 90px; padding: 45px 0 70px; }
-.description { margin: 0 0 70px; color: #525b52; font-size: 16px; line-height: 2.15; white-space: pre-wrap; }
-.story-author { display: flex; align-items: center; justify-content: space-between; max-width: 430px; }
-.story-author a { display: flex; align-items: center; gap: 11px; }
-.story-author a span { display: flex; flex-direction: column; gap: 1px; }
-.story-author strong { font-size: 13px; color: #323a32; } .story-author small { font-size: 11px; color: #9ca29c; }
-.story-details dl { margin: 20px 0 28px; }
-.story-details dl div { display: flex; justify-content: space-between; gap: 15px; padding: 10px 0; border-bottom: 1px solid #e8eae5; font-size: 11px; }
-.story-details dt { color: #a0a49d; } .story-details dd { margin: 0; color: #4d574f; text-align: right; }
-.comments { border-top: 1px solid #e4e6e1; padding-top: 60px; max-width: 720px; }
-.comments-title h2 { margin: 7px 0 25px; font-family: 'Noto Serif SC','Songti SC',serif; font-size: 27px; font-weight: 400; }
-.comments-title small { color: #aab0a9; font: 13px sans-serif; }
-.comment-composer { display: flex; align-items: end; gap: 10px; margin-bottom: 40px; }
-.comment-composer :deep(.ant-input) { background: transparent; }
-.comments ul { margin: 0; padding: 0; list-style: none; }
-.comments li { display: flex; gap: 12px; margin: 0 0 27px; }
-.comments li > div { flex: 1; } .comments li strong { color: #333b34; font-size: 12px; } .comments li time { margin-left: 12px; color: #a4a9a2; font-size: 11px; } .comments li p { margin: 6px 0 0; color: #687168; line-height: 1.8; font-size: 13px; }
-.no-comments { color: #a0a69f; font-size: 13px; }
-.detail-loading { height: 100vh; padding: 20px; background: #0b0c0b; } .detail-loading > div { height: 100%; }
-.not-found { display: grid; place-content: center; min-height: 100vh; text-align: center; }
-@media (hover: none) { .viewer-reveal { opacity: 1; } }
-@media (max-width: 700px) { .viewer-frame { padding: 40px 0; } .viewer-top { left: 14px; right: 14px; top: 12px; } .viewer-bottom { left: 15px; right: 15px; bottom: 12px; } .viewer-arrow.left { left: 8px; } .viewer-arrow.right { right: 8px; } .story { padding: 65px 20px 90px; } .story-content { grid-template-columns: 1fr; gap: 35px; } .description { margin-bottom: 35px; } .comment-composer { flex-direction: column; align-items: stretch; } }
+.work-page { min-height: calc(100vh - var(--header-h)); background: var(--bg); color: var(--text-1); }
+.work-layout { display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 0; }
+
+/* 主区 */
+.viewer { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
+.stage { position: relative; flex: 1 1 auto; display: grid; place-items: center; min-height: 62vh; background: #0c0c0e; border-radius: var(--radius-lg); overflow: hidden; }
+.stage.fullscreen { border-radius: 0; min-height: 100vh; }
+.stage-img { max-width: 100%; max-height: calc(100vh - 220px); object-fit: contain; cursor: zoom-in; }
+.nav { position: absolute; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; background: rgba(20,20,22,.6); color: #EDEDEA; font-size: 16px; cursor: pointer; transition: background var(--dur-fast) var(--ease); }
+.nav:hover:not(:disabled) { background: rgba(20,20,22,.92); }
+.nav:disabled { opacity: .28; cursor: default; }
+.nav.prev { left: 18px; }
+.nav.next { right: 18px; }
+.stage-bar { position: absolute; left: 16px; right: 16px; bottom: 14px; display: flex; align-items: center; justify-content: space-between; color: rgba(237,237,234,.86); font-size: var(--font-1); }
+.stage-btn { color: #EDEDEA; }
+.stage-meta { display: inline-flex; align-items: center; gap: 6px; }
+.stage-meta em { font-style: normal; }
+.stage-meta .hint { opacity: .5; margin-left: 8px; }
+.filmstrip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.strip { flex: 0 0 auto; width: 74px; height: 58px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-2); cursor: pointer; opacity: .55; transition: all var(--dur-fast) var(--ease); }
+.strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.strip.active { opacity: 1; border-color: var(--accent); }
+
+/* 副区 */
+.story { padding: var(--space-5) var(--space-5) var(--space-7); border-left: 1px solid var(--border); background: var(--surface); }
+.author { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+.author-main { display: flex; align-items: center; gap: var(--space-3); }
+.author-main strong { display: block; font-size: var(--font-3); }
+.author-main span { font-size: var(--font-1); }
+.title { margin: 0 0 var(--space-2); font-size: var(--font-6); line-height: 1.3; }
+.description { margin: 0 0 var(--space-4); color: var(--text-2); font-size: var(--font-2); line-height: 1.8; white-space: pre-wrap; }
+.notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px var(--space-4); margin: 0 0 var(--space-4); padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius); }
+.notes div { display: flex; flex-direction: column; gap: 2px; }
+.notes dt { color: var(--text-3); font-size: 11px; }
+.notes dd { margin: 0; font-size: var(--font-2); display: flex; align-items: center; gap: 6px; }
+.dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--border-strong); }
+.actions { display: flex; align-items: center; gap: var(--space-3); padding-bottom: var(--space-5); border-bottom: 1px solid var(--border); }
+.act { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: transparent; color: var(--text-2); font-size: var(--font-2); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
+.act:hover { border-color: var(--accent); color: var(--text-1); }
+.act.on { background: var(--accent-soft); border-color: var(--accent); color: #4F5F53; }
+.download { margin-left: auto; }
+
+.section-title { display: flex; align-items: baseline; gap: 10px; margin: var(--space-5) 0 var(--space-3); }
+.eyebrow { color: var(--text-3); font-size: 10px; letter-spacing: .18em; }
+.section-title h2 { margin: 0; font-size: var(--font-4); }
+.section-title small { color: var(--text-3); font-weight: 400; }
+.composer { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; margin-bottom: var(--space-4); }
+.composer-bar { display: flex; gap: 8px; }
+.comment-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+.comment, .reply { display: flex; gap: 10px; }
+.comment-main { flex: 1 1 auto; min-width: 0; }
+.comment-head { display: flex; align-items: baseline; gap: 8px; }
+.comment-head strong { font-size: var(--font-2); }
+.comment-head span { font-size: 11px; }
+.comment-text { margin: 4px 0 6px; font-size: var(--font-2); color: var(--text-2); line-height: 1.7; white-space: pre-wrap; }
+.comment-ops { display: flex; gap: 14px; }
+.comment-ops button { border: none; background: none; padding: 0; color: var(--text-3); font-size: 12px; cursor: pointer; }
+.comment-ops button:hover { color: var(--text-1); }
+.comment-ops button.on { color: var(--accent-hover); }
+.reply-list { list-style: none; margin: var(--space-3) 0 0; padding: var(--space-3) 0 0 var(--space-3); border-left: 2px solid var(--border); display: flex; flex-direction: column; gap: var(--space-3); }
+.related-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+
+@media (max-width: 1024px) {
+  .work-layout { grid-template-columns: 1fr; }
+  .story { border-left: none; border-top: 1px solid var(--border); }
+  .stage-img { max-height: 56vh; }
+  .related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 </style>
