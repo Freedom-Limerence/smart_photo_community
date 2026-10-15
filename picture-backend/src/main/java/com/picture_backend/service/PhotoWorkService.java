@@ -14,6 +14,9 @@ public interface PhotoWorkService {
     PhotoWork getVisible(Long workId, Long userId);
     void validateVisible(Long workId, Long userId);
     Page<PhotoWork> page(long current, long size, Long userId);
+
+    /** 按作者分页（摄影师主页）：仅返回已发布作品，访客只看到公开可见的 */
+    Page<PhotoWork> pageByAuthor(Long authorId, long current, long size, Long viewerId);
     boolean like(Long workId, Long userId, boolean like);
     boolean favorite(Long workId, Long userId, boolean favorite);
     List<Long> listFavoriteWorkIds(Long userId);

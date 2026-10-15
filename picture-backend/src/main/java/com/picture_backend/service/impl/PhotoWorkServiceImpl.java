@@ -136,6 +136,22 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         return result;
     }
 
+    @Override
+    public Page<PhotoWork> pageByAuthor(Long authorId, long current, long size, Long viewerId) {
+        LambdaQueryWrapper<PhotoWork> wrapper = new LambdaQueryWrapper<PhotoWork>()
+                .eq(PhotoWork::getAuthorId, authorId)
+                .eq(PhotoWork::getStatus, "PUBLISHED")
+                .orderByDesc(PhotoWork::getCreateTime);
+        boolean isSelf = viewerId != null && viewerId.equals(authorId);
+        if (!isSelf) {
+            // 访客与其他人只能看到公开可见的作品，关注可见/团队可见由详情页单独校验
+            wrapper.eq(PhotoWork::getVisibility, "PUBLIC");
+        }
+        Page<PhotoWork> result = page(new Page<>(current, size), wrapper);
+        result.getRecords().forEach(this::fillPictures);
+        return result;
+    }
+
     private PhotoWork fillPictures(PhotoWork work) {
         work.setAuthor(userService.getUserVO(userService.getById(work.getAuthorId())));
         List<PhotoWorkPicture> relations = workPictureMapper.selectList(new LambdaQueryWrapper<PhotoWorkPicture>()
