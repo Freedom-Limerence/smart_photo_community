@@ -31,6 +31,7 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
     @Resource private WorkLikeMapper workLikeMapper;
     @Resource private WorkFavoriteMapper workFavoriteMapper;
     @Resource private WorkCommentMapper workCommentMapper;
+    @Resource private com.picture_backend.mapper.WorkCommentLikeMapper workCommentLikeMapper;
     @Resource private UserFollowMapper userFollowMapper;
     @Resource private SpaceUserMapper spaceUserMapper;
     @Resource private PictureService pictureService;
@@ -272,6 +273,77 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
                 .set(PhotoWork::getReviewMessage, reviewMessage)
                 .set(PhotoWork::getReviewTime, new java.util.Date())
                 .set(PhotoWork::getReviewerId, reviewerId)) ? 1 : 0;
+    }
+    @Override
+    public Page<PhotoWork> pageFollowing(long current, long size, Long userId) {
+        if (userId == null) {
+            return new Page<>(current, size);
+        }
+        List<Long> authorIds = userFollowMapper.selectList(new LambdaQueryWrapper<UserFollow>()
+                .eq(UserFollow::getFollowerId, userId)).stream()
+                .map(UserFollow::getFollowingId).filter(Objects::nonNull).collect(Collectors.toList());
+        if (authorIds.isEmpty()) {
+            return new Page<>(current, size);
+        }
+        Page<PhotoWork> result = page(new Page<>(current, size), new LambdaQueryWrapper<PhotoWork>()
+                .eq(PhotoWork::getStatus, "PUBLISHED")
+                .eq(PhotoWork::getVisibility, "PUBLIC")
+                .eq(PhotoWork::getReviewStatus, 1)
+                .in(PhotoWork::getAuthorId, authorIds)
+                .orderByDesc(PhotoWork::getCreateTime));
+        result.getRecords().forEach(this::fillPictures);
+        return result;
+    }
+
+    @Override
+    public List<PhotoWork> related(Long workId, int limit) {
+        PhotoWork current = getById(workId);
+        if (current == null) {
+            return new java.util.ArrayList<>();
+        }
+        int size = Math.max(1, Math.min(limit, 12));
+        List<PhotoWork> result = new java.util.ArrayList<>();
+        if (current.getAuthorId() != null) {
+            for (PhotoWork work : pageByAuthor(current.getAuthorId(), 1, size + 1, null).getRecords()) {
+                if (!work.getId().equals(workId)) {
+                    result.add(work);
+                }
+            }
+        }
+        if (result.size() < size) {
+            for (PhotoWork work : page(1, size * 3, null).getRecords()) {
+                if (result.size() >= size) {
+                    break;
+                }
+                if (work.getId().equals(workId) || result.stream().anyMatch(r -> r.getId().equals(work.getId()))) {
+                    continue;
+                }
+                result.add(work);
+            }
+        }
+        return result.subList(0, Math.min(size, result.size()));
+    }
+
+    @Override
+    public boolean likeComment(Long commentId, Long userId, boolean like) {
+        if (commentId == null || userId == null) {
+            return false;
+        }
+        WorkCommentLike existing = workCommentLikeMapper.selectOne(new LambdaQueryWrapper<WorkCommentLike>()
+                .eq(WorkCommentLike::getCommentId, commentId).eq(WorkCommentLike::getUserId, userId));
+        if (like && existing == null) {
+            WorkCommentLike record = new WorkCommentLike();
+            record.setCommentId(commentId);
+            record.setUserId(userId);
+            workCommentLikeMapper.insert(record);
+            workCommentMapper.update(null, new LambdaUpdateWrapper<WorkComment>()
+                    .eq(WorkComment::getId, commentId).setSql("likeCount = likeCount + 1"));
+        } else if (!like && existing != null) {
+            workCommentLikeMapper.deleteById(existing.getId());
+            workCommentMapper.update(null, new LambdaUpdateWrapper<WorkComment>()
+                    .eq(WorkComment::getId, commentId).setSql("likeCount = GREATEST(likeCount - 1, 0)"));
+        }
+        return true;
     }
     /** 管理端查询条件：不受可见性限制，可按状态与标题模糊筛选 */
     private LambdaQueryWrapper<PhotoWork> adminWrapper(String status, String keyword) {

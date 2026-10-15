@@ -31,6 +31,15 @@ public interface PhotoWorkService {
     /** 管理端：统计作品数（可带时间范围） */
     long countForAdmin(String status, String keyword, java.util.Date start, java.util.Date end);
 
+    /** 关注流：我关注的作者的公开作品 */
+    Page<PhotoWork> pageFollowing(long current, long size, Long userId);
+
+    /** 相关推荐：同摄影师优先，不足补最新公开作品 */
+    List<PhotoWork> related(Long workId, int limit);
+
+    /** 评论点赞 / 取消 */
+    boolean likeComment(Long commentId, Long userId, boolean like);
+
     /** 管理端：写入作品审核结论（通过/拒绝） */
     int updateReview(Long workId, Integer reviewStatus, String reviewMessage, Long reviewerId);
 

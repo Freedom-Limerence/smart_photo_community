@@ -27,6 +27,7 @@
         <div class="feed-tabs" role="group" aria-label="作品排序">
           <button :class="{ active: sort === 'latest' }" @click="sort = 'latest'">最新</button>
           <button :class="{ active: sort === 'hot' }" @click="sort = 'hot'">热门</button>
+          <button :class="{ active: feed === 'following' }" @click="toggleFollowing">关注</button>
         </div>
       </div>
 
@@ -58,6 +59,9 @@ const total = ref(0)
 const current = ref(1)
 const loading = ref(false)
 const sort = ref<'latest' | 'hot'>('latest')
+const feed = ref<'all' | 'following'>('all')
+/** 关注流：只看我关注的作者（未登录时会退回普通流） */
+function toggleFollowing() { feed.value = feed.value === 'following' ? 'all' : 'following'; }
 let fetchVersion = 0
 const featured = computed(() => works.value.find((w) => coverOf(w)))
 const displayWorks = computed(() => {
@@ -71,7 +75,7 @@ async function fetchWorks() {
   const version = ++fetchVersion
   loading.value = true
   try {
-    const res: any = await listWorks({ current: current.value, size: 16, sort: sort.value })
+    const res: any = await listWorks({ current: current.value, size: 16, sort: sort.value, feed: feed.value })
     if (version !== fetchVersion) return
     if (res.data.code !== 0) throw new Error(res.data.message || '加载失败')
     const records = res.data.data?.records || []
@@ -82,7 +86,7 @@ async function fetchWorks() {
 }
 async function loadMore() { current.value += 1; await fetchWorks() }
 onMounted(fetchWorks)
-watch(sort, () => { current.value = 1; works.value = []; void fetchWorks() })
+watch([sort, feed], () => { current.value = 1; works.value = []; void fetchWorks() })
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 import request from '@/request'
 
-export function listWorks(params: { current?: number; size?: number; sort?: 'latest' | 'hot' }) {
+export function listWorks(params: { current?: number; size?: number; sort?: 'latest' | 'hot'; feed?: 'all' | 'following' }) {
   return request('/api/work/page', { method: 'GET', params })
 }
 
@@ -131,4 +131,17 @@ export function listMyFavorites(limit = 60) {
 
 export function listMyLikes(limit = 60) {
   return request('/api/work/likes', { method: 'GET', params: { limit } })
+}
+
+/* ===== 迭代 4：关注流 / 相关推荐 / 评论点赞 ===== */
+export function listRelatedWorks(id: string | number, limit = 6) {
+  return request('/api/work/related', { method: 'GET', params: { id, limit } })
+}
+
+export function likeComment(data: { workId: string | number }) {
+  return request('/api/work/comment/like', { method: 'POST', data })
+}
+
+export function unlikeComment(data: { workId: string | number }) {
+  return request('/api/work/comment/unlike', { method: 'POST', data })
 }

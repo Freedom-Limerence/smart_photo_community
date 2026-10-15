@@ -21,6 +21,8 @@ public class WorkComment implements Serializable {
     private Long parentId;
     private String content;
     private String status;
+    /** 点赞数 */
+    private Long likeCount;
     private Date createTime;
     private Date updateTime;
     @TableLogic
