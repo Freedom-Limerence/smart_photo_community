@@ -61,6 +61,7 @@ const AdminAppealPage = () => import('@/pages/admin/AdminAppealPage.vue')
 const AdminAnnouncementPage = () => import('@/pages/admin/AdminAnnouncementPage.vue')
 const NotificationPage = () => import('@/pages/notification/NotificationPage.vue')
 const MeStatsPage = () => import('@/pages/me/MeStatsPage.vue')
+const MeAppealsPage = () => import('@/pages/me/MeAppealsPage.vue')
 
 // ---- 账号（无布局）----
 const UserLoginPage = () => import('@/pages/user/UserLoginPage.vue')
@@ -109,6 +110,7 @@ const router = createRouter({
         { path: '', name: 'me-overview', component: MeOverviewPage, meta: { title: '我的主页' } },
         { path: 'works', name: 'me-works', component: MeWorksPage, meta: { title: '我的作品' } },
         { path: 'stats', name: 'me-stats', component: MeStatsPage, meta: { title: '数据表现' } },
+        { path: 'appeals', name: 'me-appeals', component: MeAppealsPage, meta: { title: '我的申诉' } },
         { path: 'favorites', name: 'me-favorites', component: MeFavoritesPage, meta: { title: '我的收藏' } },
         { path: 'followers', component: FollowListPage, meta: { title: '我的粉丝' } },
         { path: 'following', component: FollowListPage, meta: { title: '我的关注' } },

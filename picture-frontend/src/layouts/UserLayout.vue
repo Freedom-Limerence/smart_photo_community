@@ -22,7 +22,7 @@ import AiChatDock from '@/components/chat/AiChatDock.vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 const route = useRoute(); const store = useLoginUserStore(); const loginUser = computed(() => store.loginUser || ({} as any))
 const items = [
-  { path: '/me', label: '主页' }, { path: '/me/works', label: '作品' }, { path: '/me/stats', label: '数据表现' }, { path: '/me/favorites', label: '收藏' },
+  { path: '/me', label: '主页' }, { path: '/me/works', label: '作品' }, { path: '/me/stats', label: '数据表现' }, { path: '/me/appeals', label: '申诉记录' }, { path: '/me/favorites', label: '收藏' },
   { path: '/me/following', label: '关注' }, { path: '/me/followers', label: '粉丝' },
   { path: '/me/gallery', label: '云图库' }, { path: '/me/settings', label: '设置' },
 ]
