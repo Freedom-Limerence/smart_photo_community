@@ -7,5 +7,5 @@ const router=useRouter();const saving=ref(false);const form=reactive({currentPas
 async function submit(){if(form.newPassword!==form.confirmPassword){message.warning('两次输入的新密码不一致');return}saving.value=true;try{const res:any=await updateMyPasswordUsingPost({...form});if(res.data.code===0){message.success('密码已更新，请重新登录');router.push('/user/login')}else message.error(res.data.message)}catch{message.error('密码修改失败，请稍后重试')}finally{saving.value=false}}
 </script>
 <style scoped>
-.password-page{max-width:680px;margin:0 auto}.page-heading{margin:8px 0 24px}.eyebrow{margin:0 0 8px;color:#668473;font-size:11px;letter-spacing:2px;font-weight:600}.page-heading h1{margin:0 0 8px;color:#20322e;font-size:34px}.page-heading p:last-child{margin:0;color:#7b8981}.password-card{border-color:#e1e9e2}.form-actions{display:flex;justify-content:flex-end;gap:10px}
+.password-page{max-width:680px;margin:0 auto}.page-heading{margin:8px 0 28px}.eyebrow{margin:0 0 8px;color:#9ba29a;font-size:10px;letter-spacing:.18em}.page-heading h1{margin:0 0 8px;color:#253229;font:400 32px 'Noto Serif SC','Songti SC',serif}.page-heading p:last-child{margin:0;color:#929a91;font-size:13px}.password-card{border:1px solid #e9ebe7;border-radius:6px;box-shadow:none}.password-card :deep(.ant-card-body){padding:35px}.form-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:12px}
 </style>

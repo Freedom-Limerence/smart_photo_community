@@ -1,6 +1,6 @@
 <template>
   <div v-if="references.length" class="ref-grid">
-    <button v-for="ref in references" :key="ref.type + ref.id" class="ref-card" type="button" @click="$emit('open', ref)">
+    <button v-for="ref in references" :key="ref.type + ref.id" class="ref-card" :class="{ 'work-ref': ref.type === 'work' }" type="button" @click="$emit('open', ref)">
       <div class="ref-thumb">
         <img v-if="ref.thumbnailUrl" :src="ref.thumbnailUrl" alt="" loading="lazy" />
         <span v-else class="ref-icon">
@@ -43,4 +43,8 @@ defineEmits<{ (e: 'open', ref: ChatReference): void }>()
 .ref-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 11px; }
 .ref-body strong { font-size: var(--font-2); }
 .ref-reason { color: var(--text-3); line-height: 1.5; }
+.work-ref { display:block; padding:0; overflow:hidden; border-radius:6px; }
+.work-ref .ref-thumb { width:100%; height:112px; border-radius:0; }
+.work-ref .ref-body { padding:9px 10px 11px; }
+.work-ref .ref-reason { display:none; }
 </style>

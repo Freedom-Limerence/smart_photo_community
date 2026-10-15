@@ -5,7 +5,7 @@
         <span class="brand-mark">光</span>
         <span class="brand-text">
           <strong>光影集</strong>
-          <em>智能摄影云社区</em>
+          <em>PHOTOGRAPHY COMMUNITY</em>
         </span>
       </router-link>
 
@@ -19,9 +19,9 @@
       <div class="header-actions">
         <a-input-search v-model:value="keyword" class="header-search" placeholder="搜索作品 / 摄影师 / 专题"
                         allow-clear @search="doSearch" />
-        <a-button type="primary" class="upload-btn" @click="go('/me/upload')">
+        <a-button type="primary" class="upload-btn" @click="go('/me/create-work')">
           <template #icon><CloudUploadOutlined /></template>
-          上传作品
+          发布作品
         </a-button>
 
         <a-dropdown v-if="loginUser.id" placement="bottomRight">
@@ -39,6 +39,7 @@
               </div>
               <a-menu-divider />
               <a-menu-item key="home" @click="go('/me')"><UserOutlined />个人中心</a-menu-item>
+              <a-menu-item key="following" @click="go('/me/following')"><UserOutlined />关注与粉丝</a-menu-item>
               <a-menu-item key="gallery" @click="go('/me/gallery')"><PictureOutlined />我的图库</a-menu-item>
               <a-menu-item key="settings" @click="go('/me/settings')"><SettingOutlined />账号设置</a-menu-item>
               <a-menu-item v-if="loginUser.userRole === 'admin'" key="admin" @click="go('/admin')">
@@ -77,14 +78,12 @@ const avatarText = computed(() => (loginUser.value.userName || '光').slice(0, 1
 
 const navItems = [
   { label: '发现', path: '/' },
-  { label: '社区', path: '/community' },
-  { label: '专题', path: '/exhibitions' },
-  { label: 'AI 助手', path: '/ai/catalog' },
+  { label: '作品社区', path: '/community' },
+  { label: '专题展览', path: '/exhibitions' },
 ]
 
 function isActive(item: { path: string }) {
   if (item.path === '/') return route.path === '/'
-  if (item.path === '/ai/catalog') return route.path.startsWith('/ai')
   return route.path.startsWith(item.path)
 }
 
@@ -137,8 +136,8 @@ async function doLogout() {
   place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: var(--radius);
-  background: var(--accent);
+  border-radius: 50%;
+  background: #3b4d3f;
   color: var(--accent-contrast);
   font-size: var(--font-4);
   font-weight: 600;
@@ -160,7 +159,7 @@ async function doLogout() {
 }
 
 .nav-item:hover { color: var(--text-1); background: var(--surface-2); }
-.nav-item.active { color: #4F5F53; background: var(--accent-soft); font-weight: 500; }
+.nav-item.active { color: #314737; background: none; font-weight: 600; }
 
 .header-actions { display: flex; align-items: center; gap: var(--space-3); flex: 0 0 auto; }
 .header-search { width: 220px; }
@@ -188,9 +187,21 @@ async function doLogout() {
 }
 
 @media (max-width: 768px) {
-  .header-inner { padding: 0 var(--space-4); gap: var(--space-3); }
+  .public-header { height: auto; }
+  .header-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'brand actions' 'nav nav';
+    gap: 0 12px;
+    height: auto;
+    padding: 8px var(--space-4) 0;
+  }
+  .brand { grid-area: brand; }
   .brand-text em { display: none; }
-  .nav { overflow-x: auto; }
-  .upload-btn span:not(.anticon) { display: none; }
+  .nav { grid-area: nav; justify-content: center; min-width: 0; overflow-x: auto; white-space: nowrap; }
+  .nav-item { flex: 0 0 auto; padding: 10px 14px; font-size: 12px; }
+  .header-actions { grid-area: actions; }
+  .upload-btn { width: 36px; height: 36px; padding: 0; justify-content: center; font-size: 0; }
+  .upload-btn :deep(.anticon) { font-size: 16px; }
 }
 </style>

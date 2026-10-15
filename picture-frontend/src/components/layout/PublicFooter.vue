@@ -4,14 +4,14 @@
       <div class="footer-brand">
         <span class="brand-mark">光</span>
         <div>
-          <strong>光影集 · 智能摄影云社区</strong>
-          <p>摄影资产管理 · AI 编目 · 作品交流</p>
+          <strong>光影集 · 摄影创作社区</strong>
+          <p>给热爱摄影的人，一个分享视角的地方。</p>
         </div>
       </div>
       <div class="footer-links">
         <router-link to="/community">作品社区</router-link>
         <router-link to="/exhibitions">专题展览</router-link>
-        <router-link to="/ai/catalog">AI 摄影工作台</router-link>
+        <router-link to="/search">探索作品</router-link>
         <router-link to="/me/gallery">我的图库</router-link>
       </div>
       <p class="footer-copy">© {{ year }} 光影集 · 仅用于学习与毕业设计演示</p>

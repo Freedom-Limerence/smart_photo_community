@@ -1,6 +1,6 @@
 <template>
   <div class="public-layout">
-    <PublicHeader />
+    <PublicHeader v-if="!isWorkDetail" />
     <main class="public-main">
       <router-view v-slot="{ Component, route }">
         <transition name="page" mode="out-in">
@@ -8,16 +8,20 @@
         </transition>
       </router-view>
     </main>
-    <PublicFooter />
+    <PublicFooter v-if="!isWorkDetail" />
     <!-- 全局悬浮 AI 助手：仅前台挂载，管理端不挂 -->
-    <AiChatDock />
+    <AiChatDock v-if="!isWorkDetail" />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import PublicHeader from '@/components/layout/PublicHeader.vue'
 import PublicFooter from '@/components/layout/PublicFooter.vue'
 import AiChatDock from '@/components/chat/AiChatDock.vue'
+const route = useRoute()
+const isWorkDetail = computed(() => route.name === 'work-detail')
 </script>
 
 <style scoped>

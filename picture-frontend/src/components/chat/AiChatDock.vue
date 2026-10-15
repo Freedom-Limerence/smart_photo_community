@@ -7,7 +7,7 @@
           <div class="chat-title">
             <span class="chat-mark">AI</span>
             <div>
-              <strong>摄影助手</strong>
+              <strong>光影集 · 摄影助手</strong>
               <em>{{ providerLabel }}</em>
             </div>
           </div>
@@ -20,8 +20,8 @@
 
         <div ref="listRef" class="chat-body">
           <div v-if="!store.hasMessages" class="chat-welcome">
-            <h3>你好，我是光影集的摄影助手</h3>
-            <p>我可以基于平台里真实的图片、摄影师和专题回答你，不会编造内容。</p>
+            <h3>从一句话，找到一组好作品。</h3>
+            <p>告诉我你想看的题材、情绪或光线。我会从站内公开作品和摄影师中寻找线索。</p>
             <div class="quick-list">
               <button v-for="q in quickQuestions" :key="q" class="quick-item" @click="ask(q)">{{ q }}</button>
             </div>
@@ -36,7 +36,7 @@
           <a-textarea v-model:value="draft" :auto-size="{ minRows: 1, maxRows: 4 }" placeholder="问点什么…（Enter 发送 / Shift+Enter 换行）"
                       @press-enter="onEnter" />
           <div class="composer-actions">
-            <span class="composer-hint">{{ store.sending ? '正在检索平台数据…' : '基于平台真实数据回答' }}</span>
+            <span class="composer-hint">{{ store.sending ? '正在寻找相关作品…' : '回答引用站内真实内容' }}</span>
             <a-button v-if="store.sending" size="small" @click="store.stop()">停止</a-button>
             <a-button v-else type="primary" size="small" :disabled="!draft.trim()" @click="ask()">发送</a-button>
           </div>
@@ -90,15 +90,15 @@ const windowWidth = ref(window.innerWidth)
 
 const isNarrow = computed(() => windowWidth.value < 720)
 const providerLabel = computed(() => {
-  if (store.provider === 'SPRING_AI_DASHSCOPE') return '大模型驱动 · 基于平台检索'
-  return '本地检索式回答 · 未配置大模型密钥'
+  if (store.provider === 'SPRING_AI_DASHSCOPE') return '对话中探索社区创作'
+  return '基于站内公开作品回答'
 })
 
 const quickQuestions = [
-  '帮我找几张适合做壁纸的深色系风景图',
-  '平台上有哪些擅长拍人像的摄影师？',
-  '最近有什么专题展览？',
-  '平台现在有多少张图片？',
+  '推荐一些城市夜景作品',
+  '我想看自然风景摄影作品',
+  '有哪些擅长拍人像的摄影师？',
+  '最近有什么摄影专题？',
 ]
 
 window.addEventListener('resize', () => { windowWidth.value = window.innerWidth })

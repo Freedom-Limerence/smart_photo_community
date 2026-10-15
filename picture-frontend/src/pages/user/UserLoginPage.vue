@@ -1,86 +1,16 @@
 <template>
-  <div id="userLoginPage">
-    <h2 class="title">智能摄影云社区 - 用户登录</h2>
-    <div class="desc">摄影资产管理与交流平台</div>
-    <a-form :model="formState" name="basic" autocomplete="off" @finish="handleSubmit">
-      <a-form-item name="userAccount" :rules="[{ required: true, message: '请输入账号' }]">
-        <a-input v-model:value="formState.userAccount" placeholder="请输入账号" />
-      </a-form-item>
-      <a-form-item
-        name="userPassword"
-        :rules="[
-          { required: true, message: '请输入密码' },
-          { min: 8, message: '密码长度不能小于 8 位' },
-        ]"
-      >
-        <a-input-password v-model:value="formState.userPassword" placeholder="请输入密码" />
-      </a-form-item>
-      <div class="tips">
-        没有账号？
-        <RouterLink to="/user/register">去注册</RouterLink>
-      </div>
-      <a-form-item>
-        <a-button type="primary" html-type="submit" style="width: 100%">登录</a-button>
-      </a-form-item>
-    </a-form>
-  </div>
+  <div class="auth-page"><aside class="auth-art"><router-link to="/" class="auth-brand">光影集 <small>PHOTOGRAPHY COMMUNITY</small></router-link><div class="art-copy"><span>DISCOVER · SHARE · CONNECT</span><h1>让每一次快门，<br />都有回响。</h1><p>加入热爱摄影的人，分享你眼中的光与影。</p></div><span class="art-foot">GUANGYING / 2026</span></aside><main class="auth-main"><div class="auth-form"><span class="eyebrow">WELCOME BACK</span><h2>欢迎回来</h2><p>登录后继续发现作品、与摄影师交流。</p><a-form :model="form" layout="vertical" @finish="submit"><a-form-item label="账号" name="userAccount" :rules="[{ required: true, message: '请输入账号' }]"><a-input v-model:value="form.userAccount" size="large" placeholder="邮箱或账号" /></a-form-item><a-form-item label="密码" name="userPassword" :rules="[{ required: true, message: '请输入密码' }, { min: 8, message: '密码至少 8 位' }]"><a-input-password v-model:value="form.userPassword" size="large" placeholder="输入密码" /></a-form-item><a-button type="primary" size="large" html-type="submit" block :loading="loading">登录光影集</a-button></a-form><div class="auth-switch">还没有账号？<router-link to="/user/register">创建账号 ↗</router-link></div><router-link to="/" class="back-home">← 返回发现</router-link></div></main></div>
 </template>
-<script lang="ts" setup>
-import { reactive } from 'vue'
-import { userLoginUsingPost } from '@/api/userController.ts'
-import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
+<script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import router from '@/router' // 用于接受表单输入的值
-
-// 用于接受表单输入的值
-const formState = reactive<API.UserLoginRequest>({
-  userAccount: '',
-  userPassword: '',
-})
-
-const loginUserStore = useLoginUserStore()
-
-/**
- * 提交表单
- * @param values
- */
-const handleSubmit = async (values: any) => {
-  const res = await userLoginUsingPost(values)
-  // 登录成功，把登录态保存到全局状态中
-  if (res.data.code === 0 && res.data.data) {
-    await loginUserStore.fetchLoginUser()
-    message.success('登录成功')
-    router.push({
-      path: '/',
-      replace: true,
-    })
-  } else {
-    message.error('登录失败，' + res.data.message)
-  }
-}
+import { userLoginUsingPost } from '@/api/userController'
+import { useLoginUserStore } from '@/stores/useLoginUserStore'
+const router = useRouter(); const route = useRoute(); const store = useLoginUserStore(); const loading = ref(false)
+const form = reactive({ userAccount: '', userPassword: '' })
+async function submit() { loading.value = true; try { const res: any = await userLoginUsingPost({ ...form }); if (res.data.code !== 0) throw new Error(res.data.message || '登录失败'); await store.fetchLoginUser(); message.success('登录成功'); const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/') && !route.query.redirect.startsWith('//') ? route.query.redirect : '/'; await router.replace(redirect) } catch (e: any) { message.error(e?.message || '登录失败') } finally { loading.value = false } }
 </script>
-
 <style scoped>
-#userLoginPage {
-  max-width: 360px;
-  margin: 0 auto;
-}
-
-.title {
-  text-align: center;
-  margin-bottom: 16px;
-}
-
-.desc {
-  text-align: center;
-  color: #bbb;
-  margin-bottom: 16px;
-}
-
-.tips {
-  color: #bbb;
-  text-align: right;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
+.auth-page{display:grid;grid-template-columns:minmax(380px,46%) minmax(0,1fr);min-height:100vh;background:#fafaf8}.auth-art{display:flex;flex-direction:column;justify-content:space-between;padding:45px 60px;background:#26382c;color:#f6f7f2}.auth-brand{font-size:21px;font-weight:600;letter-spacing:.06em}.auth-brand small{display:block;margin-top:3px;color:#a6b5a7;font-size:9px;letter-spacing:.2em;font-weight:400}.art-copy span,.art-foot{color:#aab9aa;font-size:10px;letter-spacing:.2em}.art-copy h1{margin:25px 0;font:400 clamp(38px,4.2vw,65px)/1.38 'Noto Serif SC','Songti SC',serif}.art-copy p{color:#c0cec1;font-size:14px}.auth-main{display:grid;place-items:center;padding:50px}.auth-form{width:min(100%,420px)}.eyebrow{color:#9aa79b;font-size:10px;letter-spacing:.2em}.auth-form h2{margin:10px 0 5px;color:#27332a;font:400 36px 'Noto Serif SC','Songti SC',serif}.auth-form>p{margin:0 0 42px;color:#98a098;font-size:13px}.auth-form :deep(.ant-form-item){margin-bottom:24px}.auth-form :deep(.ant-form-item-label label){color:#5d695f;font-size:13px}.auth-form :deep(.ant-btn-primary){height:45px;background:#344b39;box-shadow:none}.auth-switch{margin-top:24px;color:#9ca49c;font-size:13px}.auth-switch a{margin-left:8px;color:#3d5c43}.back-home{display:inline-block;margin-top:65px;color:#909c91;font-size:12px}@media(max-width:800px){.auth-page{grid-template-columns:1fr}.auth-art{min-height:210px;padding:25px}.art-copy h1{margin:18px 0 10px;font-size:30px}.art-copy p,.art-foot{display:none}.auth-main{padding:45px 25px}}
 </style>

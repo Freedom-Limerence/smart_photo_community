@@ -1,10 +1,11 @@
 import request from '@/request'
+import { API_BASE_URL } from '@/request'
 
 /** 与 request.ts 保持一致的后端地址 */
-const API_BASE = 'http://localhost:8123'
+const API_BASE = API_BASE_URL
 
 export interface ChatReference {
-  type: 'picture' | 'photographer' | 'exhibition' | string
+  type: 'work' | 'picture' | 'photographer' | 'exhibition' | string
   id: string
   title?: string
   subtitle?: string

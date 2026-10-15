@@ -1,100 +1,14 @@
 <template>
-  <div id="userRegisterPage">
-    <h2 class="title">智能摄影云社区 - 用户注册</h2>
-    <div class="desc">摄影资产管理与交流平台</div>
-    <a-form :model="formState" name="basic" autocomplete="off" @finish="handleSubmit">
-      <a-form-item name="userAccount" :rules="[{ required: true, message: '请输入账号' }]">
-        <a-input v-model:value="formState.userAccount" placeholder="请输入账号" />
-      </a-form-item>
-      <a-form-item
-        name="userPassword"
-        :rules="[
-          { required: true, message: '请输入密码' },
-          { min: 8, message: '密码长度不能小于 8 位' },
-        ]"
-      >
-        <a-input-password v-model:value="formState.userPassword" placeholder="请输入密码" />
-      </a-form-item>
-      <a-form-item
-        name="checkPassword"
-        :rules="[
-          { required: true, message: '请输入确认密码' },
-          { min: 8, message: '确认密码长度不能小于 8 位' },
-        ]"
-      >
-        <a-input-password v-model:value="formState.checkPassword" placeholder="请输入确认密码" />
-      </a-form-item>
-      <div class="tips">
-        已有账号？
-        <RouterLink to="/user/login">去登录</RouterLink>
-      </div>
-      <a-form-item>
-        <a-button type="primary" html-type="submit" style="width: 100%">注册</a-button>
-      </a-form-item>
-    </a-form>
-  </div>
+  <div class="auth-page"><aside class="auth-art"><router-link to="/" class="auth-brand">光影集 <small>PHOTOGRAPHY COMMUNITY</small></router-link><div class="art-copy"><span>YOUR STORY BEGINS HERE</span><h1>把你的视角，<br />分享给世界。</h1><p>作品、灵感与同好，从这里开始相遇。</p></div><span class="art-foot">GUANGYING / 2026</span></aside><main class="auth-main"><div class="auth-form"><span class="eyebrow">JOIN THE COMMUNITY</span><h2>加入光影集</h2><p>创建账号，开始记录和分享。</p><a-form :model="form" layout="vertical" @finish="submit"><a-form-item label="账号" name="userAccount" :rules="[{ required: true, message: '请输入账号' }]"><a-input v-model:value="form.userAccount" size="large" placeholder="邮箱或账号" /></a-form-item><a-form-item label="密码" name="userPassword" :rules="[{ required: true, message: '请输入密码' }, { min: 8, message: '密码至少 8 位' }]"><a-input-password v-model:value="form.userPassword" size="large" placeholder="至少 8 位" /></a-form-item><a-form-item label="确认密码" name="checkPassword" :rules="[{ required: true, message: '请确认密码' }]"><a-input-password v-model:value="form.checkPassword" size="large" placeholder="再次输入密码" /></a-form-item><a-button type="primary" size="large" html-type="submit" block :loading="loading">创建账号</a-button></a-form><div class="auth-switch">已有账号？<router-link to="/user/login">返回登录 ↗</router-link></div><router-link to="/" class="back-home">← 返回发现</router-link></div></main></div>
 </template>
-<script lang="ts" setup>
-import { reactive } from 'vue'
-import { userRegisterUsingPost } from '@/api/userController.ts'
-import { useLoginUserStore } from '@/stores/useLoginUserStore.ts'
+<script setup lang="ts">
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import router from '@/router' // 用于接受表单输入的值
-
-// 用于接受表单输入的值
-const formState = reactive<API.UserRegisterRequest>({
-  userAccount: '',
-  userPassword: '',
-  checkPassword: '',
-})
-
-const loginUserStore = useLoginUserStore()
-
-/**
- * 提交表单
- * @param values
- */
-const handleSubmit = async (values: any) => {
-  // 校验两次输入的密码是否一致
-  if (values.userPassword !== values.checkPassword) {
-    message.error('两次输入的密码不一致')
-    return
-  }
-  const res = await userRegisterUsingPost(values)
-  // 注册成功，跳转到登录页面
-  if (res.data.code === 0 && res.data.data) {
-    message.success('注册成功')
-    router.push({
-      path: '/user/login',
-      replace: true,
-    })
-  } else {
-    message.error('注册失败，' + res.data.message)
-  }
-}
+import { userRegisterUsingPost } from '@/api/userController'
+const router = useRouter(); const loading = ref(false); const form = reactive({ userAccount: '', userPassword: '', checkPassword: '' })
+async function submit() { if (form.userPassword !== form.checkPassword) return message.warning('两次输入的密码不一致'); loading.value = true; try { const res: any = await userRegisterUsingPost({ ...form }); if (res.data.code !== 0) throw new Error(res.data.message || '注册失败'); message.success('账号已创建，请登录'); await router.replace('/user/login') } catch (e: any) { message.error(e?.message || '注册失败') } finally { loading.value = false } }
 </script>
-
 <style scoped>
-#userRegisterPage {
-  max-width: 360px;
-  margin: 0 auto;
-}
-
-.title {
-  text-align: center;
-  margin-bottom: 16px;
-}
-
-.desc {
-  text-align: center;
-  color: #bbb;
-  margin-bottom: 16px;
-}
-
-.tips {
-  color: #bbb;
-  text-align: right;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
+.auth-page{display:grid;grid-template-columns:minmax(380px,46%) minmax(0,1fr);min-height:100vh;background:#fafaf8}.auth-art{display:flex;flex-direction:column;justify-content:space-between;padding:45px 60px;background:#26382c;color:#f6f7f2}.auth-brand{font-size:21px;font-weight:600;letter-spacing:.06em}.auth-brand small{display:block;margin-top:3px;color:#a6b5a7;font-size:9px;letter-spacing:.2em;font-weight:400}.art-copy span,.art-foot{color:#aab9aa;font-size:10px;letter-spacing:.2em}.art-copy h1{margin:25px 0;font:400 clamp(38px,4.2vw,65px)/1.38 'Noto Serif SC','Songti SC',serif}.art-copy p{color:#c0cec1;font-size:14px}.auth-main{display:grid;place-items:center;padding:50px}.auth-form{width:min(100%,420px)}.eyebrow{color:#9aa79b;font-size:10px;letter-spacing:.2em}.auth-form h2{margin:10px 0 5px;color:#27332a;font:400 36px 'Noto Serif SC','Songti SC',serif}.auth-form>p{margin:0 0 38px;color:#98a098;font-size:13px}.auth-form :deep(.ant-form-item){margin-bottom:20px}.auth-form :deep(.ant-form-item-label label){color:#5d695f;font-size:13px}.auth-form :deep(.ant-btn-primary){height:45px;background:#344b39;box-shadow:none}.auth-switch{margin-top:24px;color:#9ca49c;font-size:13px}.auth-switch a{margin-left:8px;color:#3d5c43}.back-home{display:inline-block;margin-top:50px;color:#909c91;font-size:12px}@media(max-width:800px){.auth-page{grid-template-columns:1fr}.auth-art{min-height:210px;padding:25px}.art-copy h1{margin:18px 0 10px;font-size:30px}.art-copy p,.art-foot{display:none}.auth-main{padding:45px 25px}}
 </style>

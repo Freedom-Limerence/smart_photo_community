@@ -1,91 +1,44 @@
 <template>
   <div class="user-layout">
     <PublicHeader />
-    <div class="user-body">
-      <aside class="user-sider">
-        <div class="sider-card surface-card">
-          <div class="sider-profile">
-            <a-avatar :src="loginUser.userAvatar" :size="56">{{ avatarText }}</a-avatar>
-            <strong>{{ loginUser.userName || '摄影师' }}</strong>
-            <span class="muted">{{ loginUser.userProfile || '还没有填写简介' }}</span>
-          </div>
-          <a-menu class="sider-menu" mode="inline" :items="menuItems" :selected-keys="selectedKeys"
-                  @click="onMenuClick" />
-        </div>
-      </aside>
-      <section class="user-content">
-        <router-view v-slot="{ Component, route }">
-          <transition name="page" mode="out-in">
-            <component :is="Component" :key="route.path" />
-          </transition>
-        </router-view>
-      </section>
+    <div class="personal-shell container">
+      <div class="personal-heading"><span>MY SPACE / PHOTOGRAPHER</span><h1>{{ loginUser.userName || '我的摄影空间' }}</h1><p>{{ loginUser.userProfile || '记录生活中值得记住的光。' }}</p></div>
+      <nav class="personal-nav" aria-label="个人中心导航">
+        <router-link v-for="item in items" :key="item.path" :to="item.path" :class="{ active: selected(item.path) }">{{ item.label }}</router-link>
+      </nav>
+      <main class="personal-content"><router-view /></main>
     </div>
     <PublicFooter />
+    <AiChatDock />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, h } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import {
-  AppstoreOutlined, FolderOpenOutlined, PictureOutlined, SettingOutlined, StarOutlined, UserOutlined,
-} from '@ant-design/icons-vue'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import PublicHeader from '@/components/layout/PublicHeader.vue'
 import PublicFooter from '@/components/layout/PublicFooter.vue'
+import AiChatDock from '@/components/chat/AiChatDock.vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
-
-const route = useRoute()
-const router = useRouter()
-const loginUserStore = useLoginUserStore()
-const loginUser = computed(() => loginUserStore.loginUser || ({} as any))
-const avatarText = computed(() => (loginUser.value.userName || '光').slice(0, 1))
-
-const menuItems = [
-  { key: '/me', icon: () => h(AppstoreOutlined), label: '我的主页' },
-  { key: '/me/works', icon: () => h(PictureOutlined), label: '我的作品' },
-  { key: '/me/favorites', icon: () => h(StarOutlined), label: '我的收藏' },
-  { key: '/me/gallery', icon: () => h(FolderOpenOutlined), label: '我的图库' },
-  { key: '/me/upload', icon: () => h(UserOutlined), label: '上传图片' },
-  { key: '/me/settings', icon: () => h(SettingOutlined), label: '账号设置' },
+const route = useRoute(); const store = useLoginUserStore(); const loginUser = computed(() => store.loginUser || ({} as any))
+const items = [
+  { path: '/me', label: '主页' }, { path: '/me/works', label: '作品' }, { path: '/me/favorites', label: '收藏' },
+  { path: '/me/following', label: '关注' }, { path: '/me/followers', label: '粉丝' },
+  { path: '/me/gallery', label: '云图库' }, { path: '/me/settings', label: '设置' },
 ]
-
-const selectedKeys = computed(() => {
-  const match = menuItems
-    .filter((i) => route.path === i.key || route.path.startsWith(i.key + '/'))
-    .sort((a, b) => b.key.length - a.key.length)[0]
-  return match ? [match.key] : ['/me']
-})
-
-function onMenuClick({ key }: { key: string }) {
-  router.push(key)
-}
+function selected(path: string) { return path === '/me' ? route.path === '/me' : route.path === path || route.path.startsWith(path + '/') || (path === '/me/settings' && ['/me/profile','/me/password'].includes(route.path)) }
 </script>
 
 <style scoped>
-.user-layout { display: flex; flex-direction: column; min-height: 100vh; background: var(--bg); }
-
-.user-body {
-  display: flex;
-  gap: var(--space-6);
-  width: 100%;
-  max-width: var(--container);
-  margin: 0 auto;
-  padding: var(--space-6);
-}
-
-.user-sider { flex: 0 0 var(--sider-w); }
-.sider-card { position: sticky; top: calc(var(--header-h) + var(--space-5)); padding: var(--space-5) var(--space-3); }
-.sider-profile { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: 0 var(--space-3) var(--space-4); text-align: center; }
-.sider-profile strong { font-size: var(--font-4); }
-.sider-profile span { font-size: var(--font-1); }
-.sider-menu { border-inline-end: none !important; background: transparent; }
-
-.user-content { flex: 1 1 auto; min-width: 0; }
-
-@media (max-width: 900px) {
-  .user-body { flex-direction: column; padding: var(--space-4); }
-  .user-sider { flex: none; }
-  .sider-card { position: static; }
-}
+.user-layout { display: flex; flex-direction: column; min-height: 100vh; background: #fafaf8; }
+.personal-shell { flex: 1; }
+.personal-heading { padding: 55px 0 35px; }
+.personal-heading span { color: #9da29a; font-size: 10px; letter-spacing: .2em; }
+.personal-heading h1 { margin: 12px 0 7px; color: #283028; font-family: 'Noto Serif SC','Songti SC',serif; font-size: clamp(32px,4vw,48px); font-weight: 400; }
+.personal-heading p { margin: 0; color: #929a91; font-size: 13px; }
+.personal-nav { display: flex; gap: clamp(14px,3vw,42px); overflow-x: auto; border-bottom: 1px solid #e2e6e0; }
+.personal-nav a { flex: 0 0 auto; padding: 0 1px 17px; color: #929890; font-size: 13px; }
+.personal-nav a.active { color: #2d4032; border-bottom: 2px solid #344b39; }
+.personal-content { min-height: 65vh; padding: 36px 0 100px; }
+@media (max-width: 700px) { .personal-heading { padding: 34px 0 26px; } .personal-content { padding-top: 24px; } }
 </style>

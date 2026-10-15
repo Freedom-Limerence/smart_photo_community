@@ -37,6 +37,7 @@ defineEmits<{ (e: 'open-reference', ref: any): void }>()
 function toolLabel(tool: any) {
   if (tool.tool === 'fallback') return '大模型不可用，已降级为本地回答'
   const names: Record<string, string> = {
+    searchWorks: '检索社区作品',
     searchPictures: '检索平台图片',
     findPhotographers: '检索摄影师',
     listExhibitions: '检索专题',
@@ -51,8 +52,8 @@ function toolLabel(tool: any) {
 }
 
 function providerLabel(provider: string) {
-  if (provider === 'SPRING_AI_DASHSCOPE') return '由 Spring AI + 百炼大模型生成'
-  if (provider.startsWith('LOCAL_TEMPLATE')) return '本地检索式回答（未配置大模型密钥）'
+  if (provider === 'SPRING_AI_DASHSCOPE') return '摄影助手 · 站内内容'
+  if (provider.startsWith('LOCAL_TEMPLATE')) return '摄影助手 · 站内检索'
   return provider
 }
 </script>
