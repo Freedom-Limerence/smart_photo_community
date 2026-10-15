@@ -29,6 +29,11 @@ public class PhotoWork implements Serializable {
     private String status;
     private Long viewCount;
     private Long likeCount;
+    /** 审核状态：0 待审 / 1 通过 / 2 拒绝 */
+    private Integer reviewStatus;
+    private String reviewMessage;
+    private Date reviewTime;
+    private Long reviewerId;
     private Long commentCount;
     private Long favoriteCount;
     private Date createTime;

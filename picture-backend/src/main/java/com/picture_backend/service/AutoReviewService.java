@@ -15,6 +15,12 @@ public interface AutoReviewService {
     /** 单张机审判定（上传/编辑时调用），不落库 */
     Decision decide(Picture picture, User author);
 
+    /** 作品机审：文本风险 + 作者信誉 */
+    Decision decideWork(com.picture_backend.model.entity.PhotoWork work, User author);
+
+    /** 返回命中的第一个风险词（无则 null），供评论等文本内容复用 */
+    String firstRiskWord(String text);
+
     /** 批量机审积压的待审核图片（管理端手动触发） */
     Map<String, Object> reviewPending(int limit);
 

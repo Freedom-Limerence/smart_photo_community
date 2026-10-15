@@ -35,6 +35,9 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
     @Resource private SpaceUserMapper spaceUserMapper;
     @Resource private PictureService pictureService;
     @Resource private UserService userService;
+    @org.springframework.context.annotation.Lazy @Resource private com.picture_backend.service.AutoReviewService autoReviewService;
+    @org.springframework.context.annotation.Lazy @Resource private com.picture_backend.service.ReviewLogService reviewLogService;
+    @org.springframework.context.annotation.Lazy @Resource private com.picture_backend.service.NotificationService notificationService;
 
     @Override
     public PhotoWork getById(Long workId) {
@@ -97,6 +100,21 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
             }
         }
         work.setStatus(publish ? "PUBLISHED" : "OFFLINE");
+        // 作品机审：与图片同一套规则（文本风险 + 作者信誉），通过即公开，否则转人工
+        if (publish) {
+            User author = userService.getById(userId);
+            com.picture_backend.service.AutoReviewService.Decision decision = autoReviewService.decideWork(work, author);
+            work.setReviewStatus(decision.getReviewStatus());
+            work.setReviewMessage(decision.getMessage());
+            work.setReviewTime(new java.util.Date());
+            work.setReviewerId(null);
+            reviewLogService.recordSystem("work", workId, decision.isAuto() && Integer.valueOf(1).equals(decision.getReviewStatus()) ? "AUTO_PASS" : "SUBMIT_REVIEW",
+                    null, decision.getReviewStatus(), decision.getMessage());
+            if (Integer.valueOf(1).equals(decision.getReviewStatus())) {
+                notificationService.push(userId, "SYSTEM", "作品已通过审核",
+                        "《" + (work.getTitle() == null ? "未命名作品" : work.getTitle()) + "》已进入社区作品流。", null, "work", workId);
+            }
+        }
         return updateById(work);
     }
 
@@ -150,7 +168,8 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
     @Override
     public Page<PhotoWork> page(long current, long size, Long userId, String sort) {
         LambdaQueryWrapper<PhotoWork> query = new LambdaQueryWrapper<PhotoWork>()
-                .eq(PhotoWork::getStatus, "PUBLISHED").eq(PhotoWork::getVisibility, "PUBLIC");
+                .eq(PhotoWork::getStatus, "PUBLISHED").eq(PhotoWork::getVisibility, "PUBLIC")
+                .eq(PhotoWork::getReviewStatus, 1);
         if ("hot".equals(sort)) query.orderByDesc(PhotoWork::getLikeCount);
         query.orderByDesc(PhotoWork::getCreateTime);
         Page<PhotoWork> result = page(new Page<>(current, size), query);
@@ -168,6 +187,7 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         if (!isSelf) {
             // 访客与其他人只能看到公开可见的作品，关注可见/团队可见由详情页单独校验
             wrapper.eq(PhotoWork::getVisibility, "PUBLIC");
+            wrapper.eq(PhotoWork::getReviewStatus, 1);
         }
         Page<PhotoWork> result = page(new Page<>(current, size), wrapper);
         result.getRecords().forEach(this::fillPictures);
@@ -318,9 +338,16 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         comment.setUserId(userId);
         comment.setParentId(parentId);
         comment.setContent(content.trim());
-        comment.setStatus("VISIBLE");
+        // 评论机审：命中风险词直接隐藏（前台按 status=VISIBLE 过滤，自动不可见）
+        String riskWord = autoReviewService.firstRiskWord(content);
+        comment.setStatus(riskWord == null ? "VISIBLE" : "HIDDEN");
         comment.setIsDelete(0);
         workCommentMapper.insert(comment);
+        if ("HIDDEN".equals(comment.getStatus())) {
+            reviewLogService.recordSystem("comment", comment.getId(), "AUTO_HIDE", "VISIBLE", "HIDDEN", "命中风险词：" + riskWord);
+            notificationService.push(userId, "SYSTEM", "你的评论已被隐藏",
+                    "评论包含风险词「" + riskWord + "」，已自动隐藏，可修改后重新发布。", null, "work", workId);
+        }
         update(new LambdaUpdateWrapper<PhotoWork>().eq(PhotoWork::getId, workId).setSql("commentCount = commentCount + 1"));
         return comment;
     }
