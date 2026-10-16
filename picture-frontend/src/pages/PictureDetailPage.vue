@@ -102,6 +102,14 @@
       </a-col>
     </a-row>
 
+    <!-- 互跳：这张图被哪些作品使用过 -->
+    <a-card v-if="relatedWorks.length" :bordered="false" class="panel">
+      <template #title><span class="card-title">被以下作品使用（{{ relatedWorks.length }}）</span></template>
+      <div class="related-works">
+        <WorkCard v-for="item in relatedWorks" :key="item.id" :work="item" ratio="66%" @open="router.push('/works/' + item.id)" />
+      </div>
+    </a-card>
+
     <!-- 编辑弹窗 -->
     <a-modal v-model:open="editOpen" title="编辑图片信息" :confirm-loading="saving" ok-text="保存" @ok="saveEdit">
       <a-form layout="vertical">
@@ -146,6 +154,9 @@ import {
 import { deletePictureUsingPost, editPictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController'
 import { authorizeDownload } from '@/api/photoCommunity'
 import { submitAppeal, submitReport } from '@/api/notification'
+
+import WorkCard from '@/components/common/WorkCard.vue'
+import { listWorksByPicture } from '@/api/photoCommunity'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 
 const route = useRoute()
@@ -153,6 +164,13 @@ const router = useRouter()
 const loginUser = useLoginUserStore()
 
 const picture = ref<any>({})
+const relatedWorks = ref<any[]>([])
+
+async function loadRelatedWorks() {
+  if (!pictureId.value) return
+  const res: any = await listWorksByPicture(pictureId.value)
+  relatedWorks.value = res.data.code === 0 ? (res.data.data || []) : []
+}
 const loading = ref(false)
 const showParams = ref(true)
 const downloading = ref(false)
@@ -184,8 +202,12 @@ async function load() {
   loading.value = true
   try {
     const res: any = await getPictureVoByIdUsingGet({ id: pictureId.value })
-    if (res.data.code === 0) picture.value = res.data.data || {}
-    else message.error(res.data.message || '图片不存在或无权查看')
+    if (res.data.code === 0) {
+      picture.value = res.data.data || {}
+      await loadRelatedWorks()
+    } else {
+      message.error(res.data.message || '图片不存在或无权查看')
+    }
   } finally {
     loading.value = false
   }
@@ -330,5 +352,6 @@ watch(() => route.params.id, load)
 .author-main span { font-size: 12px; }
 .info-actions { display: flex; gap: 8px; margin-top: var(--space-3); }
 .review-alert { margin-bottom: var(--space-4); }
+.related-works { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-4); }
 .muted { color: var(--text-3); }
 </style>

@@ -220,3 +220,8 @@ export function cancelFavorites(workIds: Array<string | number>) {
 export function listFavoriteWorks(params: { folderId?: string | number | null; current?: number; size?: number }) {
   return request('/api/favorite/works', { method: 'GET', params })
 }
+
+/* ===== 图片 <-> 作品 互跳 ===== */
+export function listWorksByPicture(pictureId: string | number, limit = 12) {
+  return request('/api/work/by-picture', { method: 'GET', params: { pictureId, limit } })
+}

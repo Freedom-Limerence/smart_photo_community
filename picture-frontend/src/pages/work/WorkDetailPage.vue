@@ -14,6 +14,9 @@
               <RightOutlined />
             </button>
             <div class="stage-bar">
+              <a-button type="text" class="stage-btn" @click="openOriginal">
+                <PictureOutlined /> 查看原图
+              </a-button>
               <a-button type="text" class="stage-btn" @click="toggleFullscreen">
                 <FullscreenOutlined /> {{ fullscreen ? '退出全屏' : '全屏看图' }}
               </a-button>
@@ -180,7 +183,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
   EyeOutlined, FullscreenOutlined, LeftOutlined, LikeFilled, LikeOutlined, MessageOutlined,
-  MoreOutlined, RightOutlined, StarFilled, StarOutlined,
+  MoreOutlined, PictureOutlined, RightOutlined, StarFilled, StarOutlined,
 } from '@ant-design/icons-vue'
 import WorkCard from '@/components/common/WorkCard.vue'
 import {
@@ -259,6 +262,11 @@ function toggleFullscreen() {
 
 function scrollToComments() {
   document.querySelector('#work-comments')?.scrollIntoView({ behavior: 'smooth' })
+}
+
+function openOriginal() {
+  const pic = activePicture.value
+  if (pic?.id) router.push('/picture/' + pic.id)
 }
 
 function openRelated(item: any) {
