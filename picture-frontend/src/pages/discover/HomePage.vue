@@ -35,9 +35,7 @@
       </div>
 
       <CardSkeleton v-if="loading && !works.length" variant="masonry" :count="8" ratio="72%" />
-      <MasonryGrid v-else-if="displayWorks.length" :items="displayWorks">
-        <template #default="{ item }"><WorkCard :work="item" @open="openWork" /></template>
-      </MasonryGrid>
+      <ContactFeed v-else-if="displayWorks.length" :works="displayWorks" @open="openWork" />
       <EmptyState v-else title="社区还在等待第一组作品" description="分享你眼里的世界，开启新的对话。">
         <a-button type="primary" @click="router.push('/me/create-work')">发布作品</a-button>
       </EmptyState>
@@ -50,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import ContactFeed from '@/components/home/ContactFeed.vue'
 import ContactSheet from '@/components/home/ContactSheet.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
