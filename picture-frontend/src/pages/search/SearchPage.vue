@@ -5,6 +5,14 @@
       <h1>搜索{{ keyword ? '「' + keyword + '」' : '图片与作品' }}</h1>
       <a-input-search v-model:value="keyword" size="large" enter-button="搜索" allow-clear
                       placeholder="搜索图片语义，例如：风景 / 人像 / 夜景" @search="doSearch" />
+      <div class="mode-switch">
+        <a-radio-group v-model:value="mode" button-style="solid" size="small" @change="doSearch">
+          <a-radio-button value="work">作品</a-radio-button>
+          <a-radio-button value="picture">图片</a-radio-button>
+        </a-radio-group>
+        <span class="muted">作品 = 组图与文案的社区内容；图片 = 图库中的单张资产</span>
+      </div>
+
       <div class="search-hint">
         <span>试试：</span>
         <button v-for="word in hotWords" :key="word" type="button" class="chip" @click="quickSearch(word)">{{ word }}</button>
@@ -28,7 +36,7 @@
     </section>
 
     <!-- 结果工具条 -->
-    <div v-if="searched" class="result-bar">
+    <div v-if="searched && mode === 'picture'" class="result-bar">
       <div class="result-count">
         共 <strong>{{ filtered.length }}</strong> 条结果
         <span v-if="activeFields.length" class="muted">（已按 {{ activeFields.length }} 个条件筛选）</span>
@@ -43,7 +51,7 @@
     </div>
 
     <!-- 匹配字段筛选（可点选，客户端过滤） -->
-    <div v-if="searched && availableFields.length" class="field-filter">
+    <div v-if="searched && mode === 'picture' && availableFields.length" class="field-filter">
       <span class="eyebrow">按匹配来源筛选</span>
       <button v-for="f in availableFields" :key="f" type="button" class="chip"
               :class="{ on: activeFields.includes(f) }" @click="toggleField(f)">
@@ -51,7 +59,16 @@
       </button>
     </div>
 
-    <a-spin :spinning="loading">
+    <a-spin v-if="mode === 'work'" :spinning="worksLoading">
+      <div v-if="works.length" class="work-grid">
+        <WorkCard v-for="item in works" :key="item.id" :work="item" ratio="66%" @open="router.push('/works/' + item.id)" />
+      </div>
+      <a-empty v-else-if="!worksLoading" description="没有找到匹配的作品">
+        <a-button type="primary" @click="mode = 'picture'; doSearch()">改搜图片</a-button>
+      </a-empty>
+    </a-spin>
+
+    <a-spin v-if="mode === 'picture'" :spinning="loading">
       <MasonryGrid v-if="filtered.length && viewMode === 'grid'" :items="filtered" key-field="pictureId">
         <template #default="{ item }">
           <article class="hit-card hover-lift" @click="openPicture(item)">
@@ -96,6 +113,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MasonryGrid from '@/components/common/MasonryGrid.vue'
+import WorkCard from '@/components/common/WorkCard.vue'
+import { searchWorksByKeyword } from '@/api/photoCommunity'
 import { searchWithEvidence } from '@/api/aiController'
 
 const route = useRoute()
@@ -107,6 +126,21 @@ const searched = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
 const activeFields = ref<string[]>([])
 const history = ref<string[]>([])
+const mode = ref<'work' | 'picture'>('work')
+const works = ref<any[]>([])
+const worksLoading = ref(false)
+
+async function searchWorks() {
+  const word = keyword.value.trim()
+  if (!word) { works.value = []; return }
+  worksLoading.value = true
+  try {
+    const res: any = await searchWorksByKeyword({ keyword: word, current: 1, size: 24 })
+    works.value = res.data.code === 0 ? (res.data.data?.records || []) : []
+  } finally {
+    worksLoading.value = false
+  }
+}
 
 const hotWords = ['风景', '人像', '夜景', '街拍', '静物', '建筑', '日出', '雪景']
 const HISTORY_KEY = 'photo_search_history'
@@ -188,6 +222,10 @@ async function doSearch() {
     return
   }
   pushHistory(word)
+  if (mode.value === 'work') {
+    await searchWorks()
+    return
+  }
   loading.value = true
   try {
     const res: any = await searchWithEvidence({ query: word, topK: 24 })
@@ -231,5 +269,7 @@ onMounted(() => {
 .hit-list img { width: 110px; height: 74px; object-fit: cover; border-radius: var(--radius-sm); }
 .hit-list div { flex: 1 1 auto; min-width: 0; }
 .hit-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.mode-switch { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.work-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); margin-top: var(--space-3); }
 .muted { color: var(--text-3); }
 </style>

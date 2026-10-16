@@ -225,3 +225,12 @@ export function listFavoriteWorks(params: { folderId?: string | number | null; c
 export function listWorksByPicture(pictureId: string | number, limit = 12) {
   return request('/api/work/by-picture', { method: 'GET', params: { pictureId, limit } })
 }
+
+/* ===== ③④ 作品线检索 ===== */
+export function searchWorksByKeyword(params: { keyword: string; current?: number; size?: number; sort?: "latest" | "hot" }) {
+  return request('/api/work/search', { method: 'GET', params })
+}
+
+export function listWorksByTag(tag: string, limit = 12) {
+  return request('/api/work/by-tag', { method: 'GET', params: { tag, limit } })
+}
