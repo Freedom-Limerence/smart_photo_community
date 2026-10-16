@@ -1,15 +1,18 @@
 <template>
-  <article class="work-card hover-lift" @click="$emit('open', work)">
+  <article class="work-card hover-lift" tabindex="0" @click="$emit('open', work)" @keydown.enter="$emit('open', work)">
     <div class="cover">
       <LazyImage :src="cover" :ratio="ratio" :alt="work.title" />
+      <span class="cover-veil" aria-hidden="true" />
 
       <!-- 悬浮快捷互动：列表页即可点赞/收藏，无需进入详情 -->
       <div class="quick-actions" @click.stop>
-        <button class="quick-btn" :class="{ on: st.liked }" type="button" :disabled="st.pending" @click="store.toggleLike(work)">
+        <button class="quick-btn" :class="{ on: st.liked }" type="button" :disabled="st.pending"
+                :aria-pressed="st.liked" :aria-label="st.liked ? '取消点赞' : '点赞'" @click="store.toggleLike(work)">
           <LikeFilled v-if="st.liked" /><LikeOutlined v-else />
           <span>{{ st.likeCount }}</span>
         </button>
-        <button class="quick-btn" :class="{ on: st.favorited }" type="button" :disabled="st.pending" @click="store.toggleFavorite(work)">
+        <button class="quick-btn" :class="{ on: st.favorited }" type="button" :disabled="st.pending"
+                :aria-pressed="st.favorited" :aria-label="st.favorited ? '取消收藏' : '收藏'" @click="store.toggleFavorite(work)">
           <StarFilled v-if="st.favorited" /><StarOutlined v-else />
           <span>{{ st.favoriteCount }}</span>
         </button>
@@ -97,6 +100,8 @@ async function doFollow() {
 
 <style scoped>
 .work-card {
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -104,7 +109,28 @@ async function doFollow() {
   cursor: pointer;
 }
 
-.cover { position: relative; background: var(--surface-2); }
+.work-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.cover { position: relative; overflow: hidden; background: var(--surface-2); }
+
+/* 悬停时封面轻微推近，配合卡片上浮形成层次 */
+.cover :deep(.lazy-img.is-loaded) {
+  transition: transform var(--dur-slow) var(--ease), opacity var(--dur-slow) var(--ease);
+}
+
+.work-card:hover .cover :deep(.lazy-img.is-loaded) { transform: scale(1.028); }
+
+/* 快捷操作背后的压暗层：只在悬停时出现，平时保持画面干净 */
+.cover-veil {
+  position: absolute;
+  inset: 40% 0 0;
+  background: linear-gradient(to top, rgba(20, 20, 22, .48), rgba(20, 20, 22, 0));
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+
+.work-card:hover .cover-veil { opacity: 1; }
 
 .quick-actions {
   position: absolute;
@@ -117,7 +143,8 @@ async function doFollow() {
   transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
-.work-card:hover .quick-actions { opacity: 1; transform: none; }
+.work-card:hover .quick-actions,
+.work-card:focus-within .quick-actions { opacity: 1; transform: none; }
 
 .quick-btn {
   display: inline-flex;
@@ -139,24 +166,57 @@ async function doFollow() {
 .quick-btn:disabled { opacity: .6; cursor: default; }
 
 .badge {
-  position: absolute; top: 10px; left: 10px; padding: 2px 8px;
-  border-radius: var(--radius-pill); background: rgba(28, 28, 26, .68); color: #fff; font-size: 11px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: rgba(28, 28, 26, .62);
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: .02em;
+  backdrop-filter: blur(6px);
 }
 
-.body { padding: 12px 14px 14px; }
-.title { margin: 0 0 10px; font-size: var(--font-3); font-weight: 500; line-height: 1.5; }
+.body { display: flex; flex: 1 1 auto; flex-direction: column; padding: var(--space-3) var(--space-4) var(--space-4); }
 
-.meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.title {
+  margin: 0 0 var(--space-3);
+  color: var(--text-1);
+  font-size: var(--font-3);
+  font-weight: 500;
+  line-height: 1.5;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.work-card:hover .title { color: var(--accent-ink); }
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
 .author { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--text-2); font-size: var(--font-1); }
 .author:hover { color: var(--accent-hover); }
 
 .follow-btn {
-  flex: 0 0 auto; padding: 2px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill);
-  background: transparent; color: var(--text-2); font-size: 11px; cursor: pointer;
+  flex: 0 0 auto;
+  padding: 2px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 11px;
+  cursor: pointer;
   transition: all var(--dur-fast) var(--ease);
 }
 .follow-btn:hover { border-color: var(--accent); color: var(--accent-hover); }
-.follow-btn.on { background: var(--accent-soft); border-color: var(--accent); color: #4F5F53; }
+.follow-btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
 
 .stats { display: inline-flex; gap: 10px; color: var(--text-3); font-size: var(--font-1); }
 .stats span { display: inline-flex; align-items: center; gap: 3px; }

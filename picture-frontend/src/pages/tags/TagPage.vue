@@ -2,33 +2,35 @@
   <div class="tag-page">
     <header class="tag-hero">
       <div class="container">
-        <p class="eyebrow">TAG</p>
-        <h1># {{ tag }}</h1>
-        <p class="muted">{{ mode === 'work' ? '含该标签的作品（组图与文案）' : '共 ' + total + ' 张带有该标签的公开图片' }}</p>
-        <div class="mode-switch">
-          <a-radio-group v-model:value="mode" button-style="solid" size="small" @change="onModeChange">
-            <a-radio-button value="work">作品</a-radio-button>
-            <a-radio-button value="picture">图片</a-radio-button>
-          </a-radio-group>
-          <span class="hint">作品 = 组图与文案的社区内容；图片 = 图库中的单张资产</span>
-        </div>
+        <PageHeader eyebrow="TAG" :title="'# ' + tag"
+                    :description="mode === 'work' ? '含该标签的作品（组图与文案）' : `共 ${total} 张带有该标签的公开图片`">
+          <div class="mode-switch">
+            <a-radio-group v-model:value="mode" button-style="solid" size="small" @change="onModeChange">
+              <a-radio-button value="work">作品</a-radio-button>
+              <a-radio-button value="picture">图片</a-radio-button>
+            </a-radio-group>
+            <span class="hint">作品 = 组图与文案的社区内容；图片 = 图库中的单张资产</span>
+          </div>
+        </PageHeader>
       </div>
     </header>
 
-    <div class="container">
+    <div class="container tag-body">
       <a-spin v-if="mode === 'work'" :spinning="worksLoading">
-        <div v-if="works.length" class="work-grid">
+        <CardSkeleton v-if="worksLoading && !works.length" variant="grid" :count="8" />
+        <div v-else-if="works.length" class="card-grid">
           <WorkCard v-for="item in works" :key="item.id" :work="item" ratio="66%" @open="router.push('/works/' + item.id)" />
         </div>
-        <a-empty v-else-if="!worksLoading" description="还没有含该标签的作品">
+        <EmptyState v-else title="还没有含该标签的作品" description="换个标签看看，或者按图片浏览同类内容。">
           <a-button type="primary" @click="mode = 'picture'; onModeChange()">看看图片</a-button>
-        </a-empty>
+        </EmptyState>
       </a-spin>
 
       <a-spin v-if="mode === 'picture'" :spinning="loading">
-        <MasonryGrid v-if="pictures.length" :items="pictures" key-field="id">
+        <CardSkeleton v-if="loading && !pictures.length" variant="masonry" :count="8" ratio="72%" />
+        <MasonryGrid v-else-if="pictures.length" :items="pictures" key-field="id">
           <template #default="{ item }">
-            <article class="pic-card hover-lift" @click="router.push('/picture/' + item.id)">
+            <article class="pic-card hover-lift" tabindex="0" @click="router.push('/picture/' + item.id)" @keydown.enter="router.push('/picture/' + item.id)">
               <LazyImage :src="item.thumbnailUrl || item.url" :ratio="ratioOf(item)" :alt="item.name" />
               <div class="pic-body">
                 <strong class="ellipsis">{{ item.name }}</strong>
@@ -39,9 +41,9 @@
             </article>
           </template>
         </MasonryGrid>
-        <a-empty v-else-if="!loading" description="还没有该标签下的公开图片">
+        <EmptyState v-else title="还没有该标签下的公开图片" description="去社区逛逛，发现更多同主题创作。">
           <a-button type="primary" @click="router.push('/community')">去社区逛逛</a-button>
-        </a-empty>
+        </EmptyState>
       </a-spin>
 
       <div v-if="pictures.length < total" class="load-more">
@@ -57,6 +59,9 @@ import { useRoute, useRouter } from 'vue-router'
 import LazyImage from '@/components/common/LazyImage.vue'
 import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
+import CardSkeleton from '@/components/common/CardSkeleton.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController'
 import { listWorksByTag } from '@/api/photoCommunity'
 
@@ -142,17 +147,27 @@ watch(() => route.params.tag, reset)
 
 <style scoped>
 .tag-page { padding-bottom: var(--space-8); }
-.tag-hero { padding: var(--space-7) 0 var(--space-5); background: var(--surface); border-bottom: 1px solid var(--border); margin-bottom: var(--space-6); }
-.tag-hero .eyebrow { margin: 0 0 6px; color: var(--text-3); font-size: var(--font-1); letter-spacing: .2em; }
-.tag-hero h1 { margin: 0 0 6px; font-size: var(--font-7); }
-.tag-hero p { margin: 0; }
+
+/* 标签页头：整条浅色带 + 统一标题区，超宽屏下同样贴住版心 */
+.tag-hero {
+  padding: var(--space-7) 0 0;
+  margin-bottom: var(--space-6);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.tag-hero :deep(.page-head) { border-bottom: 0; padding-bottom: var(--space-6); }
+
+.mode-switch { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.mode-switch .hint { color: var(--text-3); font-size: var(--font-1); }
+
+.tag-body { min-height: 40vh; }
+
 .pic-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; }
-.pic-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
-.pic-body strong { font-size: var(--font-2); }
-.pic-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.pic-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.pic-body { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); }
+.pic-body strong { font-size: var(--font-2); font-weight: 500; }
+.pic-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); }
 .tag-chip { cursor: pointer; }
-.mode-switch { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-.mode-switch .hint { color: var(--text-3); font-size: 12px; }
-.work-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
+
 .load-more { display: flex; justify-content: center; margin-top: var(--space-6); }
 </style>

@@ -9,7 +9,7 @@
         </span>
       </router-link>
 
-      <nav class="nav">
+      <nav class="nav" aria-label="主导航">
         <template v-for="item in navItems" :key="item.label">
           <router-link v-if="!item.children" :to="item.path" class="nav-item" :class="{ active: isActive(item) }">
             {{ item.label }}
@@ -33,7 +33,7 @@
 
       <div class="header-actions">
         <a-input-search v-model:value="keyword" class="header-search" placeholder="搜索作品 / 摄影师 / 专题"
-                        allow-clear @search="doSearch" />
+                        aria-label="搜索作品、摄影师或专题" allow-clear @search="doSearch" />
         <a-button type="primary" class="upload-btn" @click="go('/me/create-work')">
           <template #icon><CloudUploadOutlined /></template>
           发布作品
@@ -174,11 +174,11 @@ async function doLogout() {
 .header-inner {
   display: flex;
   align-items: center;
-  gap: var(--space-6);
+  gap: clamp(var(--space-4), 2vw, var(--space-7));
   height: var(--header-h);
   max-width: var(--container);
   margin: 0 auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--gutter);
 }
 
 .brand { display: flex; align-items: center; gap: var(--space-3); flex: 0 0 auto; }
@@ -189,7 +189,7 @@ async function doLogout() {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #3b4d3f;
+  background: var(--accent-ink);
   color: var(--accent-contrast);
   font-size: var(--font-4);
   font-weight: 600;
@@ -211,10 +211,25 @@ async function doLogout() {
 }
 
 .nav-item:hover { color: var(--text-1); background: var(--surface-2); }
-.nav-item.active { color: #314737; background: none; font-weight: 600; }
+.nav-item.active { color: var(--accent-ink); background: none; font-weight: 600; }
+
+/* 当前栏目：文字下方一个极小的圆点，比整条下划线更轻 */
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translateX(-50%);
+}
 
 .header-actions { display: flex; align-items: center; gap: var(--space-3); flex: 0 0 auto; }
-.header-search { width: 220px; }
+
+/* 搜索框随视口伸缩：大屏更宽，窄屏由下方断点隐藏 */
+.header-search { width: clamp(190px, 15vw, 300px); }
 .upload-btn { display: inline-flex; align-items: center; }
 
 .user-trigger {
@@ -233,6 +248,13 @@ async function doLogout() {
 .menu-summary { display: flex; align-items: center; gap: var(--space-3); padding: 10px 12px 6px; min-width: 200px; }
 .menu-summary strong { display: block; font-size: var(--font-3); }
 .menu-summary span { color: var(--text-3); font-size: var(--font-1); }
+
+/* 超宽屏：导航与操作区留出更大呼吸感，版心随令牌放宽 */
+@media (min-width: 1680px) {
+  .nav { gap: var(--space-2); }
+  .nav-item { padding: 9px 16px; }
+  .nav-hint { font-size: 12px; }
+}
 
 @media (max-width: 1024px) {
   .header-search { display: none; }

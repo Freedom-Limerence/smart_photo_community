@@ -1,4 +1,7 @@
-/* 全局基础样式与通用工具类（配合 tokens.css 使用） */
+/* ============================================================
+   全局基础样式与通用工具类（配合 tokens.css 使用）
+   约定：页面只消费这里的类与令牌，不再自己硬编码颜色 / 宽度
+   ============================================================ */
 * { box-sizing: border-box; }
 
 html, body, #app {
@@ -12,26 +15,68 @@ body {
   color: var(--text-1);
   font-size: var(--font-3);
   line-height: 1.65;
-  font-family: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
 a { color: inherit; text-decoration: none; }
 
-/* 布局容器：统一最大宽度与留白 */
+img { max-width: 100%; }
+
+h1, h2, h3, h4 { color: var(--text-1); }
+
+/* ------------------------------------------------------------
+   版心：统一最大宽度与左右留白（随视口分级放宽，见 tokens.css）
+   ------------------------------------------------------------ */
 .container {
   width: 100%;
   max-width: var(--container);
   margin: 0 auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--gutter);
 }
 
-@media (max-width: 768px) {
-  .container { padding: 0 var(--space-4); }
+/* 详情 / 表单类页面的窄版心 */
+.container-narrow { max-width: 960px; }
+
+/* 页面区块的垂直节奏（与版心配合使用） */
+.page { padding-top: var(--space-6); padding-bottom: var(--space-8); }
+.page-tight { padding-top: var(--space-5); padding-bottom: var(--space-6); }
+
+/* ------------------------------------------------------------
+   文字与信息层级
+   ------------------------------------------------------------ */
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--text-3);
+  font-size: var(--font-1);
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
 }
 
-/* 区块标题 */
+.page-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-8);
+  font-weight: 400;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+
+.page-desc { margin: var(--space-2) 0 0; color: var(--text-2); font-size: var(--font-3); }
+
+.muted { color: var(--text-3); }
+
+/* 文本省略 */
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ------------------------------------------------------------
+   区块标题
+   ------------------------------------------------------------ */
 .section-head {
   display: flex;
   align-items: flex-end;
@@ -55,13 +100,26 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -.01em;
 }
 
+.section-head h2 small {
+  margin-left: var(--space-2);
+  color: var(--text-3);
+  font-size: var(--font-3);
+  font-weight: 400;
+}
+
 .section-head p {
   margin: var(--space-1) 0 0;
   color: var(--text-2);
   font-size: var(--font-3);
 }
 
-/* 通用卡片 */
+@media (max-width: 640px) {
+  .section-head { flex-direction: column; align-items: stretch; gap: var(--space-3); margin: var(--space-5) 0 var(--space-4); }
+}
+
+/* ------------------------------------------------------------
+   表面与卡片
+   ------------------------------------------------------------ */
 .surface-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -69,24 +127,42 @@ a { color: inherit; text-decoration: none; }
   box-shadow: var(--shadow-1);
 }
 
+/* 可点击卡片：悬停时边框 + 阴影一起变化，反馈更明确 */
+.is-interactive {
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    transform var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+
+.is-interactive:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-2);
+}
+
 /* 悬停上浮（卡片通用动效） */
 .hover-lift {
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease);
   will-change: transform;
 }
 
 .hover-lift:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-3);
+  border-color: var(--border-strong);
 }
 
-/* 文本省略 */
-.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* 统一卡片栅格：列宽与间距全部走令牌，超宽屏自动多列 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--grid-min), 100%), 1fr));
+  gap: var(--grid-gap);
+}
 
-.muted { color: var(--text-3); }
+/* 列表 / 分区容器的通用内边距 */
+.block-pad { padding: var(--space-5); }
 
-/* 图片懒加载渐显 */
+/* ------------------------------------------------------------
+   图片懒加载渐显
+   ------------------------------------------------------------ */
 .lazy-img {
   opacity: 0;
   transform: translateY(8px);
@@ -95,7 +171,9 @@ a { color: inherit; text-decoration: none; }
 
 .lazy-img.is-loaded { opacity: 1; transform: none; }
 
-/* 骨架屏 */
+/* ------------------------------------------------------------
+   骨架屏
+   ------------------------------------------------------------ */
 .skeleton {
   background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 37%, var(--surface-2) 63%);
   background-size: 400% 100%;
@@ -108,13 +186,56 @@ a { color: inherit; text-decoration: none; }
   100% { background-position: 0 50%; }
 }
 
-/* 页面切换过渡 */
+/* 空态占位（虚线边框版本，用于页面内的次级空态） */
+.empty-block {
+  padding: var(--space-8) var(--space-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-3);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------
+   页面切换过渡
+   ------------------------------------------------------------ */
 .page-enter-active, .page-leave-active { transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
 .page-enter-from { opacity: 0; transform: translateY(10px); }
 .page-leave-to { opacity: 0; transform: translateY(-6px); }
 
-/* 滚动条（桌面端细化） */
+/* ------------------------------------------------------------
+   可达性：键盘焦点环 + 减弱动效偏好
+   ------------------------------------------------------------ */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible,
+.ant-btn:focus-visible,
+.ant-input:focus-visible,
+.ant-input-affix-wrapper:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hover-lift:hover { transform: none; }
+}
+
+/* ------------------------------------------------------------
+   滚动条（桌面端细化）
+   ------------------------------------------------------------ */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--radius-pill); border: 3px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-3); background-clip: content-box; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* 表格与卡片内部横向滚动条更细 */
+.ant-table-body::-webkit-scrollbar,
+.ant-table-content::-webkit-scrollbar { height: 8px; }

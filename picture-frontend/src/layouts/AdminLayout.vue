@@ -91,36 +91,55 @@ function onMenuClick({ key }: { key: string }) {
 </script>
 
 <style scoped>
-.admin-layout { display: flex; min-height: 100vh; background: #F4F5F3; }
+.admin-layout { display: flex; min-height: 100vh; background: var(--bg); }
 
+/* 侧栏：整屏吸附，自身可滚动；收起时只剩图标列 */
 .admin-sider {
   display: flex;
   flex-direction: column;
-  width: 236px;
-  background: #22302A;
-  transition: width var(--dur) var(--ease);
+  width: var(--sider-w);
   flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--ink-2);
+  transition: width var(--dur) var(--ease);
 }
-
 .admin-sider.collapsed { width: 76px; }
 
-.admin-brand { display: flex; align-items: center; gap: var(--space-3); padding: 18px 18px 14px; }
-.admin-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--radius); background: var(--accent); color: #fff; font-weight: 600; flex: 0 0 auto; }
-.admin-brand-text strong { display: block; color: #F2F4F1; font-size: var(--font-3); }
-.admin-brand-text em { color: rgba(242, 244, 241, .55); font-size: 11px; font-style: normal; }
+.admin-brand { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-5) var(--space-4) var(--space-4); }
+.admin-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+.admin-brand-text strong { display: block; color: var(--ink-text); font-size: var(--font-3); }
+.admin-brand-text em { color: var(--ink-text-dim); font-size: 11px; font-style: normal; }
 
 .admin-menu { flex: 1 1 auto; background: transparent; border-inline-end: none !important; }
-.admin-sider-foot { padding: var(--space-4); }
+.admin-sider-foot { padding: var(--space-4); border-top: 1px solid rgba(255, 255, 255, .08); }
 
 .admin-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
 
 .admin-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  height: 60px;
+  height: var(--header-h);
   padding: 0 var(--space-5);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--border);
 }
 
@@ -128,5 +147,13 @@ function onMenuClick({ key }: { key: string }) {
 .admin-header-right { display: flex; align-items: center; gap: var(--space-3); }
 .admin-user-name { color: var(--text-2); font-size: var(--font-2); }
 
-.admin-content { flex: 1 1 auto; padding: var(--space-5); }
+/* 内容区：超宽屏下限制最大宽度并居中，表格不再被拉到屏幕两端 */
+.admin-content { flex: 1 1 auto; padding: var(--space-6) var(--gutter) var(--space-8); }
+.admin-content > :deep(*) { max-width: var(--content-max); margin-inline: auto; }
+
+@media (max-width: 992px) {
+  .admin-sider { position: static; height: auto; max-height: none; }
+  .admin-content { padding: var(--space-5) var(--gutter) var(--space-6); }
+  .admin-user-name { display: none; }
+}
 </style>

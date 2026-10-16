@@ -15,8 +15,9 @@
     </div>
 
     <div class="fav-layout">
-      <!-- 收藏夹侧栏 -->
-      <aside class="folders">
+      <!-- 收藏夹侧栏：桌面端吸附滚动，窄屏折到内容上方 -->
+      <aside class="folders surface-card">
+        <p class="eyebrow folders-title">收藏夹</p>
         <a-spin :spinning="foldersLoading">
           <ul class="folder-list">
             <li :class="{ on: activeFolder === 'ALL' }" @click="selectFolder('ALL')">
@@ -37,9 +38,9 @@
               </span>
             </li>
           </ul>
-          <a-empty v-if="!foldersLoading && !folders.length" description="还没有收藏夹" :image-style="{ height: '48px' }">
+          <EmptyState v-if="!foldersLoading && !folders.length" size="sm" description="还没有收藏夹">
             <a-button size="small" type="primary" @click="openFolderForm()">新建收藏夹</a-button>
-          </a-empty>
+          </EmptyState>
         </a-spin>
       </aside>
 
@@ -69,7 +70,8 @@
         </div>
 
         <a-spin :spinning="loading">
-          <MasonryGrid v-if="works.length" :items="works">
+          <CardSkeleton v-if="loading && !works.length" variant="masonry" :count="6" ratio="72%" />
+          <MasonryGrid v-else-if="works.length" :items="works">
             <template #default="{ item }">
               <div class="work-wrap" :class="{ picked: picked.includes(String(item.id)) }">
                 <label v-if="selectMode" class="pick-box">
@@ -96,9 +98,10 @@
             </template>
           </MasonryGrid>
 
-          <a-empty v-else-if="!loading" :description="emptyText">
+          <EmptyState v-else :title="activeFolder === 'ALL' ? '还没有收藏任何作品' : '这个收藏夹还是空的'"
+                      :description="activeFolder === 'ALL' ? '在社区里遇到喜欢的作品，点一下星标就会出现在这里。' : '把喜欢的作品移动到这个收藏夹，方便日后回看。'">
             <a-button type="primary" @click="router.push('/community')">去社区逛逛</a-button>
-          </a-empty>
+          </EmptyState>
         </a-spin>
       </section>
     </div>
@@ -124,6 +127,8 @@ import { message, Modal } from 'ant-design-vue'
 import { DownOutlined } from '@ant-design/icons-vue'
 import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
+import CardSkeleton from '@/components/common/CardSkeleton.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 import {
   addFavoriteFolder, cancelFavorites, deleteFavoriteFolder, listFavoriteFolders, listFavoriteWorks,
   moveFavorites, updateFavoriteFolder,
@@ -328,27 +333,67 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.fav-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: var(--space-5); margin-top: var(--space-4); }
-.folders { border-right: 1px solid var(--border); padding-right: var(--space-4); }
-.folder-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.folder-list li { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; transition: background var(--dur-fast) var(--ease); }
+.fav-page { display: flex; flex-direction: column; }
+
+.fav-layout {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+/* 侧栏卡片：桌面端吸附在视口内，收藏夹很多时也不会把页面拉长 */
+.folders {
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-4));
+  padding: var(--space-4);
+  max-height: calc(100vh - var(--header-h) - var(--space-8));
+  overflow-y: auto;
+}
+.folders-title { margin: 0 0 var(--space-3); }
+
+.folder-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.folder-list li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
 .folder-list li:hover { background: var(--surface-2); }
-.folder-list li.on { background: var(--accent-soft); }
+.folder-list li.on { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
 .folder-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-2); }
-.folder-list em { font-style: normal; color: var(--text-3); font-size: 12px; }
-.folder-ops { display: none; gap: 6px; font-size: 12px; }
+.folder-list em { font-style: normal; color: var(--text-3); font-size: var(--font-1); }
+.folder-ops { display: none; gap: var(--space-2); font-size: var(--font-1); }
 .folder-list li:hover .folder-ops { display: inline-flex; }
 .folder-ops a { color: var(--text-2); }
-.folder-ops a.danger { color: var(--danger, #c4564a); }
-.batch-bar { display: flex; align-items: center; gap: 16px; padding: 10px 14px; margin-bottom: var(--space-3); border-radius: var(--radius); background: var(--accent-soft); }
+.folder-ops a:hover { color: var(--accent-ink); }
+.folder-ops a.danger { color: var(--danger); }
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+}
+
 .work-wrap { position: relative; }
-.work-wrap.picked { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius); }
-.pick-box { position: absolute; top: 8px; left: 8px; z-index: 2; padding: 2px 4px; border-radius: 4px; background: rgba(255, 255, 255, .9); }
-.card-actions { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 6px; }
+.work-wrap.picked { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius-lg); }
+.pick-box { position: absolute; top: var(--space-2); left: var(--space-2); z-index: 2; padding: 2px 4px; border-radius: var(--radius-sm); background: rgba(255, 255, 255, .92); }
+.card-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-2); }
 .muted { color: var(--text-3); }
 
 @media (max-width: 900px) {
   .fav-layout { grid-template-columns: 1fr; }
-  .folders { border-right: none; border-bottom: 1px solid var(--border); padding: 0 0 var(--space-3); }
+  .folders { position: static; max-height: none; }
 }
 </style>

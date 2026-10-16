@@ -10,7 +10,8 @@
     </div>
 
     <a-spin :spinning="loading">
-      <ul v-if="list.length" class="appeal-list">
+      <CardSkeleton v-if="loading && !list.length" variant="list" :count="4" />
+      <ul v-else-if="list.length" class="appeal-list">
         <li v-for="item in list" :key="item.id" class="appeal-item">
           <div class="thumb-wrap" @click="open(item)">
             <img v-if="item.thumbnailUrl" :src="item.thumbnailUrl" alt="" loading="lazy" />
@@ -43,10 +44,10 @@
         </li>
       </ul>
 
-      <a-empty v-else-if="!loading" description="还没有申诉记录">
-        <p class="muted tip">如果你的图片被判定为未通过审核，可以在图片详情页发起申诉。</p>
+      <EmptyState v-else title="还没有申诉记录"
+                  description="如果你的图片被判定为未通过审核，可以在图片详情页发起申诉。">
         <a-button type="primary" @click="router.push('/me/gallery')">去我的图库看看</a-button>
-      </a-empty>
+      </EmptyState>
     </a-spin>
 
     <div v-if="total > list.length" class="load-more">
@@ -55,10 +56,13 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { PictureOutlined } from '@ant-design/icons-vue'
+import CardSkeleton from '@/components/common/CardSkeleton.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 import { listMyAppeals } from '@/api/notification'
 
 const router = useRouter()
@@ -111,22 +115,46 @@ onMounted(load)
 
 <style scoped>
 .me-page { display: flex; flex-direction: column; }
-.appeal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
-.appeal-item { display: flex; gap: 16px; padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+
+.appeal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+
+.appeal-item {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.appeal-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-1); }
+
 .thumb-wrap { flex: 0 0 auto; width: 96px; height: 72px; border-radius: var(--radius); overflow: hidden; background: var(--surface-2); cursor: pointer; }
 .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .thumb-empty { display: grid; place-items: center; width: 100%; height: 100%; color: var(--text-3); }
-.appeal-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.appeal-head { display: flex; align-items: center; gap: 10px; }
+
+.appeal-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.appeal-head { display: flex; align-items: center; gap: var(--space-3); }
 .appeal-head .name { font-size: var(--font-4); font-weight: 500; cursor: pointer; }
 .appeal-head .name:hover { color: var(--accent-hover); }
+
 .reason { margin: 0; font-size: var(--font-2); color: var(--text-2); }
 .label { display: inline-block; min-width: 76px; color: var(--text-3); font-size: var(--font-1); }
-.result { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: var(--radius); font-size: var(--font-2); }
-.result.accepted { background: var(--accent-soft); color: #4F5F53; }
+
+.result { display: flex; align-items: center; gap: 6px; padding: var(--space-2) var(--space-3); border-radius: var(--radius); font-size: var(--font-2); }
+.result.accepted { background: var(--accent-soft); color: var(--accent-ink); }
 .result.rejected { background: var(--danger-soft); color: #8C4F45; }
-.pending-tip { display: flex; align-items: center; gap: 8px; color: var(--text-3); font-size: var(--font-2); }
-.appeal-foot { display: flex; align-items: center; gap: 8px; font-size: var(--font-1); }
-.tip { max-width: 420px; margin: 0 auto var(--space-3); }
+
+.pending-tip { display: flex; align-items: center; gap: var(--space-2); color: var(--text-3); font-size: var(--font-2); }
+
+.appeal-foot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); font-size: var(--font-1); }
+
+.muted { color: var(--text-3); }
 .load-more { display: flex; justify-content: center; margin-top: var(--space-5); }
+
+@media (max-width: 640px) {
+  .appeal-item { flex-direction: column; }
+  .thumb-wrap { width: 100%; height: 160px; }
+  .label { min-width: 68px; }
+}
 </style>

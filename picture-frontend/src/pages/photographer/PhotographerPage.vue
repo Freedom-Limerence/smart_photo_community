@@ -1,41 +1,43 @@
 <template>
   <div class="photographer-page">
-    <div class="container profile-block">
-      <a-avatar :src="user.userAvatar" :size="104" class="profile-avatar">{{ avatarText }}</a-avatar>
+    <header class="profile-band">
+      <div class="container profile-block">
+        <a-avatar :src="user.userAvatar" :size="104" class="profile-avatar">{{ avatarText }}</a-avatar>
 
-      <div class="profile-main">
-        <span class="profile-eyebrow">PHOTOGRAPHER / COMMUNITY</span>
-        <h1>{{ user.userName || '摄影师' }}</h1>
-        <p class="bio">{{ user.userProfile || '这位摄影师还没有填写简介' }}</p>
-        <div class="stats">
-          <span><strong>{{ totalWorks }}</strong> 作品</span>
-          <span><strong>{{ totalLikes }}</strong> 获赞</span>
-          <router-link :to="'/photographers/' + userId + '/following'"><strong>{{ stats.following }}</strong> 关注</router-link>
-          <router-link :to="'/photographers/' + userId + '/followers'"><strong>{{ stats.followers }}</strong> 粉丝</router-link>
+        <div class="profile-main">
+          <span class="profile-eyebrow">PHOTOGRAPHER / COMMUNITY</span>
+          <h1>{{ user.userName || '摄影师' }}</h1>
+          <p class="bio">{{ user.userProfile || '这位摄影师还没有填写简介' }}</p>
+          <div class="stats">
+            <span><strong>{{ totalWorks }}</strong> 作品</span>
+            <span><strong>{{ totalLikes }}</strong> 获赞</span>
+            <router-link :to="'/photographers/' + userId + '/following'"><strong>{{ stats.following }}</strong> 关注</router-link>
+            <router-link :to="'/photographers/' + userId + '/followers'"><strong>{{ stats.followers }}</strong> 粉丝</router-link>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <a-button v-if="!isSelf" :type="followed ? 'default' : 'primary'" size="large" @click="toggleFollow">
+            {{ followed ? '已关注' : '+ 关注' }}
+          </a-button>
+          <a-button v-else size="large" @click="router.push('/me/profile')">编辑资料</a-button>
+          <a-button size="large" @click="shareProfile">分享主页</a-button>
+          <a-dropdown v-if="!isSelf">
+            <a-button size="large" aria-label="更多操作"><MoreOutlined /></a-button>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item key="share" @click="shareProfile">复制主页链接</a-menu-item>
+                <a-menu-item key="report" @click="reportOpen = true">举报该用户</a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </div>
       </div>
-
-      <div class="profile-actions">
-        <a-button v-if="!isSelf" :type="followed ? 'default' : 'primary'" size="large" @click="toggleFollow">
-          {{ followed ? '已关注' : '+ 关注' }}
-        </a-button>
-        <a-button v-else size="large" @click="router.push('/me/profile')">编辑资料</a-button>
-        <a-button size="large" @click="shareProfile">分享主页</a-button>
-        <a-dropdown v-if="!isSelf">
-          <a-button size="large"><MoreOutlined /></a-button>
-          <template #overlay>
-            <a-menu>
-              <a-menu-item key="share" @click="shareProfile">复制主页链接</a-menu-item>
-              <a-menu-item key="report" @click="reportOpen = true">举报该用户</a-menu-item>
-            </a-menu>
-          </template>
-        </a-dropdown>
-      </div>
-    </div>
+    </header>
 
     <div class="container works-section">
       <div class="works-head">
-        <div><span>PORTFOLIO</span><h2>作品集 <small>{{ totalWorks }} 件</small></h2></div>
+        <div><span class="eyebrow">PORTFOLIO</span><h2>作品集 <small>{{ totalWorks }} 件</small></h2></div>
         <div class="works-tools">
           <a-radio-group v-model:value="sort" button-style="solid" size="small">
             <a-radio-button value="latest">最新</a-radio-button>
@@ -47,14 +49,15 @@
       </div>
 
       <a-spin :spinning="loading">
-        <MasonryGrid v-if="sortedWorks.length" :items="sortedWorks">
+        <CardSkeleton v-if="loading && !sortedWorks.length" variant="masonry" :count="8" ratio="72%" />
+        <MasonryGrid v-else-if="sortedWorks.length" :items="sortedWorks">
           <template #default="{ item }">
             <WorkCard :work="item" :ratio="ratioOf(item)" @open="openWork" />
           </template>
         </MasonryGrid>
-        <a-empty v-else-if="!loading" description="TA 还没有公开作品">
+        <EmptyState v-else title="TA 还没有公开作品" description="关注这位摄影师，第一时间看到新作品。">
           <a-button v-if="isSelf" type="primary" @click="router.push('/community/create')">去发布作品</a-button>
-        </a-empty>
+        </EmptyState>
       </a-spin>
     </div>
 
@@ -77,6 +80,8 @@ import { message } from 'ant-design-vue'
 import { MoreOutlined } from '@ant-design/icons-vue'
 import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
+import CardSkeleton from '@/components/common/CardSkeleton.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 import { followUser, getFollowStats, listWorksByAuthor, unfollowUser } from '@/api/photoCommunity'
 import { submitReport } from '@/api/notification'
 import { getUserVoByIdUsingGet } from '@/api/userController'
@@ -189,18 +194,57 @@ watch(() => route.params.id, load)
 </script>
 
 <style scoped>
-.profile-block { display: flex; align-items: center; gap: var(--space-5); padding: var(--space-6) var(--space-5); flex-wrap: wrap; }
+.photographer-page { padding-bottom: var(--space-8); }
+
+/* 摄影师信息带：整条浅色底 + 版心内左右分栏，超宽屏下不至于把信息拉散 */
+.profile-band { background: var(--surface); border-bottom: 1px solid var(--border); }
+.profile-block {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding-top: var(--space-7);
+  padding-bottom: var(--space-7);
+  flex-wrap: wrap;
+}
+.profile-avatar { flex: 0 0 auto; box-shadow: 0 0 0 4px var(--surface-2); }
 .profile-main { flex: 1 1 320px; min-width: 0; }
-.profile-eyebrow { color: var(--text-3); font-size: 11px; letter-spacing: .2em; }
-.profile-main h1 { margin: 6px 0 8px; font-size: var(--font-7); }
-.bio { margin: 0 0 12px; color: var(--text-2); }
-.stats { display: flex; flex-wrap: wrap; gap: 22px; color: var(--text-2); font-size: var(--font-2); }
-.stats strong { color: var(--text-1); font-size: var(--font-4); }
-.profile-actions { display: flex; align-items: center; gap: 10px; }
-.works-section { padding: var(--space-5) var(--space-5) var(--space-8); }
-.works-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: var(--space-4); }
-.works-head span { color: var(--text-3); font-size: 11px; letter-spacing: .18em; }
-.works-head h2 { margin: 4px 0 0; font-size: var(--font-6); }
+.profile-eyebrow { color: var(--text-3); font-size: 10px; font-weight: 600; letter-spacing: .2em; }
+.profile-main h1 {
+  margin: var(--space-2) 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--font-8);
+  font-weight: 400;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+.bio { max-width: 62ch; margin: 0 0 var(--space-4); color: var(--text-2); }
+
+.stats { display: flex; flex-wrap: wrap; gap: var(--space-6); color: var(--text-2); font-size: var(--font-2); }
+.stats > * { display: inline-flex; align-items: baseline; gap: 6px; }
+.stats strong { color: var(--text-1); font-size: var(--font-5); font-weight: 500; }
+.stats a:hover strong { color: var(--accent-ink); }
+
+.profile-actions { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+
+.works-section { padding-top: var(--space-6); }
+.works-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.works-head .eyebrow { margin: 0; }
+.works-head h2 { margin: var(--space-1) 0 0; font-family: var(--font-display); font-size: var(--font-6); font-weight: 400; }
 .works-head h2 small { color: var(--text-3); font-size: var(--font-3); font-weight: 400; }
-.works-tools { display: flex; align-items: center; gap: 8px; }
+.works-tools { display: flex; align-items: center; gap: var(--space-2); }
+
+@media (max-width: 640px) {
+  .profile-block { gap: var(--space-4); padding-top: var(--space-5); padding-bottom: var(--space-5); }
+  .stats { gap: var(--space-4); }
+  .profile-actions { width: 100%; }
+}
 </style>

@@ -15,11 +15,60 @@ import GlobalHeader from '@/components/GlobalHeader.vue'
 import GlobalSider from '@/components/GlobalSider.vue'
 </script>
 <style scoped>
-#basicLayout,.app-shell { min-height:100vh; background:#f5f7f5; color:#20322e; }
-.header { position:sticky; z-index:20; top:0; height:68px; padding:0 28px; line-height:68px; background:rgba(255,255,255,.96); border-bottom:1px solid #e6ebe7; box-shadow:0 2px 14px rgba(28,54,42,.04); }
-.body-layout { flex:1; min-height:calc(100vh - 122px); background:transparent; }
-.sider { flex:0 0 auto; background:#fff; border-right:1px solid #e6ebe7; }
-.content { min-width:0; padding:30px clamp(18px,4vw,54px) 44px; background:#f5f7f5; }
-.footer { display:flex; justify-content:center; gap:16px; padding:18px 24px; color:#829087; font-size:12px; background:#fff; border-top:1px solid #e6ebe7; }
-@media (max-width:768px) { .header{padding:0 14px}.content{padding:20px 14px 32px}.footer{flex-direction:column;align-items:center;gap:4px} }
+#basicLayout,
+.app-shell { min-height: 100vh; background: var(--bg); color: var(--text-1); }
+
+.header {
+  position: sticky;
+  z-index: var(--z-header);
+  top: 0;
+  height: var(--header-h);
+  padding: 0 var(--gutter);
+  line-height: var(--header-h);
+  background: rgba(255, 255, 255, .9);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+
+.body-layout { flex: 1; min-height: calc(100vh - var(--header-h) - 58px); background: transparent; }
+
+.sider {
+  flex: 0 0 auto;
+  position: sticky;
+  top: var(--header-h);
+  align-self: flex-start;
+  max-height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+/* 内容区：超宽屏下限制阅读宽度并居中，避免正文被拉到 2000px 以上 */
+.content {
+  min-width: 0;
+  padding: var(--space-6) clamp(var(--space-5), 3.2vw, var(--space-8)) var(--space-8);
+  background: transparent;
+}
+
+.content > :deep(*) { max-width: var(--content-max); margin-inline: auto; }
+
+.footer {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--gutter);
+  color: var(--text-3);
+  font-size: var(--font-1);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 992px) {
+  .sider { position: static; max-height: none; }
+}
+
+@media (max-width: 768px) {
+  .content { padding: var(--space-5) var(--gutter) var(--space-6); }
+  .footer { flex-direction: column; align-items: center; gap: var(--space-1); text-align: center; }
+}
 </style>

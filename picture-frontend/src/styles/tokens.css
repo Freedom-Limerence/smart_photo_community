@@ -25,6 +25,7 @@
   --accent-hover: #6B7A6E;
   --accent-soft: #E9EFE9;
   --accent-contrast: #FFFFFF;
+  --accent-ink: #4F5F53;
   --danger: #B4746A;
   --danger-soft: #F5E9E7;
   --warning: #C2A878;
@@ -62,6 +63,10 @@
   --font-7: 28px;
   --font-8: 40px;
 
+  /* 字体族：正文无衬线 / 展示级衬线（标题、数字、标签） */
+  --font-sans: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', 'Source Han Serif SC', Georgia, serif;
+
   /* 动效 */
   --ease: cubic-bezier(.2, .8, .2, 1);
   --dur-fast: 140ms;
@@ -72,6 +77,29 @@
   --header-h: 64px;
   --container: 1280px;
   --sider-w: 232px;
+
+  /* 版心 / 栅格 / 行宽：超宽屏按视口分级放宽，内容不再压缩在中间一条 */
+  --gutter: var(--space-6);
+  --grid-gap: 28px;
+  --grid-min: 260px;
+  --content-max: 1720px;
+  --measure: 68ch;
+
+  /* 深色表面（管理端侧栏、深色容器） */
+  --ink-1: #1B2621;
+  --ink-2: #22302A;
+  --ink-3: #2C3B33;
+  --ink-4: #3A4B41;
+  --ink-text: #F2F4F1;
+  --ink-text-dim: rgba(242, 244, 241, .58);
+
+  /* 层级 */
+  --z-header: 50;
+  --z-dock: 60;
+
+  /* 焦点环（键盘可达性） */
+  --ring: 0 0 0 3px rgba(124, 139, 127, .28);
+  --ring-danger: 0 0 0 3px rgba(180, 116, 106, .26);
 }
 
 /* 沉浸式看图（详情页 / 全屏浏览）：同一套变量换一套值 */
@@ -93,4 +121,51 @@
   --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
   --shadow-2: 0 6px 20px rgba(0, 0, 0, .5);
   --shadow-3: 0 18px 48px rgba(0, 0, 0, .6);
+}
+
+/* ------------------------------------------------------------
+   响应式版心：小屏收紧留白，大屏 / 超宽屏逐级放宽
+   ------------------------------------------------------------ */
+@media (max-width: 1024px) {
+  :root {
+    --gutter: var(--space-5);
+    --grid-gap: 22px;
+    --grid-min: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --gutter: var(--space-4);
+    --grid-gap: 16px;
+    --grid-min: 152px;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --container: 1320px;
+    --grid-gap: 30px;
+  }
+}
+
+@media (min-width: 1680px) {
+  :root {
+    --container: 1440px;
+    --gutter: var(--space-7);
+    --grid-gap: 32px;
+    --header-h: 68px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --container: 1560px;
+    --gutter: var(--space-8);
+    --grid-gap: 36px;
+    --grid-min: 288px;
+    --font-6: 24px;
+    --font-7: 32px;
+    --font-8: 44px;
+  }
 }

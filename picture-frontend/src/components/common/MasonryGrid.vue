@@ -7,29 +7,30 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{ items: any[]; gap?: string; keyField?: string }>(), {
-  gap: '20px',
+const props = withDefaults(defineProps<{ items: any[]; gap?: string; keyField?: string }>(), {
+  gap: 'var(--grid-gap)',
   keyField: 'id',
 })
 
 function keyOf(item: any, index: number) {
-  const field = 'id'
-  return (item && (item[field] ?? item.workId ?? item.pictureId)) ?? index
+  return (item && (item[props.keyField] ?? item.id ?? item.workId ?? item.pictureId)) ?? index
 }
 </script>
 
 <style scoped>
+/* 列数与间距全部走令牌：超宽屏自动加到 5 列，小屏收敛到 1 列 */
 .masonry {
-  column-gap: var(--masonry-gap);
+  column-gap: var(--masonry-gap, var(--grid-gap));
   column-count: 4;
 }
 
+@media (min-width: 1680px) { .masonry { column-count: 5; } }
 @media (max-width: 1280px) { .masonry { column-count: 3; } }
 @media (max-width: 900px) { .masonry { column-count: 2; } }
 @media (max-width: 560px) { .masonry { column-count: 1; } }
 
 .masonry-item {
   break-inside: avoid;
-  margin-bottom: var(--masonry-gap);
+  margin-bottom: var(--masonry-gap, var(--grid-gap));
 }
 </style>

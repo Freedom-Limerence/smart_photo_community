@@ -1,36 +1,36 @@
 <template>
   <div class="search-page container">
-    <div class="search-head">
-      <p class="eyebrow">SEARCH</p>
-      <h1>搜索{{ keyword ? '「' + keyword + '」' : '图片与作品' }}</h1>
-      <a-input-search v-model:value="keyword" size="large" enter-button="搜索" allow-clear
-                      placeholder="搜索图片语义，例如：风景 / 人像 / 夜景" @search="doSearch" />
-      <div class="mode-switch">
-        <a-radio-group v-model:value="mode" button-style="solid" size="small" @change="doSearch">
-          <a-radio-button value="work">作品</a-radio-button>
-          <a-radio-button value="picture">图片</a-radio-button>
-        </a-radio-group>
-        <span class="muted">作品 = 组图与文案的社区内容；图片 = 图库中的单张资产</span>
+    <PageHeader
+      eyebrow="SEARCH"
+      :title="keyword ? `搜索「${keyword}」` : '搜索图片与作品'"
+      description="作品 = 组图与文案的社区内容；图片 = 图库中的单张资产"
+    >
+      <div class="search-tools">
+        <a-input-search v-model:value="keyword" size="large" enter-button="搜索" allow-clear
+                        aria-label="搜索作品或图片" placeholder="搜索图片语义，例如：风景 / 人像 / 夜景" @search="doSearch" />
+        <div class="search-extras">
+          <a-radio-group v-model:value="mode" button-style="solid" size="small" @change="doSearch">
+            <a-radio-button value="work">作品</a-radio-button>
+            <a-radio-button value="picture">图片</a-radio-button>
+          </a-radio-group>
+          <div class="search-hint">
+            <span>试试：</span>
+            <button v-for="word in hotWords" :key="word" type="button" class="chip" @click="quickSearch(word)">{{ word }}</button>
+          </div>
+        </div>
       </div>
-
-      <div class="search-hint">
-        <span>试试：</span>
-        <button v-for="word in hotWords" :key="word" type="button" class="chip" @click="quickSearch(word)">{{ word }}</button>
-      </div>
-    </div>
+    </PageHeader>
 
     <!-- 搜索历史 -->
     <section v-if="history.length" class="history">
       <div class="history-head">
         <span class="eyebrow">RECENT</span>
-        <div>
-          <a-button type="text" size="small" @click="history = []; persistHistory()">清空记录</a-button>
-        </div>
+        <a-button type="text" size="small" @click="history = []; persistHistory()">清空记录</a-button>
       </div>
       <div class="history-body">
         <span v-for="(word, i) in history" :key="word" class="history-chip">
           <button type="button" @click="quickSearch(word)">{{ word }}</button>
-          <i @click="removeHistory(i)">×</i>
+          <i role="button" tabindex="0" aria-label="删除该条记录" @click="removeHistory(i)" @keydown.enter="removeHistory(i)">×</i>
         </span>
       </div>
     </section>
@@ -54,24 +54,26 @@
     <div v-if="searched && mode === 'picture' && availableFields.length" class="field-filter">
       <span class="eyebrow">按匹配来源筛选</span>
       <button v-for="f in availableFields" :key="f" type="button" class="chip"
-              :class="{ on: activeFields.includes(f) }" @click="toggleField(f)">
+              :class="{ on: activeFields.includes(f) }" :aria-pressed="activeFields.includes(f)" @click="toggleField(f)">
         {{ fieldLabel(f) }} <em>{{ fieldCount(f) }}</em>
       </button>
     </div>
 
     <a-spin v-if="mode === 'work'" :spinning="worksLoading">
-      <div v-if="works.length" class="work-grid">
+      <CardSkeleton v-if="worksLoading && !works.length" variant="grid" :count="8" />
+      <div v-else-if="works.length" class="card-grid">
         <WorkCard v-for="item in works" :key="item.id" :work="item" ratio="66%" @open="router.push('/works/' + item.id)" />
       </div>
-      <a-empty v-else-if="!worksLoading" description="没有找到匹配的作品">
+      <EmptyState v-else title="没有找到匹配的作品" description="换个关键词，或者直接按图片语义检索。">
         <a-button type="primary" @click="mode = 'picture'; doSearch()">改搜图片</a-button>
-      </a-empty>
+      </EmptyState>
     </a-spin>
 
     <a-spin v-if="mode === 'picture'" :spinning="loading">
-      <MasonryGrid v-if="filtered.length && viewMode === 'grid'" :items="filtered" key-field="pictureId">
+      <CardSkeleton v-if="loading && !filtered.length" variant="grid" :count="8" />
+      <MasonryGrid v-else-if="filtered.length && viewMode === 'grid'" :items="filtered" key-field="pictureId">
         <template #default="{ item }">
-          <article class="hit-card hover-lift" @click="openPicture(item)">
+          <article class="hit-card hover-lift" tabindex="0" @click="openPicture(item)" @keydown.enter="openPicture(item)">
             <div class="hit-cover">
               <img :src="item.thumbnailUrl || item.url" alt="" loading="lazy" />
             </div>
@@ -87,7 +89,7 @@
       </MasonryGrid>
 
       <ul v-else-if="filtered.length" class="hit-list">
-        <li v-for="item in filtered" :key="item.pictureId" @click="openPicture(item)">
+        <li v-for="item in filtered" :key="item.pictureId" tabindex="0" @click="openPicture(item)" @keydown.enter="openPicture(item)">
           <img :src="item.thumbnailUrl || item.url" alt="" loading="lazy" />
           <div>
             <strong>{{ item.name || ('图片 #' + item.pictureId) }}</strong>
@@ -100,11 +102,10 @@
         </li>
       </ul>
 
-      <a-empty v-else-if="!loading" :description="searched ? '没有找到匹配的内容' : '输入关键词开始搜索'">
-        <template v-if="searched">
-          <a-button type="primary" @click="keyword = ''; doSearch()">看看全部图片</a-button>
-        </template>
-      </a-empty>
+      <EmptyState v-else-if="!loading" :title="searched ? '没有找到匹配的内容' : '输入关键词开始搜索'"
+                  :description="searched ? '可以换一个说法，或用更具体的画面描述。' : '支持自然语言描述画面，例如「清晨湖面的薄雾」。'">
+        <a-button v-if="searched" type="primary" @click="keyword = ''; doSearch()">看看全部图片</a-button>
+      </EmptyState>
     </a-spin>
   </div>
 </template>
@@ -114,6 +115,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
+import CardSkeleton from '@/components/common/CardSkeleton.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import { searchWorksByKeyword } from '@/api/photoCommunity'
 import { searchWithEvidence } from '@/api/aiController'
 
@@ -242,34 +246,90 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.search-page { padding: var(--space-6) var(--space-5) var(--space-8); }
-.search-head .eyebrow { margin: 0 0 6px; color: var(--text-3); font-size: 11px; letter-spacing: .2em; }
-.search-head h1 { margin: 0 0 var(--space-4); font-size: var(--font-7); }
-.search-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; color: var(--text-3); font-size: var(--font-1); }
-.chip { padding: 5px 12px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: transparent; color: var(--text-2); font-size: var(--font-1); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
+.search-page { padding-top: var(--space-6); padding-bottom: var(--space-8); }
+
+/* 搜索区：控制在舒适行宽内，超宽屏不至于拉成一条 */
+.search-tools { display: flex; flex-direction: column; gap: var(--space-4); max-width: 880px; }
+.search-extras { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+.search-hint { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); color: var(--text-3); font-size: var(--font-1); }
+
+.chip {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: var(--font-1);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
 .chip:hover { border-color: var(--accent); color: var(--text-1); }
-.chip.on { background: var(--accent-soft); border-color: var(--accent); color: #4F5F53; }
-.chip em { font-style: normal; opacity: .6; margin-left: 2px; }
+.chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
+.chip em { margin-left: 2px; font-style: normal; opacity: .6; }
 
-.history { margin-top: var(--space-4); }
+.history { margin-top: var(--space-5); }
 .history-head { display: flex; align-items: center; justify-content: space-between; }
-.history-body { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.history-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--surface-2); font-size: var(--font-1); }
-.history-chip button { border: none; background: none; padding: 0; color: var(--text-2); cursor: pointer; }
-.history-chip i { cursor: pointer; color: var(--text-3); font-style: normal; }
+.history-head .eyebrow { margin: 0; }
+.history-body { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.history-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: var(--font-1);
+}
+.history-chip button { padding: 0; border: none; background: none; color: var(--text-2); cursor: pointer; }
+.history-chip i { color: var(--text-3); cursor: pointer; font-style: normal; }
+.history-chip i:hover { color: var(--danger); }
 
-.result-bar { display: flex; align-items: center; justify-content: space-between; margin: var(--space-5) 0 var(--space-3); }
+.result-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin: var(--space-6) 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
 .result-count strong { font-size: var(--font-4); }
-.result-tools { display: flex; align-items: center; gap: 10px; }
-.field-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: var(--space-4); }
+.result-tools { display: flex; align-items: center; gap: var(--space-3); }
 
-.hit-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.hit-list li { display: flex; align-items: center; gap: 14px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
-.hit-list li:hover { border-color: var(--accent); background: var(--surface-2); }
-.hit-list img { width: 110px; height: 74px; object-fit: cover; border-radius: var(--radius-sm); }
+.field-filter { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-bottom: var(--space-5); }
+.field-filter .eyebrow { margin: 0 var(--space-2) 0 0; }
+
+/* 图片结果卡：与作品卡同一套圆角 / 边框 / 阴影语言 */
+.hit-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; }
+.hit-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.hit-cover { background: var(--surface-2); }
+.hit-cover img { display: block; width: 100%; height: auto; }
+.hit-body { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); }
+.hit-body strong { font-size: var(--font-2); font-weight: 500; }
+
+.hit-list { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.hit-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.hit-list li:hover { border-color: var(--border-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
+.hit-list li:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hit-list img { width: 120px; height: 80px; object-fit: cover; border-radius: var(--radius); }
 .hit-list div { flex: 1 1 auto; min-width: 0; }
-.hit-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.mode-switch { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-.work-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); margin-top: var(--space-3); }
+.hit-tags { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: 6px; }
+
 .muted { color: var(--text-3); }
+
+@media (max-width: 640px) {
+  .result-bar { flex-direction: column; align-items: flex-start; }
+  .hit-list img { width: 88px; height: 62px; }
+}
 </style>

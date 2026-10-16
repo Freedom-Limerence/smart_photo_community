@@ -15,7 +15,7 @@
     </div>
 
     <!-- 工具条：状态筛选 + 排序 + 视图 -->
-    <div class="toolbar">
+    <div class="toolbar surface-card">
       <a-radio-group v-model:value="status" button-style="solid" size="small">
         <a-radio-button v-for="item in statusOptions" :key="item.value" :value="item.value">
           {{ item.label }} ({{ countOf(item.value) }})
@@ -51,7 +51,8 @@
     </div>
 
     <a-spin :spinning="loading">
-      <MasonryGrid v-if="sorted.length && viewMode === 'grid'" :items="sorted">
+      <CardSkeleton v-if="loading && !sorted.length" :variant="viewMode === 'grid' ? 'masonry' : 'list'" :count="viewMode === 'grid' ? 8 : 5" ratio="72%" />
+      <MasonryGrid v-else-if="sorted.length && viewMode === 'grid'" :items="sorted">
         <template #default="{ item }">
           <div class="work-wrap" :class="{ picked: picked.includes(String(item.id)) }">
             <label v-if="selectMode" class="pick-box">
@@ -97,9 +98,10 @@
         </li>
       </ul>
 
-      <a-empty v-else-if="!loading" :description="status === 'ALL' ? '还没有发布作品' : '该状态下没有作品'">
+      <EmptyState v-else :title="status === 'ALL' ? '还没有发布作品' : '该状态下没有作品'"
+                  :description="status === 'ALL' ? '发布第一组作品，让它出现在社区里。' : '切换到其它状态看看。'">
         <a-button type="primary" @click="router.push('/community/create')">去发布作品</a-button>
-      </a-empty>
+      </EmptyState>
     </a-spin>
   </div>
 </template>
@@ -110,6 +112,8 @@ import { useRouter } from 'vue-router'
 import { message, Modal } from 'ant-design-vue'
 import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
+import CardSkeleton from '@/components/common/CardSkeleton.vue'
+import EmptyState from '@/components/common/EmptyState.vue'
 import { deleteWorks, listWorksByAuthor } from '@/api/photoCommunity'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 
@@ -261,20 +265,58 @@ onMounted(load)
 
 <style scoped>
 .me-page { display: flex; flex-direction: column; }
-.section-head h2 small { color: var(--text-3); font-weight: 400; font-size: var(--font-3); }
-.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: var(--space-4) 0; }
-.toolbar-right { display: flex; align-items: center; gap: 8px; }
-.batch-bar { display: flex; align-items: center; gap: 16px; padding: 10px 14px; margin-bottom: var(--space-3); border-radius: var(--radius); background: var(--accent-soft); }
+
+/* 工具条：卡片化后与下方内容形成清晰的区块关系 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+.toolbar-right { display: flex; align-items: center; gap: var(--space-2); }
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+}
+
 .work-wrap { position: relative; }
-.work-wrap.picked { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius); }
-.pick-box { position: absolute; top: 8px; left: 8px; z-index: 2; padding: 2px 4px; border-radius: 4px; background: rgba(255, 255, 255, .9); }
-.card-badges { display: flex; gap: 4px; margin-top: 6px; }
-.card-actions { display: flex; gap: 4px; margin-top: 6px; }
-.work-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.work-list li { display: flex; align-items: center; gap: 14px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); }
-.work-list img { width: 120px; height: 80px; object-fit: cover; border-radius: var(--radius-sm); cursor: pointer; }
+.work-wrap.picked { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: var(--radius-lg); }
+.pick-box { position: absolute; top: var(--space-2); left: var(--space-2); z-index: 2; padding: 2px 4px; border-radius: var(--radius-sm); background: rgba(255, 255, 255, .92); }
+.card-badges { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-2); }
+.card-actions { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-2); }
+
+/* 列表视图：整行卡片，悬停有边框反馈 */
+.work-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.work-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.work-list li:hover { border-color: var(--border-strong); box-shadow: var(--shadow-2); }
+.work-list img { width: 120px; height: 80px; object-fit: cover; border-radius: var(--radius); cursor: pointer; }
 .work-list-main { flex: 1 1 auto; min-width: 0; cursor: pointer; }
-.work-list-main strong { display: block; }
-.work-list-stats { display: flex; gap: 12px; margin-top: 4px; color: var(--text-3); font-size: 12px; }
+.work-list-main strong { display: block; font-weight: 500; }
+.work-list-stats { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-1); color: var(--text-3); font-size: var(--font-1); }
 .muted { color: var(--text-3); }
+
+@media (max-width: 768px) {
+  .work-list li { flex-wrap: wrap; }
+  .work-list img { width: 96px; height: 64px; }
+}
 </style>

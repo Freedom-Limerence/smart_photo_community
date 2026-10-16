@@ -29,7 +29,7 @@
 
     <a-card :bordered="false" class="surface-card">
       <div class="filters">
-        <a-input v-model:value="query.name" placeholder="按名称搜索" allow-clear style="width: 200px" @press-enter="reload" />
+        <a-input v-model:value="query.name" placeholder="按名称搜索" aria-label="按名称搜索" allow-clear style="width: 200px" @press-enter="reload" />
         <a-select v-model:value="query.reviewStatus" placeholder="审核状态" allow-clear style="width: 140px" @change="reload">
           <a-select-option :value="0">待审核</a-select-option>
           <a-select-option :value="1">已通过</a-select-option>
@@ -43,6 +43,9 @@
 
       <a-table :data-source="list" :columns="columns" :loading="loading" row-key="id" :pagination="pagination"
                @change="onTableChange" size="middle">
+        <template #emptyText>
+          <EmptyState size="sm" title="还没有图片" description="上传第一张照片，开始建立你的云图库。" />
+        </template>
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'cover'">
             <img :src="record.thumbnailUrl || record.url" class="row-cover" alt="" loading="lazy" />
@@ -78,6 +81,7 @@ import { message } from 'ant-design-vue'
 import { deletePictureUsingPost, listPictureVoByPageUsingPost } from '@/api/pictureController'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import { formatSize } from '@/utils'
+import EmptyState from '@/components/common/EmptyState.vue'
 
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
@@ -213,16 +217,56 @@ onMounted(() => {
 
 <style scoped>
 .gallery-page { display: flex; flex-direction: column; gap: var(--space-5); }
+
 .pending-alert { border-radius: var(--radius-lg); }
 .recent-card { border-radius: var(--radius-lg); }
-.recent-strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
-.recent-item { position: relative; flex: 0 0 auto; width: 112px; height: 84px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface-2); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
-.recent-item:hover { border-color: var(--accent); box-shadow: var(--shadow-2); }
+
+/* 最近上传：横向缩略图带，滚动条收细，悬停浮起 */
+.recent-strip { display: flex; gap: var(--space-3); overflow-x: auto; padding-bottom: var(--space-1); }
+.recent-item {
+  position: relative;
+  flex: 0 0 auto;
+  width: 120px;
+  height: 88px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.recent-item:hover { border-color: var(--accent); box-shadow: var(--shadow-2); transform: translateY(-2px); }
 .recent-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.recent-badge { position: absolute; left: 6px; bottom: 6px; padding: 1px 7px; border-radius: var(--radius-pill); background: rgba(20,20,22,.7); color: #fff; font-size: 10px; }
-.recent-badge.s0 { background: rgba(194,168,120,.92); }
-.recent-badge.s1 { background: rgba(124,139,127,.92); }
-.recent-badge.s2 { background: rgba(180,116,106,.92); }
-.filters { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4); }
+.recent-badge {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: rgba(20, 20, 22, .7);
+  color: #fff;
+  font-size: 10px;
+  backdrop-filter: blur(4px);
+}
+.recent-badge.s0 { background: rgba(194, 168, 120, .92); }
+.recent-badge.s1 { background: rgba(124, 139, 127, .92); }
+.recent-badge.s2 { background: rgba(180, 116, 106, .92); }
+
+/* 筛选条：与内容之间加一条分隔线，超宽屏下不散开 */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+
 .row-cover { width: 64px; height: 48px; object-fit: cover; border-radius: var(--radius-sm); display: block; }
+
+@media (max-width: 768px) {
+  .filters > * { flex: 1 1 140px; }
+}
 </style>
