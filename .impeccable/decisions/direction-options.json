@@ -1,0 +1,239 @@
+{
+  "title": "光影集 · 全站视觉重构",
+  "question": "哪一种作品浏览体验最符合你要的震撼感？所有方案都保留雾灰绿，并覆盖社区、创作中心与独立后台。",
+  "options": [
+    {
+      "id": "contact-sheet",
+      "kind": "assigned",
+      "label": "光的接触印样",
+      "kicker": "视觉方案",
+      "lineage": "摄影师的接触印样与影像档案",
+      "thesis": "打开页面就进入摄影作品，一张主作品与连续影像索引组成可探索的画面。",
+      "palette": [
+        "#F5F6F4",
+        "#FFFFFF",
+        "#202621",
+        "#7C8B7F"
+      ],
+      "materials": [
+        "清爽中性纸面",
+        "真实摄影",
+        "精确边界"
+      ],
+      "viewport": "窄导航下直接展开大幅作品与相邻照片，标题、作者和收藏浮在画面边缘，下一组社区作品露出。",
+      "risk": "如果照片尺寸过于整齐，会退回普通图库；需要用主次尺度和浏览节奏避免。",
+      "raised": [
+        {
+          "from": "阵容海报",
+          "raise": "只靠清楚的尺度建立主次，让首幅作品从远处就能被认出。"
+        },
+        {
+          "from": "信号网格",
+          "raise": "每一次选中、切换和加载都给出一致且可读的状态。"
+        },
+        {
+          "from": "现场编排",
+          "raise": "整页动效有共同节奏，并提供静止阅读状态。"
+        },
+        {
+          "from": "节奏序列",
+          "raise": "浏览位置始终明确，键盘和触屏都能连续探索。"
+        },
+        {
+          "from": "云的构筑",
+          "raise": "摄影画面占据页面的实体空间，而不是缩在装饰卡片里。"
+        },
+        {
+          "from": "烧制与揭示",
+          "raise": "为进入作品安排一次有意义的显现，其余界面保持安静。"
+        }
+      ],
+      "comp": ".impeccable/mocks/decision/contact-sheet.png"
+    },
+    {
+      "id": "editorial-spreads",
+      "kind": "pick",
+      "label": "流动的摄影画册",
+      "kicker": "另一种完整方向",
+      "lineage": "独立摄影出版物的跨页编排",
+      "thesis": "用大幅照片、克制标题和非对称留白，把社区浏览做成不断展开的画册。",
+      "palette": [
+        "#F7F7F5",
+        "#1C1C1A",
+        "#FFFFFF",
+        "#7C8B7F"
+      ],
+      "materials": [
+        "平整纸面",
+        "跨页照片",
+        "轻量图注"
+      ],
+      "viewport": "主作品横跨首屏，旁侧窄列显示作者与下一张作品，下一段以不同画幅接续。",
+      "risk": "摄影网站里较为熟悉；必须靠真实内容编排与转场质量拉开差距。",
+      "comp": ".impeccable/mocks/decision/editorial-spreads.png"
+    },
+    {
+      "id": "posters-covers-sleeves-festival-lineup-poster",
+      "kind": "challenger",
+      "catalogId": "posters-covers-sleeves-festival-lineup-poster",
+      "label": "阵容海报",
+      "lineage": "全幅文字尺度",
+      "thesis": "将该系统的结构用于影像浏览与创作。",
+      "palette": [
+        "#1C1C1A",
+        "#F7F7F5",
+        "#7C8B7F"
+      ],
+      "materials": [
+        "黑白与雾灰绿文字"
+      ],
+      "viewport": "标题先行，照片降为次级",
+      "risk": "摄影作品的主角地位会被文字挤压。",
+      "verdict": "declined",
+      "case": "在摄影受众认同和社区任务清晰度上均弱于主方案。",
+      "kept": "作品主次尺度",
+      "hero": "https://impeccable.style/worlds/cards/posters-covers-sleeves-festival-lineup-poster-hero.webp"
+    },
+    {
+      "id": "kraftwerk-man-machine",
+      "kind": "challenger",
+      "catalogId": "kraftwerk-man-machine",
+      "label": "信号网格",
+      "lineage": "连线与坐标导航",
+      "thesis": "将该系统的结构用于影像浏览与创作。",
+      "palette": [
+        "#1C1C1A",
+        "#F7F7F5",
+        "#7C8B7F"
+      ],
+      "materials": [
+        "冷静网格与雾灰绿信号"
+      ],
+      "viewport": "作品按坐标连接，状态沿线路变化",
+      "risk": "工程图语法会分散欣赏照片的注意力。",
+      "verdict": "declined",
+      "case": "在摄影受众认同和社区任务清晰度上均弱于主方案。",
+      "kept": "一致的状态语法",
+      "hero": "https://impeccable.style/worlds/cards/kraftwerk-man-machine-hero.webp"
+    },
+    {
+      "id": "medium-native-algorave-source-floor",
+      "kind": "challenger",
+      "catalogId": "medium-native-algorave-source-floor",
+      "label": "现场编排",
+      "lineage": "以节拍组织变化",
+      "thesis": "将该系统的结构用于影像浏览与创作。",
+      "palette": [
+        "#1C1C1A",
+        "#F7F7F5",
+        "#7C8B7F"
+      ],
+      "materials": [
+        "深色背景与低饱和状态标记"
+      ],
+      "viewport": "照片按共同节奏切换，过程可见",
+      "risk": "实时表演结构不适合安静浏览和社区任务。",
+      "verdict": "declined",
+      "case": "在摄影受众认同和社区任务清晰度上均弱于主方案。",
+      "kept": "共同时序与静止替代",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-algorave-source-floor-hero.webp"
+    },
+    {
+      "id": "signals-instruments-drum-machine-step-row",
+      "kind": "challenger",
+      "catalogId": "signals-instruments-drum-machine-step-row",
+      "label": "节奏序列",
+      "lineage": "一条连续的步进序列",
+      "thesis": "将该系统的结构用于影像浏览与创作。",
+      "palette": [
+        "#1C1C1A",
+        "#F7F7F5",
+        "#7C8B7F"
+      ],
+      "materials": [
+        "深灰和雾灰绿刻度"
+      ],
+      "viewport": "作品形成可操作的连续影像序列",
+      "risk": "强时间轴会削弱自由发现与搜索。",
+      "verdict": "declined",
+      "case": "在摄影受众认同和社区任务清晰度上均弱于主方案。",
+      "kept": "明确浏览位置",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-drum-machine-step-row-hero.webp"
+    },
+    {
+      "id": "dream-surreal-impossible-worlds-cloud-quarry",
+      "kind": "challenger",
+      "catalogId": "dream-surreal-impossible-worlds-cloud-quarry",
+      "label": "云的构筑",
+      "lineage": "影像如空间切面",
+      "thesis": "将该系统的结构用于影像浏览与创作。",
+      "palette": [
+        "#1C1C1A",
+        "#F7F7F5",
+        "#7C8B7F"
+      ],
+      "materials": [
+        "雾白与灰绿空间"
+      ],
+      "viewport": "摄影画面成为连续的空间体块",
+      "risk": "空间隐喻容易让作品变为装饰。",
+      "verdict": "declined",
+      "case": "在摄影受众认同和社区任务清晰度上均弱于主方案。",
+      "kept": "画面占据主要空间",
+      "hero": "https://impeccable.style/worlds/cards/dream-surreal-impossible-worlds-cloud-quarry-hero.webp"
+    },
+    {
+      "id": "clay-ceramics-fracture-raku-smoke-flash",
+      "kind": "challenger",
+      "catalogId": "clay-ceramics-fracture-raku-smoke-flash",
+      "label": "烧制与揭示",
+      "lineage": "阶段式揭示内容",
+      "thesis": "将该系统的结构用于影像浏览与创作。",
+      "palette": [
+        "#1C1C1A",
+        "#F7F7F5",
+        "#7C8B7F"
+      ],
+      "materials": [
+        "炭黑、银白与雾灰绿"
+      ],
+      "viewport": "一张作品从深色底中显现并展开故事",
+      "risk": "材料纹理会与摄影本身竞争。",
+      "verdict": "declined",
+      "case": "在摄影受众认同和社区任务清晰度上均弱于主方案。",
+      "kept": "有意义的一次显现",
+      "hero": "https://impeccable.style/worlds/cards/clay-ceramics-fracture-raku-smoke-flash-hero.webp"
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "kind": "canon",
+    "label": "标准摄影社区",
+    "thesis": "熟悉的精选横幅、分类筛选和作品网格，以完成度取胜。",
+    "palette": [
+      "#FFFFFF",
+      "#1C1C1A",
+      "#7C8B7F"
+    ],
+    "materials": [
+      "白色界面",
+      "真实摄影",
+      "常规网格"
+    ],
+    "viewport": "紧凑顶部导航、精选作品横幅、分类与规则作品网格。",
+    "risk": "辨识度较低，但上手最直接。",
+    "comp": ".impeccable/mocks/decision/canon.png"
+  },
+  "steer": true,
+  "followup": true
+}

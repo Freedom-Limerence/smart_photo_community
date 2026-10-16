@@ -1,6 +1,9 @@
 <template>
   <div class="discover-page">
-    <section class="opening container">
+    <!-- 光的接触印样：打开即进入摄影作品（主作品 + 连续影像索引） -->
+    <ContactSheet v-if="works.length" :works="works.slice(0, 12)" @open="openWork" />
+
+    <section v-if="!works.length" class="opening container">
       <div class="opening-copy">
         <span class="overline">GUANGYING · PHOTOGRAPHY COMMUNITY</span>
         <h1>{{ mode === 'community' ? '一张照片，\n一种看世界的方式。' : '在这里，\n看见更多视角。' }}</h1>
@@ -47,6 +50,7 @@
 </template>
 
 <script setup lang="ts">
+import ContactSheet from '@/components/home/ContactSheet.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'

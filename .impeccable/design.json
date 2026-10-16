@@ -1,0 +1,537 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-16T09:57:12Z",
+  "title": "Design System: 光影集",
+  "extensions": {
+    "colorMeta": {
+      "primary-misty-grey-green": {
+        "role": "primary",
+        "displayName": "雾灰绿 Misty Grey-Green",
+        "canonical": "#7C8B7F",
+        "tonalRamp": [
+          "oklch(15% 0.025 151)",
+          "oklch(25% 0.025 151)",
+          "oklch(35% 0.025 151)",
+          "oklch(45% 0.025 151)",
+          "oklch(55% 0.025 151)",
+          "oklch(68% 0.025 151)",
+          "oklch(82% 0.025 151)",
+          "oklch(95% 0.025 151)"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "深一档雾灰绿",
+        "canonical": "#6B7A6E",
+        "tonalRamp": [
+          "oklch(15% 0.025 151)",
+          "oklch(25% 0.025 151)",
+          "oklch(35% 0.025 151)",
+          "oklch(45% 0.025 151)",
+          "oklch(55% 0.025 151)",
+          "oklch(68% 0.025 151)",
+          "oklch(82% 0.025 151)",
+          "oklch(95% 0.025 151)"
+        ]
+      },
+      "primary-ink": {
+        "role": "primary",
+        "displayName": "深雾绿",
+        "canonical": "#4F5F53",
+        "tonalRamp": [
+          "oklch(15% 0.027 153)",
+          "oklch(25% 0.027 153)",
+          "oklch(35% 0.027 153)",
+          "oklch(45% 0.027 153)",
+          "oklch(55% 0.027 153)",
+          "oklch(68% 0.027 153)",
+          "oklch(82% 0.027 153)",
+          "oklch(95% 0.027 153)"
+        ]
+      },
+      "primary-wash": {
+        "role": "primary",
+        "displayName": "浅雾绿",
+        "canonical": "#E9EFE9",
+        "tonalRamp": [
+          "oklch(15% 0.010 145)",
+          "oklch(25% 0.010 145)",
+          "oklch(35% 0.010 145)",
+          "oklch(45% 0.010 145)",
+          "oklch(55% 0.010 145)",
+          "oklch(68% 0.010 145)",
+          "oklch(82% 0.010 145)",
+          "oklch(95% 0.010 145)"
+        ]
+      },
+      "secondary-sand": {
+        "role": "secondary",
+        "displayName": "暖沙色",
+        "canonical": "#C2A878",
+        "tonalRamp": [
+          "oklch(15% 0.071 82)",
+          "oklch(25% 0.071 82)",
+          "oklch(35% 0.071 82)",
+          "oklch(45% 0.071 82)",
+          "oklch(55% 0.071 82)",
+          "oklch(68% 0.071 82)",
+          "oklch(82% 0.071 82)",
+          "oklch(95% 0.071 82)"
+        ]
+      },
+      "tertiary-brick": {
+        "role": "tertiary",
+        "displayName": "柔砖红",
+        "canonical": "#B4746A",
+        "tonalRamp": [
+          "oklch(15% 0.083 29)",
+          "oklch(25% 0.083 29)",
+          "oklch(35% 0.083 29)",
+          "oklch(45% 0.083 29)",
+          "oklch(55% 0.083 29)",
+          "oklch(68% 0.083 29)",
+          "oklch(82% 0.083 29)",
+          "oklch(95% 0.083 29)"
+        ]
+      },
+      "neutral-page": {
+        "role": "neutral",
+        "displayName": "暖纸白",
+        "canonical": "#F7F7F5",
+        "tonalRamp": [
+          "oklch(15% 0.003 106)",
+          "oklch(25% 0.003 106)",
+          "oklch(35% 0.003 106)",
+          "oklch(45% 0.003 106)",
+          "oklch(55% 0.003 106)",
+          "oklch(68% 0.003 106)",
+          "oklch(82% 0.003 106)",
+          "oklch(95% 0.003 106)"
+        ]
+      },
+      "neutral-surface": {
+        "role": "neutral",
+        "displayName": "纯白表面",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "oklch(15% 0.000 90)",
+          "oklch(25% 0.000 90)",
+          "oklch(35% 0.000 90)",
+          "oklch(45% 0.000 90)",
+          "oklch(55% 0.000 90)",
+          "oklch(68% 0.000 90)",
+          "oklch(82% 0.000 90)",
+          "oklch(95% 0.000 90)"
+        ]
+      },
+      "neutral-soft": {
+        "role": "neutral",
+        "displayName": "浅灰表面",
+        "canonical": "#F1F1EE",
+        "tonalRamp": [
+          "oklch(15% 0.004 106)",
+          "oklch(25% 0.004 106)",
+          "oklch(35% 0.004 106)",
+          "oklch(45% 0.004 106)",
+          "oklch(55% 0.004 106)",
+          "oklch(68% 0.004 106)",
+          "oklch(82% 0.004 106)",
+          "oklch(95% 0.004 106)"
+        ]
+      },
+      "neutral-sunken": {
+        "role": "neutral",
+        "displayName": "下沉灰",
+        "canonical": "#EFEFEA",
+        "tonalRamp": [
+          "oklch(15% 0.007 107)",
+          "oklch(25% 0.007 107)",
+          "oklch(35% 0.007 107)",
+          "oklch(45% 0.007 107)",
+          "oklch(55% 0.007 107)",
+          "oklch(68% 0.007 107)",
+          "oklch(82% 0.007 107)",
+          "oklch(95% 0.007 107)"
+        ]
+      },
+      "neutral-text": {
+        "role": "neutral",
+        "displayName": "近黑",
+        "canonical": "#1C1C1A",
+        "tonalRamp": [
+          "oklch(15% 0.004 107)",
+          "oklch(25% 0.004 107)",
+          "oklch(35% 0.004 107)",
+          "oklch(45% 0.004 107)",
+          "oklch(55% 0.004 107)",
+          "oklch(68% 0.004 107)",
+          "oklch(82% 0.004 107)",
+          "oklch(95% 0.004 107)"
+        ]
+      },
+      "neutral-body": {
+        "role": "neutral",
+        "displayName": "正文灰",
+        "canonical": "#5A5A56",
+        "tonalRamp": [
+          "oklch(15% 0.006 107)",
+          "oklch(25% 0.006 107)",
+          "oklch(35% 0.006 107)",
+          "oklch(45% 0.006 107)",
+          "oklch(55% 0.006 107)",
+          "oklch(68% 0.006 107)",
+          "oklch(82% 0.006 107)",
+          "oklch(95% 0.006 107)"
+        ]
+      },
+      "neutral-muted": {
+        "role": "neutral",
+        "displayName": "静音灰",
+        "canonical": "#8E8E88",
+        "tonalRamp": [
+          "oklch(15% 0.009 107)",
+          "oklch(25% 0.009 107)",
+          "oklch(35% 0.009 107)",
+          "oklch(45% 0.009 107)",
+          "oklch(55% 0.009 107)",
+          "oklch(68% 0.009 107)",
+          "oklch(82% 0.009 107)",
+          "oklch(95% 0.009 107)"
+        ]
+      },
+      "neutral-border": {
+        "role": "neutral",
+        "displayName": "细分隔线",
+        "canonical": "#E6E6E1",
+        "tonalRamp": [
+          "oklch(15% 0.007 107)",
+          "oklch(25% 0.007 107)",
+          "oklch(35% 0.007 107)",
+          "oklch(45% 0.007 107)",
+          "oklch(55% 0.007 107)",
+          "oklch(68% 0.007 107)",
+          "oklch(82% 0.007 107)",
+          "oklch(95% 0.007 107)"
+        ]
+      },
+      "neutral-border-strong": {
+        "role": "neutral",
+        "displayName": "强调分隔线",
+        "canonical": "#D6D6CF",
+        "tonalRamp": [
+          "oklch(15% 0.009 107)",
+          "oklch(25% 0.009 107)",
+          "oklch(35% 0.009 107)",
+          "oklch(45% 0.009 107)",
+          "oklch(55% 0.009 107)",
+          "oklch(68% 0.009 107)",
+          "oklch(82% 0.009 107)",
+          "oklch(95% 0.009 107)"
+        ]
+      },
+      "immersive-black": {
+        "role": "neutral",
+        "displayName": "看图黑",
+        "canonical": "#0B0B0C",
+        "tonalRamp": [
+          "oklch(15% 0.002 286)",
+          "oklch(25% 0.002 286)",
+          "oklch(35% 0.002 286)",
+          "oklch(45% 0.002 286)",
+          "oklch(55% 0.002 286)",
+          "oklch(68% 0.002 286)",
+          "oklch(82% 0.002 286)",
+          "oklch(95% 0.002 286)"
+        ]
+      },
+      "immersive-surface": {
+        "role": "neutral",
+        "displayName": "看图深灰",
+        "canonical": "#141416",
+        "tonalRamp": [
+          "oklch(15% 0.004 286)",
+          "oklch(25% 0.004 286)",
+          "oklch(35% 0.004 286)",
+          "oklch(45% 0.004 286)",
+          "oklch(55% 0.004 286)",
+          "oklch(68% 0.004 286)",
+          "oklch(82% 0.004 286)",
+          "oklch(95% 0.004 286)"
+        ]
+      },
+      "immersive-text": {
+        "role": "neutral",
+        "displayName": "看图浅字",
+        "canonical": "#EDEDEA",
+        "tonalRamp": [
+          "oklch(15% 0.004 106)",
+          "oklch(25% 0.004 106)",
+          "oklch(35% 0.004 106)",
+          "oklch(45% 0.004 106)",
+          "oklch(55% 0.004 106)",
+          "oklch(68% 0.004 106)",
+          "oklch(82% 0.004 106)",
+          "oklch(95% 0.004 106)"
+        ]
+      },
+      "immersive-sage": {
+        "role": "primary",
+        "displayName": "看图雾绿",
+        "canonical": "#8FA394",
+        "tonalRamp": [
+          "oklch(15% 0.031 153)",
+          "oklch(25% 0.031 153)",
+          "oklch(35% 0.031 153)",
+          "oklch(45% 0.031 153)",
+          "oklch(55% 0.031 153)",
+          "oklch(68% 0.031 153)",
+          "oklch(82% 0.031 153)",
+          "oklch(95% 0.031 153)"
+        ]
+      },
+      "admin-pine": {
+        "role": "neutral",
+        "displayName": "后台深松绿",
+        "canonical": "#22302A",
+        "tonalRamp": [
+          "oklch(15% 0.022 167)",
+          "oklch(25% 0.022 167)",
+          "oklch(35% 0.022 167)",
+          "oklch(45% 0.022 167)",
+          "oklch(55% 0.022 167)",
+          "oklch(68% 0.022 167)",
+          "oklch(82% 0.022 167)",
+          "oklch(95% 0.022 167)"
+        ]
+      },
+      "admin-text": {
+        "role": "neutral",
+        "displayName": "后台浅字",
+        "canonical": "#F2F4F1",
+        "tonalRamp": [
+          "oklch(15% 0.004 135)",
+          "oklch(25% 0.004 135)",
+          "oklch(35% 0.004 135)",
+          "oklch(45% 0.004 135)",
+          "oklch(55% 0.004 135)",
+          "oklch(68% 0.004 135)",
+          "oklch(82% 0.004 135)",
+          "oklch(95% 0.004 135)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "展示标题",
+        "purpose": "页面主标题与首页首屏。"
+      },
+      "headline": {
+        "displayName": "内容标题",
+        "purpose": "页面与内容区标题。"
+      },
+      "title": {
+        "displayName": "区块标题",
+        "purpose": "区块标题与较密集的内容标题。"
+      },
+      "body": {
+        "displayName": "正文",
+        "purpose": "说明、内容与常规控件。"
+      },
+      "label": {
+        "displayName": "眉标",
+        "purpose": "稀疏使用的栏目提示。"
+      }
+    },
+    "shadows": [
+      {
+        "name": "轻环境影",
+        "value": "0 1px 2px rgba(28, 28, 26, .04), 0 1px 3px rgba(28, 28, 26, .06)",
+        "purpose": "静态表面。"
+      },
+      {
+        "name": "交互影",
+        "value": "0 4px 12px rgba(28, 28, 26, .06), 0 2px 6px rgba(28, 28, 26, .04)",
+        "purpose": "悬停反馈和主视觉静态层级。"
+      },
+      {
+        "name": "强调浮起影",
+        "value": "0 14px 36px rgba(28, 28, 26, .10), 0 4px 12px rgba(28, 28, 26, .06)",
+        "purpose": "主视觉悬停或明确的可点击卡片反馈。"
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.2, .8, .2, 1)",
+        "purpose": "常规状态转场。"
+      },
+      {
+        "name": "fast",
+        "value": "140ms",
+        "purpose": "按钮与轻量状态。"
+      },
+      {
+        "name": "standard",
+        "value": "220ms",
+        "purpose": "卡片与页面状态。"
+      },
+      {
+        "name": "slow",
+        "value": "320ms",
+        "purpose": "图片显现。"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "masonry-one",
+        "value": "560px"
+      },
+      {
+        "name": "small",
+        "value": "768px"
+      },
+      {
+        "name": "masonry-two",
+        "value": "900px"
+      },
+      {
+        "name": "tablet",
+        "value": "1024px"
+      },
+      {
+        "name": "masonry-three",
+        "value": "1280px"
+      },
+      {
+        "name": "wide",
+        "value": "1440px"
+      },
+      {
+        "name": "extra-wide",
+        "value": "1680px"
+      },
+      {
+        "name": "ultra-wide",
+        "value": "1920px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "主按钮",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "通用的主要提交或发布操作。",
+      "html": "<button type=\"button\" class=\"ds-btn-primary\">发布作品</button>",
+      "css": ".ds-btn-primary{height:38px;padding:0 20px;border:1px solid transparent;border-radius:var(--radius,10px);background:var(--accent,#7C8B7F);color:#fff;font:500 14px/1.4 Inter,\"PingFang SC\",sans-serif;cursor:pointer;transition:background 140ms cubic-bezier(.2,.8,.2,1),transform 140ms cubic-bezier(.2,.8,.2,1)}.ds-btn-primary:hover{background:var(--accent-hover,#6B7A6E);transform:translateY(-1px)}.ds-btn-primary:focus-visible{outline:2px solid var(--accent,#7C8B7F);outline-offset:3px}.ds-btn-primary:active{transform:none}"
+    },
+    {
+      "name": "首页主按钮",
+      "kind": "button",
+      "refersTo": "button-featured",
+      "description": "首页首屏的深雾绿行动按钮。",
+      "html": "<button type=\"button\" class=\"ds-btn-featured\">发布作品</button>",
+      "css": ".ds-btn-featured{height:46px;padding:0 26px;border:0;border-radius:var(--radius-lg,16px);background:var(--accent-ink,#4F5F53);color:#fff;font:500 16px/1.4 Inter,\"PingFang SC\",sans-serif;cursor:pointer;transition:background 140ms cubic-bezier(.2,.8,.2,1),transform 140ms cubic-bezier(.2,.8,.2,1)}.ds-btn-featured:hover{background:var(--accent-hover,#6B7A6E);transform:translateY(-1px)}.ds-btn-featured:focus-visible{outline:2px solid var(--accent,#7C8B7F);outline-offset:3px}.ds-btn-featured:active{transform:none}"
+    },
+    {
+      "name": "次要按钮",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "低强调度的返回、取消与辅助操作。",
+      "html": "<button type=\"button\" class=\"ds-btn-secondary\">查看详情</button>",
+      "css": ".ds-btn-secondary{height:38px;padding:0 18px;border:1px solid var(--border,#E6E6E1);border-radius:var(--radius,10px);background:var(--surface,#fff);color:var(--text-2,#5A5A56);font:500 14px/1.4 Inter,\"PingFang SC\",sans-serif;cursor:pointer;transition:border-color 140ms cubic-bezier(.2,.8,.2,1),color 140ms cubic-bezier(.2,.8,.2,1)}.ds-btn-secondary:hover{border-color:var(--accent,#7C8B7F);color:var(--accent-ink,#4F5F53)}.ds-btn-secondary:focus-visible{outline:2px solid var(--accent,#7C8B7F);outline-offset:2px}.ds-btn-secondary:active{background:var(--accent-soft,#E9EFE9)}"
+    },
+    {
+      "name": "搜索输入",
+      "kind": "input",
+      "refersTo": "search-field",
+      "description": "导航与搜索页使用的白底搜索控件。",
+      "html": "<label class=\"ds-search\"><span class=\"ds-search-label\">搜索</span><input type=\"search\" placeholder=\"搜索作品 / 摄影师 / 专题\"></label>",
+      "css": ".ds-search{display:flex;align-items:center;gap:10px;min-width:260px;height:38px;padding:0 12px;border:1px solid var(--border,#E6E6E1);border-radius:var(--radius,10px);background:var(--surface,#fff);color:var(--text-3,#8E8E88);font:400 13px/1.4 Inter,\"PingFang SC\",sans-serif;transition:border-color 140ms cubic-bezier(.2,.8,.2,1),box-shadow 140ms cubic-bezier(.2,.8,.2,1)}.ds-search-label{font-size:12px;color:var(--text-3,#8E8E88)}.ds-search input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:var(--text-1,#1C1C1A);font:inherit}.ds-search:focus-within{border-color:var(--accent,#7C8B7F);box-shadow:0 0 0 3px rgba(124,139,127,.18)}"
+    },
+    {
+      "name": "公共导航",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "浅色吸顶导航中的当前项与普通项。",
+      "html": "<nav class=\"ds-nav\" aria-label=\"主导航\"><a class=\"ds-nav-item ds-nav-active\" href=\"#\">发现</a><a class=\"ds-nav-item\" href=\"#\">作品社区</a><a class=\"ds-nav-item\" href=\"#\">专题展览</a></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:4px;padding:6px;background:rgba(255,255,255,.88);border-bottom:1px solid var(--border,#E6E6E1);font:400 14px/1.4 Inter,\"PingFang SC\",sans-serif}.ds-nav-item{position:relative;display:inline-block;padding:8px 14px;border-radius:999px;color:var(--text-2,#5A5A56);text-decoration:none;transition:background 140ms cubic-bezier(.2,.8,.2,1),color 140ms cubic-bezier(.2,.8,.2,1)}.ds-nav-item:hover{background:var(--surface-2,#F1F1EE);color:var(--text-1,#1C1C1A)}.ds-nav-item:focus-visible{outline:2px solid var(--accent,#7C8B7F);outline-offset:2px}.ds-nav-active{color:var(--accent-ink,#4F5F53);font-weight:600}.ds-nav-active:after{content:\"\";position:absolute;left:50%;bottom:1px;width:4px;height:4px;border-radius:50%;background:var(--accent,#7C8B7F);transform:translateX(-50%)}"
+    },
+    {
+      "name": "筛选胶囊",
+      "kind": "chip",
+      "refersTo": "chip-selected",
+      "description": "作品流排序与搜索筛选的选中状态。",
+      "html": "<button type=\"button\" class=\"ds-chip ds-chip-active\" aria-pressed=\"true\">最新</button>",
+      "css": ".ds-chip{padding:6px 16px;border:1px solid var(--border,#E6E6E1);border-radius:999px;background:var(--surface,#fff);color:var(--text-2,#5A5A56);font:500 13px/1.4 Inter,\"PingFang SC\",sans-serif;cursor:pointer;transition:background 140ms cubic-bezier(.2,.8,.2,1),border-color 140ms cubic-bezier(.2,.8,.2,1),color 140ms cubic-bezier(.2,.8,.2,1)}.ds-chip:hover{border-color:var(--accent,#7C8B7F);color:var(--text-1,#1C1C1A)}.ds-chip:focus-visible{outline:2px solid var(--accent,#7C8B7F);outline-offset:2px}.ds-chip-active{background:var(--accent-soft,#E9EFE9);border-color:var(--accent,#7C8B7F);color:var(--accent-ink,#4F5F53);font-weight:600}"
+    },
+    {
+      "name": "作品卡片",
+      "kind": "card",
+      "refersTo": "work-card",
+      "description": "图片优先的自定义作品卡片，操作在交互时显现。",
+      "html": "<article class=\"ds-work-card\" tabindex=\"0\"><div class=\"ds-work-cover\"><span>作品封面</span><div class=\"ds-work-actions\"><button type=\"button\">♡ 收藏</button></div></div><div class=\"ds-work-body\"><h3>光线经过的地方</h3><p>摄影师 · 城市漫游</p></div></article>",
+      "css": ".ds-work-card{width:260px;overflow:hidden;border:1px solid var(--border,#E6E6E1);border-radius:var(--radius-lg,16px);background:var(--surface,#fff);color:var(--text-1,#1C1C1A);font:400 14px/1.5 Inter,\"PingFang SC\",sans-serif;cursor:pointer;transition:transform 220ms cubic-bezier(.2,.8,.2,1),box-shadow 220ms cubic-bezier(.2,.8,.2,1),border-color 220ms cubic-bezier(.2,.8,.2,1)}.ds-work-card:hover{transform:translateY(-3px);border-color:var(--border-strong,#D6D6CF);box-shadow:0 14px 36px rgba(28,28,26,.10),0 4px 12px rgba(28,28,26,.06)}.ds-work-card:focus-visible{outline:2px solid var(--accent,#7C8B7F);outline-offset:3px}.ds-work-cover{position:relative;display:grid;place-items:center;aspect-ratio:3/2;background:var(--surface-2,#F1F1EE);color:var(--text-3,#8E8E88);letter-spacing:.12em}.ds-work-actions{position:absolute;right:10px;bottom:10px;opacity:0;transition:opacity 220ms cubic-bezier(.2,.8,.2,1)}.ds-work-card:hover .ds-work-actions,.ds-work-card:focus-within .ds-work-actions{opacity:1}.ds-work-actions button{padding:5px 10px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(20,20,22,.7);color:#fff;cursor:pointer}.ds-work-actions button:focus-visible{outline:2px solid var(--accent,#7C8B7F);outline-offset:2px}.ds-work-body{padding:12px 16px 16px}.ds-work-body h3{margin:0 0 8px;font-size:14px;font-weight:500}.ds-work-body p{margin:0;padding-top:10px;border-top:1px solid var(--border,#E6E6E1);color:var(--text-2,#5A5A56);font-size:12px}"
+    },
+    {
+      "name": "页面标题",
+      "kind": "custom",
+      "refersTo": "page-header",
+      "description": "眉标、衬线标题与说明组成的内容页入口。",
+      "html": "<header class=\"ds-page-head\"><p class=\"ds-eyebrow\">THE COMMUNITY EDIT</p><h1>最新发现</h1><p class=\"ds-page-desc\">看看大家正在记录什么。</p></header>",
+      "css": ".ds-page-head{padding-bottom:24px;border-bottom:1px solid var(--border,#E6E6E1);color:var(--text-1,#1C1C1A)}.ds-eyebrow{margin:0 0 8px;color:var(--text-3,#8E8E88);font:600 12px/1.5 Inter,\"PingFang SC\",sans-serif;letter-spacing:.2em}.ds-page-head h1{margin:0;font:400 28px/1.25 \"Noto Serif SC\",\"Songti SC\",Georgia,serif;letter-spacing:-.02em}.ds-page-desc{margin:8px 0 0;color:var(--text-2,#5A5A56);font:400 14px/1.65 Inter,\"PingFang SC\",sans-serif}"
+    },
+    {
+      "name": "空态",
+      "kind": "custom",
+      "refersTo": "empty-state",
+      "description": "没有作品或检索结果时的轻量引导。",
+      "html": "<div class=\"ds-empty\"><span class=\"ds-empty-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"26\" height=\"26\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><circle cx=\"8.5\" cy=\"9\" r=\"1.5\"/><path d=\"m4 18 5-5 3 3 3-4 5 6\"/></svg></span><h3>还没有作品</h3><p>分享你眼里的世界，开启新的对话。</p><button type=\"button\">发布作品</button></div>",
+      "css": ".ds-empty{display:flex;flex-direction:column;align-items:center;gap:12px;padding:56px 24px;border-radius:var(--radius-lg,16px);color:var(--text-3,#8E8E88);text-align:center}.ds-empty-icon{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--surface-2,#F1F1EE)}.ds-empty h3{margin:0;color:var(--text-1,#1C1C1A);font:400 18px/1.3 \"Noto Serif SC\",\"Songti SC\",Georgia,serif}.ds-empty p{max-width:46ch;margin:0;font:400 13px/1.8 Inter,\"PingFang SC\",sans-serif}.ds-empty button{margin-top:8px;padding:8px 18px;border:0;border-radius:var(--radius,10px);background:var(--accent,#7C8B7F);color:#fff;cursor:pointer}.ds-empty button:hover{background:var(--accent-hover,#6B7A6E)}.ds-empty button:focus-visible{outline:2px solid var(--accent,#7C8B7F);outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "一间兼顾创作与策展的工作室",
+    "overview": "这套系统以摄影作品为主角：浅色页面像整理与交流用的工作台，留白和分隔线帮助阅读，低饱和的雾灰绿标出可以行动的地方。衬线标题提供画册般的编辑气质，正文和操作控件保持清晰、朴素。作品详情使用深色看图表面；后台用深松绿侧栏和密度更高的信息布局承担治理工作。\n\n当前实现已经有共享令牌、前台作品卡片与瀑布流、独立的个人中心和管理外壳。此文档记录这些已落地的视觉规律；少量旧页面仍有硬编码颜色或不一致的细节，它们不是可复制的设计标准。",
+    "keyCharacteristics": [
+      "摄影内容优先，界面保持安静，次要操作随悬停或焦点显现。",
+      "浅暖纸面、白色表面、细边线，雾灰绿只用于关键状态和操作。",
+      "展示标题用中文衬线，正文与后台数据用无衬线。",
+      "前台、深色看图界面与后台共享令牌关系，但各有明确的使用场景。"
+    ],
+    "rules": [
+      {
+        "name": "The Rare Accent Rule",
+        "body": "雾灰绿标记主要行动、选中与焦点；大面积内容保持中性，让照片本身提供最丰富的色彩。",
+        "section": "colors"
+      },
+      {
+        "name": "The Serif Pause Rule",
+        "body": "衬线留给引导浏览和阅读的标题；表格、筛选、输入和操作说明继续使用清晰的无衬线。",
+        "section": "typography"
+      },
+      {
+        "name": "The Image Leads Rule",
+        "body": "当页面展示作品时，先保证图像尺度和浏览节奏，再安放标题、作者与操作；表格密度只用于管理工作流。",
+        "section": "layout"
+      },
+      {
+        "name": "The Quiet Surface Rule",
+        "body": "默认先用表面明度和边线分层；只有交互或主视觉需要更明显的阴影。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** 从共享令牌取色、字阶、间距、圆角和动效时长；新增页面先复用这些关系。",
+      "**Do** 让作品图片决定浏览节奏，用留白、排版与轻量互动支撑它。",
+      "**Do** 保持前台、个人中心与后台的使用场景清楚，并为键盘焦点和减少动效偏好提供对应状态。",
+      "**Do** 将暗色看图界面作为有目的的场景切换，而非全站装饰。"
+    ],
+    "donts": [
+      "**Don't** 把云图库上传或后台表格的视觉语言带到公共作品发现页。",
+      "**Don't** 使用高饱和装饰、廉价渐变、卡通或电商式促销外观掩盖摄影作品。",
+      "**Don't** 把遗留页面中的单次硬编码值直接升级为新组件的规范。",
+      "**Don't** 让悬停才出现的操作在键盘或触屏环境下无法触达。"
+    ]
+  }
+}
