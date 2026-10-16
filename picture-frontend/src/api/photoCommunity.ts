@@ -1,6 +1,6 @@
 import request from '@/request'
 
-export function listWorks(params: { current?: number; size?: number; sort?: 'latest' | 'hot'; feed?: 'all' | 'following' }) {
+export function listWorks(params: { current?: number; size?: number; sort?: 'latest' | 'hot'; feed?: 'all' | 'following'; authorId?: string | number }) {
   return request('/api/work/page', { method: 'GET', params })
 }
 
@@ -149,4 +149,41 @@ export function unlikeComment(data: { workId: string | number }) {
 /* ===== 专题详情（B1）===== */
 export function getExhibitionDetail(exhibitionId: string | number) {
   return request('/api/exhibition/detail', { method: 'GET', params: { exhibitionId } })
+}
+
+/* ===== B2 活动·征稿 ===== */
+export function getActiveCall(exhibitionId: string | number) {
+  return request('/api/exhibition/call/active', { method: 'GET', params: { exhibitionId } })
+}
+
+export function submitWorks(data: { callId: string | number; workIds: Array<string | number>; caption?: string }) {
+  return request('/api/exhibition/call/submit', { method: 'POST', data })
+}
+
+export function listMySubmissions() {
+  return request('/api/exhibition/call/my/all', { method: 'GET' })
+}
+
+export function listExhibitionCalls(exhibitionId: string | number) {
+  return request('/api/exhibition/call/list', { method: 'GET', params: { exhibitionId } })
+}
+
+export function saveExhibitionCall(data: Record<string, unknown>, isUpdate = false) {
+  return request(isUpdate ? '/api/exhibition/call/update' : '/api/exhibition/call/add', { method: 'POST', data })
+}
+
+export function changeExhibitionCallStatus(data: { id: string | number; status: string }) {
+  return request('/api/exhibition/call/status', { method: 'POST', data })
+}
+
+export function deleteExhibitionCall(id: string | number) {
+  return request('/api/exhibition/call/delete', { method: 'POST', data: { id } })
+}
+
+export function listSubmissions(params: { callId: string | number; status?: string; current?: number; size?: number }) {
+  return request('/api/exhibition/submission/list', { method: 'GET', params })
+}
+
+export function reviewSubmission(data: { id: string | number; accept: boolean; caption?: string; sortOrder?: number }) {
+  return request('/api/exhibition/submission/review', { method: 'POST', data })
 }

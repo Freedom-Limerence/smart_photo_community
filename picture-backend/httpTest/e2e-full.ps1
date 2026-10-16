@@ -393,6 +393,27 @@ Test-Api -Name 'S25 未发布专题：普通用户被拒' -Path ('/exhibition/de
 Test-Api -Name 'S25 未发布专题：管理员可见' -Path ('/exhibition/detail?exhibitionId=' + $Ctx['draftExhId']) -As ADMIN -Check { param($d) $null -ne $d.exhibition }
 Test-Api -Name 'S25 不存在的专题返回错误' -Path '/exhibition/detail?exhibitionId=99999999999' -As B -Expect fail
 
+
+# ================= S26 活动·征稿（B2）================
+$Current = 'S26 活动·征稿'
+Test-Api -Name 'S26 普通用户不可建征稿' -Method POST -Path '/exhibition/call/add' -Body @{ exhibitionId=$Ctx['exhId']; title='非法征稿' } -As A -Expect fail
+Test-Api -Name 'S26 管理员创建征稿启事' -Method POST -Path '/exhibition/call/add' -Body @{ exhibitionId=$Ctx['exhId']; title=('e2e征稿_' + $ts); description='主题：城市夜景'; maxSubmissionsPerUser=1; status='OPEN' } -As ADMIN -Check { param($d) $null -ne $d }
+$Ctx['callId'] = "$($script:LastData)"
+Test-Api -Name 'S26 征稿列表可查询' -Path ('/exhibition/call/list?exhibitionId=' + $Ctx['exhId']) -As ADMIN -Check { param($d) $d.Count -ge 1 }
+Test-Api -Name 'S26 用户端可见当前征稿' -Path ('/exhibition/call/active?exhibitionId=' + $Ctx['exhId']) -As A -Check { param($d) "$($d.call.id)" -eq $Ctx['callId'] }
+Test-Api -Name 'S26 投稿他人作品被拒' -Method POST -Path '/exhibition/call/submit' -Body @{ callId=$Ctx['callId']; workIds=@($Ctx['workId']) } -As B -Expect fail
+Test-Api -Name 'S26 投稿自己的作品' -Method POST -Path '/exhibition/call/submit' -Body @{ callId=$Ctx['callId']; workIds=@($Ctx['workId']); caption='e2e 投稿简述' } -As A -Check { param($d) $d.Count -ge 1 }
+Test-Api -Name 'S26 重复投稿被拦截' -Method POST -Path '/exhibition/call/submit' -Body @{ callId=$Ctx['callId']; workIds=@($Ctx['workId']) } -As A -Expect fail
+Test-Api -Name 'S26 超过限投数被拦截' -Method POST -Path '/exhibition/call/submit' -Body @{ callId=$Ctx['callId']; workIds=@($Ctx['riskWorkId']) } -As A -Expect fail
+Test-Api -Name 'S26 普通用户不可查投稿列表' -Path ('/exhibition/submission/list?callId=' + $Ctx['callId']) -As A -Expect fail
+Test-Api -Name 'S26 管理员可见投稿列表' -Path ('/exhibition/submission/list?callId=' + $Ctx['callId']) -As ADMIN -Check { param($d) [int]$d.page.total -ge 1 -and $null -ne $d.page.records[0].workTitle }
+$Ctx['submissionId'] = "$($script:LastData.page.records[0].id)"
+Test-Api -Name 'S26 采纳投稿（事务）' -Method POST -Path '/exhibition/submission/review' -Body @{ id=$Ctx['submissionId']; accept=$true; caption='策展说明：夜景构图出色' } -As ADMIN -Check { param($d) $d -eq $true }
+Test-Api -Name 'S26 采纳后作品进入展品' -Path ('/exhibition/detail?exhibitionId=' + $Ctx['exhId']) -As B -Check { param($d) ($d.works | ForEach-Object { "$($_.id)" }) -contains $Ctx['workId'] }
+Test-Api -Name 'S26 采纳后展品带策展说明' -Path ('/exhibition/detail?exhibitionId=' + $Ctx['exhId']) -As B -Check { param($d) "$($d.captions.PSObject.Properties.Name -contains $Ctx['workId'])" -eq 'True' }
+Test-Api -Name 'S26 重复评审被拦截' -Method POST -Path '/exhibition/submission/review' -Body @{ id=$Ctx['submissionId']; accept=$true } -As ADMIN -Expect fail
+Test-Api -Name 'S26 我的投稿可查询' -Path '/exhibition/call/my/all' -As A -Check { param($d) $d.Count -ge 1 }
+
 Write-Host '================ 汇总 ================' -ForegroundColor Cyan
 $pass = ($script:Results | Where-Object { $_.pass }).Count
 $fail = ($script:Results | Where-Object { -not $_.pass }).Count

@@ -1,7 +1,7 @@
 import type { Component } from 'vue'
 import {
   AuditOutlined, DashboardOutlined, FileTextOutlined, FlagOutlined,
-  CommentOutlined, FileProtectOutlined, HistoryOutlined, ThunderboltOutlined, FundProjectionScreenOutlined, NotificationOutlined,
+  CommentOutlined, FileProtectOutlined, HistoryOutlined, ThunderboltOutlined, TrophyOutlined, FundProjectionScreenOutlined, NotificationOutlined,
   PictureOutlined, SafetyCertificateOutlined, TeamOutlined, UserOutlined,
 } from '@ant-design/icons-vue'
 
@@ -30,6 +30,7 @@ export const ADMIN_MENU: AdminMenuItem[] = [
   { key: '/admin/appeal', label: '申诉处理', icon: FileProtectOutlined, permission: 'report:manage', description: '作者申诉的复核与重新上架' },
   { key: '/admin/comments', label: '评论管理', icon: CommentOutlined, permission: 'content:review', description: '评论机审结果复核与隐藏/恢复' },
   { key: '/admin/review-logs', label: '审核流水', icon: HistoryOutlined, permission: 'content:review', description: '每一次审核动作的完整记录' },
+  { key: '/admin/exhibitions', label: '征稿管理', icon: TrophyOutlined, permission: 'exhibition:manage', description: '发起征稿启事、评选用户投稿' },
   { key: '/admin/report', label: '举报处理', icon: FlagOutlined, permission: 'report:manage', description: '用户举报的受理与处置' },
   { key: '/admin/announcement', label: '公告管理', icon: NotificationOutlined, permission: 'announcement:manage', description: '发布平台公告并推送全体用户' },
   { key: '/admin/logs', label: '操作日志', icon: FileTextOutlined, permission: 'log:view', description: '后台操作审计记录' },

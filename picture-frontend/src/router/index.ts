@@ -61,6 +61,7 @@ const AdminAutoReviewPage = () => import('@/pages/admin/AdminAutoReviewPage.vue'
 const AdminAppealPage = () => import('@/pages/admin/AdminAppealPage.vue')
 const AdminCommentPage = () => import('@/pages/admin/AdminCommentPage.vue')
 const AdminReviewLogPage = () => import('@/pages/admin/AdminReviewLogPage.vue')
+const AdminExhibitionCallPage = () => import('@/pages/admin/AdminExhibitionCallPage.vue')
 const AdminAnnouncementPage = () => import('@/pages/admin/AdminAnnouncementPage.vue')
 const NotificationPage = () => import('@/pages/notification/NotificationPage.vue')
 const WallPage = () => import('@/pages/wall/WallPage.vue')
@@ -148,6 +149,7 @@ const router = createRouter({
         { path: 'appeal', component: AdminAppealPage, meta: { title: '申诉处理' } },
         { path: 'comments', component: AdminCommentPage, meta: { title: '评论管理' } },
         { path: 'review-logs', component: AdminReviewLogPage, meta: { title: '审核流水' } },
+        { path: 'exhibitions', component: AdminExhibitionCallPage, meta: { title: '征稿管理' } },
         { path: 'report', component: AdminReportPage, meta: { title: '举报处理' } },
         { path: 'announcement', component: AdminAnnouncementPage, meta: { title: '公告管理' } },
         { path: 'monitor', component: AdminMonitorPage, meta: { title: '系统监控' } },
