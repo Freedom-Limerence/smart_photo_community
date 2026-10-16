@@ -1,13 +1,13 @@
 <template>
-  <div id="spaceAnalyzePage">
-    <h2>
+  <div id="spaceAnalyzePage" class="container" style="padding: 24px 20px 48px">
+    <header style="margin-bottom: 20px"><p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">SPACE / ANALYTICS</p><h1 style="margin: 6px 0 8px; font-size: var(--font-7)">
       空间图库分析 -
       <span v-if="queryAll">全部空间</span>
       <span v-else-if="queryPublic">公共图库</span>
       <span v-else>
         <a :href="`/space/${spaceId}`" target="_blank">空间 id：{{ spaceId }}</a>
       </span>
-    </h2>
+    </h1></header>
     <div style="margin-bottom: 16px" />
     <a-row :gutter="[16, 16]">
       <!-- 空间使用分析 -->

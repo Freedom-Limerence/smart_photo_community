@@ -1,7 +1,7 @@
 <template>
-  <div id="pictureManagePage">
+  <div id="pictureManagePage" class="container" style="padding: 24px 20px 48px">
     <a-flex justify="space-between">
-      <h2>图片管理</h2>
+      <header style="margin-bottom: 20px"><p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">ADMIN / PICTURES</p><h1 style="margin: 6px 0 8px; font-size: var(--font-7)">图片管理</h1></header>
       <a-space>
         <a-button type="primary" href="/add_picture" target="_blank">+ 创建图片</a-button>
         <a-button type="primary" href="/add_picture/batch" target="_blank" ghost>+ 批量创建图片</a-button>

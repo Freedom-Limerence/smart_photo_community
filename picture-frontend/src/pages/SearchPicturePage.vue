@@ -1,6 +1,6 @@
 <template>
-  <div id="searchPicturePage">
-    <h2 style="margin-bottom: 16px">以图搜图</h2>
+  <div id="searchPicturePage" class="container" style="padding: 24px 20px 48px">
+    <header style="margin-bottom: 20px"><p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">SEARCH / BY IMAGE</p><h1 style="margin: 6px 0 8px; font-size: var(--font-7)">以图搜图</h1></header>
     <h3 style="margin-bottom: 16px">原图</h3>
     <a-card hoverable style="width: 240px">
       <template #cover>
