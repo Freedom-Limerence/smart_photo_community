@@ -191,3 +191,32 @@ export function reviewSubmission(data: { id: string | number; accept: boolean; c
 export function deleteWorks(ids: Array<string | number>) {
   return request('/api/work/delete', { method: 'POST', data: { ids } })
 }
+
+/* ===== P0 收藏夹分组 ===== */
+export function listFavoriteFolders() {
+  return request('/api/favorite/folders', { method: 'GET' })
+}
+
+export function addFavoriteFolder(data: { name: string; description?: string }) {
+  return request('/api/favorite/folder/add', { method: 'POST', data })
+}
+
+export function updateFavoriteFolder(data: { id: string | number; name?: string; description?: string }) {
+  return request('/api/favorite/folder/update', { method: 'POST', data })
+}
+
+export function deleteFavoriteFolder(id: string | number) {
+  return request('/api/favorite/folder/delete', { method: 'POST', data: { id } })
+}
+
+export function moveFavorites(data: { workIds: Array<string | number>; folderId?: string | number | null }) {
+  return request('/api/favorite/move', { method: 'POST', data })
+}
+
+export function cancelFavorites(workIds: Array<string | number>) {
+  return request('/api/favorite/cancel', { method: 'POST', data: { workIds } })
+}
+
+export function listFavoriteWorks(params: { folderId?: string | number | null; current?: number; size?: number }) {
+  return request('/api/favorite/works', { method: 'GET', params })
+}

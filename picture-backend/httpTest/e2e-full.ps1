@@ -422,6 +422,24 @@ Test-Api -Name 'S27 作者批量删除自己的作品' -Method POST -Path '/work
 Test-Api -Name 'S27 非作者删除他人作品无效' -Method POST -Path '/work/delete' -Body @{ ids=@($Ctx['workId']) } -As B -Check { param($d) [int]$d -eq 0 }
 Test-Api -Name 'S27 删除后作品不可见' -Path ('/work/get/vo?id=' + $Ctx['riskWorkId']) -As A -Expect fail
 
+
+# ================= S28 收藏夹分组（P0）================
+$Current = 'S28 收藏夹分组'
+Test-Api -Name 'S28 未登录不可查收藏夹' -Path '/favorite/folders' -As NONE -Expect fail
+Test-Api -Name 'S28 新建收藏夹' -Method POST -Path '/favorite/folder/add' -Body @{ name=('e2e收藏夹_' + $ts); description='e2e 收藏夹' } -As A -Check { param($d) $null -ne $d }
+$Ctx['folderId'] = "$($script:LastData)"
+Test-Api -Name 'S28 重名收藏夹被拦截' -Method POST -Path '/favorite/folder/add' -Body @{ name=('e2e收藏夹_' + $ts) } -As A -Expect fail
+Test-Api -Name 'S28 收藏夹列表含新建项' -Path '/favorite/folders' -As A -Check { param($d) ($d.folders | ForEach-Object { "$($_.id)" }) -contains $Ctx['folderId'] }
+Test-Api -Name 'S28 越权改名他人收藏夹被拒' -Method POST -Path '/favorite/folder/update' -Body @{ id=$Ctx['folderId']; name='越权改名' } -As B -Expect fail
+Test-Api -Name 'S28 改名自己的收藏夹' -Method POST -Path '/favorite/folder/update' -Body @{ id=$Ctx['folderId']; name=('e2e改名_' + $ts) } -As A -Check { param($d) $d -eq $true }
+Test-Api -Name 'S28 收藏一件作品' -Method POST -Path '/work/favorite' -Body @{ workId=$Ctx['workId'] } -As A -Expect ok
+Test-Api -Name 'S28 移动到收藏夹' -Method POST -Path '/favorite/move' -Body @{ workIds=@($Ctx['workId']); folderId=$Ctx['folderId'] } -As A -Check { param($d) [int]$d -ge 1 }
+Test-Api -Name 'S28 收藏夹内可见该作品' -Path ('/favorite/works?folderId=' + $Ctx['folderId']) -As A -Check { param($d) ($d.records | ForEach-Object { "$($_.id)" }) -contains $Ctx['workId'] }
+Test-Api -Name 'S28 收藏夹计数正确' -Path '/favorite/folders' -As A -Check { param($d) [int](($d.folders | Where-Object { "$($_.id)" -eq $Ctx['folderId'] }).workCount) -ge 1 }
+Test-Api -Name 'S28 批量取消收藏' -Method POST -Path '/favorite/cancel' -Body @{ workIds=@($Ctx['workId']) } -As A -Check { param($d) [int]$d -ge 1 }
+Test-Api -Name 'S28 删除收藏夹' -Method POST -Path '/favorite/folder/delete' -Body @{ id=$Ctx['folderId'] } -As A -Check { param($d) $d -eq $true }
+Test-Api -Name 'S28 删除后列表不含该夹' -Path '/favorite/folders' -As A -Check { param($d) ($d.folders | ForEach-Object { "$($_.id)" }) -notcontains $Ctx['folderId'] }
+
 Write-Host '================ 汇总 ================' -ForegroundColor Cyan
 $pass = ($script:Results | Where-Object { $_.pass }).Count
 $fail = ($script:Results | Where-Object { -not $_.pass }).Count
