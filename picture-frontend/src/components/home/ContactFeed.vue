@@ -1,87 +1,33 @@
 <template>
   <div class="contact-feed">
-    <button v-for="(item, i) in works" :key="item.id" type="button" class="frame"
-            :class="frameClass(i)" @click="emit('open', item)">
-      <img :src="thumbOf(item)" :alt="item.title || ''" loading="lazy" />
-      <span class="frame-no">{{ pad(i + 1) }}</span>
-      <div class="frame-meta" aria-hidden="true">
-        <strong>{{ item.title || '未命名作品' }}</strong>
-        <em>{{ item.author?.userName || '摄影师' }}</em>
-      </div>
-    </button>
+    <article v-for="(item, i) in works" :key="item.id" class="frame" :class="frameClass(i)">
+      <button type="button" class="frame-image" :aria-label="'欣赏作品：' + (item.title || '未命名作品')" @click="emit('open',item)">
+        <img :src="imageOf(item)" :alt="item.title || '摄影作品'" loading="lazy" decoding="async" />
+        <span class="frame-action">欣赏作品 <ArrowRightOutlined /></span>
+        <span v-if="item.pictures?.length > 1" class="frame-count">{{ item.pictures.length }} 张</span>
+      </button>
+      <div class="frame-caption"><div><h3>{{ item.title || '未命名作品' }}</h3><span>{{ item.author?.userName || '摄影师' }}</span></div><span class="frame-no" aria-hidden="true">{{ String(i+1).padStart(2,'0') }}</span></div>
+    </article>
   </div>
 </template>
-
 <script setup lang="ts">
-const props = defineProps<{ works: any[] }>()
-const emit = defineEmits<{ open: [work: any] }>()
-
-function pad(n: number) { return String(n).padStart(2, '0') }
-
-/** 接触印样的节奏：两幅对开 → 三联 → 一幅全景，循环。用主次尺度避免退回等大图库。 */
-function frameClass(i: number) {
-  const slot = i % 6
-  if (slot === 5) return 'wide'
-  if (slot <= 1) return 'half'
-  return 'third'
-}
-
-function thumbOf(work: any) {
-  const pic = work?.pictures?.[0]
-  return work?.thumbnailUrl || pic?.thumbnailUrl || work?.coverUrl || pic?.url || ''
-}
+import { ArrowRightOutlined } from '@ant-design/icons-vue'
+defineProps<{works:any[]}>()
+const emit = defineEmits<{open:[work:any]}>()
+function frameClass(i:number) { return ['lead','portrait','third','third','third','panorama'][i%6] }
+function imageOf(w:any) { return w.coverUrl || w.pictures?.[0]?.url || w.thumbnailUrl || w.pictures?.[0]?.thumbnailUrl || '' }
 </script>
-
 <style scoped>
-.contact-feed {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 2px;
-  background: var(--print-line);
-  border-top: 1px solid var(--print-line);
-  border-bottom: 1px solid var(--print-line);
-}
-
-.frame { position: relative; overflow: hidden; width: 100%; padding: 0; border: 0; background: var(--stage); cursor: pointer; font: inherit; text-align: left; }
-.frame.half { grid-column: span 3; }
-.frame.third { grid-column: span 2; }
-.frame.wide { grid-column: span 6; }
-
-.frame img { display: block; width: 100%; object-fit: cover; transition: transform .62s cubic-bezier(.16, 1, .3, 1), filter .4s ease; }
-.frame.half img { height: clamp(200px, 27vw, 420px); }
-.frame.third img { height: clamp(180px, 22vw, 340px); }
-.frame.wide img { height: clamp(150px, 17vw, 280px); }
-
-.frame:hover img, .frame:focus-visible img { transform: scale(1.028); filter: brightness(.88); }
-
-.frame-no {
-  position: absolute; top: 8px; left: 10px;
-  font-size: 10px; letter-spacing: .1em; font-variant-numeric: tabular-nums;
-  color: rgba(245, 246, 244, .82); text-shadow: 0 1px 8px rgba(0, 0, 0, .55);
-}
-
-.frame-meta {
-  position: absolute; left: 0; right: 0; bottom: 0;
-  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-  padding: 26px 12px 10px;
-  background: linear-gradient(to top, rgba(20, 24, 21, .78), rgba(20, 24, 21, 0));
-  color: #F5F6F4; opacity: 0; transform: translateY(6px);
-  transition: opacity .3s cubic-bezier(.16, 1, .3, 1), transform .3s cubic-bezier(.16, 1, .3, 1);
-  pointer-events: none;
-}
-/* 键盘聚焦与悬停同样显出标题与作者，触屏上 wide 帧常显 */
-.frame:hover .frame-meta, .frame:focus-visible .frame-meta, .frame.wide .frame-meta { opacity: 1; transform: none; }
-.frame-meta strong { font-size: 13px; font-weight: 500; letter-spacing: -.01em; }
-.frame-meta em { font-style: normal; font-size: 11px; color: rgba(245, 246, 244, .72); }
-.frame.half .frame-meta strong, .frame.wide .frame-meta strong { font-size: 15px; }
-
-.frame:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
-.contact-feed ::selection { background: var(--accent); color: #fff; }
-
-@media (max-width: 900px) {
-  .contact-feed { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .frame.half, .frame.third { grid-column: span 1; }
-  .frame.wide { grid-column: span 2; }
-  .frame img, .frame.half img, .frame.third img, .frame.wide img { height: 46vw; }
-}
+.contact-feed { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); column-gap:24px; row-gap:40px; }
+.frame { min-width:0; }.lead { grid-column:span 4; }.portrait { grid-column:span 2; }.third { grid-column:span 2; }.panorama { grid-column:span 6; }
+.frame-image { position:relative; display:block; overflow:hidden; width:100%; padding:0; border:0; background:var(--surface-3); cursor:pointer; aspect-ratio:1.5; }
+.lead .frame-image,.portrait .frame-image { height:clamp(270px,32vw,480px); aspect-ratio:auto; }.panorama .frame-image { aspect-ratio:2.75; }
+.frame-image img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 600ms var(--ease); }
+.frame-image:hover img { transform:scale(1.025); }
+.frame-action { position:absolute; left:16px; bottom:16px; display:flex; align-items:center; gap:24px; padding:11px 15px; background:var(--surface); color:var(--text-1); font-size:12px; opacity:0; transform:translateY(6px); transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease); }
+.frame-image:hover .frame-action,.frame-image:focus-visible .frame-action { opacity:1; transform:none; }
+.frame-count { position:absolute; right:12px; top:12px; padding:4px 8px; background:rgba(15,20,17,.75); color:white; font-size:11px; }
+.frame-caption { display:flex; justify-content:space-between; gap:12px; margin-top:12px; }.frame-caption h3 { font-size:15px; font-weight:500; margin:0 0 4px; overflow-wrap:anywhere; }.frame-caption span { font-size:12px; color:var(--text-3); }.frame-no { font-variant-numeric:tabular-nums; }
+@media(max-width:760px) { .contact-feed { grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px 14px; }.lead,.panorama { grid-column:span 2; }.portrait,.third { grid-column:span 1; }.lead .frame-image { height:auto; aspect-ratio:1.35; }.portrait .frame-image,.third .frame-image { height:auto; aspect-ratio:.8; }.panorama .frame-image { aspect-ratio:1.6; }.frame-caption h3 { font-size:14px; }.frame-no { display:none; } }
+@media(hover:none) { .frame-action { opacity:1; transform:none; padding:7px 10px; left:10px; bottom:10px; }.frame-action .anticon { display:none; } }
 </style>

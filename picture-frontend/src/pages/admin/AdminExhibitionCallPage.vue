@@ -34,7 +34,7 @@
                   <a-button v-else type="link" size="small" @click="changeStatus(record, 'CLOSED')">关闭投稿</a-button>
                   <a-button type="link" size="small" @click="openCallForm(record)">编辑</a-button>
                   <a-button type="link" size="small" danger @click="removeCall(record)">删除</a-button>
-                </space>
+                </a-space>
               </template>
             </template>
           </a-table>

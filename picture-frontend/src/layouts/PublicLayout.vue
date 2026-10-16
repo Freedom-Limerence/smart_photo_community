@@ -1,5 +1,7 @@
 <template>
   <div class="public-layout" :class="{ 'is-immersive': isWorkDetail }">
+    <!-- 摄影演示模式提示条：仅开发环境 ?demo=photography 时显示 -->
+    <PhotographyPreviewBar />
     <PublicHeader v-if="!isWorkDetail" />
     <AnnouncementBar v-if="!isWorkDetail" />
     <main class="public-main">
@@ -21,6 +23,7 @@ import { useRoute } from 'vue-router'
 import PublicHeader from '@/components/layout/PublicHeader.vue'
 import PublicFooter from '@/components/layout/PublicFooter.vue'
 import AnnouncementBar from '@/components/layout/AnnouncementBar.vue'
+import PhotographyPreviewBar from '@/components/layout/PhotographyPreviewBar.vue'
 import AiChatDock from '@/components/chat/AiChatDock.vue'
 const route = useRoute()
 const isWorkDetail = computed(() => route.name === 'work-detail')
