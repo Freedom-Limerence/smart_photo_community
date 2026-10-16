@@ -1,9 +1,13 @@
 <template>
   <!-- @author 程序员鱼皮 <a href="https://www.codefather.cn">编程导航原创项目</a> -->
-  <div id="vipExchangePage">
-    <h2 style="margin-bottom: 16px">会员码兑换</h2>
+  <div id="vipExchangePage" class="container" style="padding: 24px 20px 48px">
+    <header style="margin-bottom: 20px">
+      <p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">MEMBERSHIP / EXCHANGE</p>
+      <h1 style="margin: 6px 0 8px; font-size: var(--font-7)">会员兑换</h1>
+      <p style="margin: 0; color: var(--text-2)">使用兑换码升级会员，解锁更大的空间容量与更多上传配额</p>
+    </header>
     <!-- 兑换码表单 -->
-    <a-form name="formData" layout="vertical" :model="formData" @finish="handleSubmit">
+    <a-card :bordered="false" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-1); max-width: 520px"><a-form name="formData" layout="vertical" :model="formData" @finish="handleSubmit">
       <a-form-item name="vipCode" label="兑换码">
         <a-input
           v-model:value="formData.vipCode"
@@ -16,7 +20,7 @@
           兑换
         </a-button>
       </a-form-item>
-    </a-form>
+    </a-form></a-card>
   </div>
 </template>
 
