@@ -10,10 +10,25 @@
       </router-link>
 
       <nav class="nav">
-        <router-link v-for="item in navItems" :key="item.path" :to="item.path" class="nav-item"
-                     :class="{ active: isActive(item) }">
-          {{ item.label }}
-        </router-link>
+        <template v-for="item in navItems" :key="item.label">
+          <router-link v-if="!item.children" :to="item.path" class="nav-item" :class="{ active: isActive(item) }">
+            {{ item.label }}
+          </router-link>
+          <a-dropdown v-else placement="bottomLeft">
+            <span class="nav-item nav-group" :class="{ active: isGroupActive(item) }">
+              {{ item.label }}<DownOutlined class="nav-caret" />
+            </span>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item v-for="child in item.children" :key="child.path" @click="go(child.path)">
+                  <component :is="child.icon" />
+                  <span class="nav-label">{{ child.label }}</span>
+                  <em v-if="child.hint" class="nav-hint">{{ child.hint }}</em>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
+        </template>
       </nav>
 
       <div class="header-actions">
@@ -43,6 +58,12 @@
               <a-menu-item key="home" @click="go('/me')"><UserOutlined />个人中心</a-menu-item>
               <a-menu-item key="following" @click="go('/me/following')"><UserOutlined />关注与粉丝</a-menu-item>
               <a-menu-item key="gallery" @click="go('/me/gallery')"><PictureOutlined />我的图库</a-menu-item>
+              <a-menu-item key="works" @click="go('/me/works')"><PictureOutlined />我的作品</a-menu-item>
+              <a-menu-item key="favorites" @click="go('/me/favorites')"><StarOutlined />我的收藏</a-menu-item>
+              <a-menu-item key="stats" @click="go('/me/stats')"><TrophyOutlined />数据表现与成就</a-menu-item>
+              <a-menu-item key="notifications" @click="go('/notifications')"><BellOutlined />通知中心</a-menu-item>
+              <a-menu-item key="appeals" @click="go('/me/appeals')"><FileProtectOutlined />我的申诉</a-menu-item>
+              <a-menu-item key="vip" @click="go('/user_exchange_vip')"><CrownOutlined />会员兑换</a-menu-item>
               <a-menu-item key="settings" @click="go('/me/settings')"><SettingOutlined />账号设置</a-menu-item>
               <a-menu-item v-if="loginUser.userRole === 'admin'" key="admin" @click="go('/admin')">
                 <DashboardOutlined />管理后台
@@ -64,8 +85,9 @@ import { computed, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  CloudUploadOutlined, DashboardOutlined, LogoutOutlined, PictureOutlined,
-  SettingOutlined, UserOutlined,
+  BellOutlined, CloudUploadOutlined, CopyOutlined, CrownOutlined, DashboardOutlined, DownOutlined,
+  FileProtectOutlined, LogoutOutlined, PictureOutlined, RobotOutlined, SearchOutlined,
+  SettingOutlined, StarOutlined, TagsOutlined, TeamOutlined, TrophyOutlined, UserOutlined,
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import NotificationBell from '@/components/layout/NotificationBell.vue'
@@ -79,15 +101,37 @@ const keyword = ref('')
 const loginUser = computed(() => loginUserStore.loginUser || ({} as any))
 const avatarText = computed(() => (loginUser.value.userName || '光').slice(0, 1))
 
-const navItems = [
+const navItems: any[] = [
   { label: '发现', path: '/' },
   { label: '作品社区', path: '/community' },
   { label: '专题展览', path: '/exhibitions' },
+  {
+    label: '找图',
+    children: [
+      { label: '语义检索', path: '/search', icon: SearchOutlined, hint: '用一句话描述画面' },
+      { label: '以图搜图', path: '/search_picture', icon: PictureOutlined, hint: '上传一张图找相似' },
+      { label: '标签广场', path: '/tags', icon: TagsOutlined, hint: '按标签浏览' },
+    ],
+  },
+  {
+    label: '我的图库',
+    children: [
+      { label: '云图库', path: '/me/gallery', icon: PictureOutlined, hint: '管理图片资产' },
+      { label: '我的空间', path: '/my_space', icon: TeamOutlined, hint: '私有与团队空间' },
+      { label: 'AI 智能编目', path: '/ai/catalog', icon: RobotOutlined, hint: '自动识别内容与标签' },
+      { label: '相似选片', path: '/ai/similar', icon: CopyOutlined, hint: '找出连拍相似组' },
+    ],
+  },
+  { label: '今日影像', path: '/wall' },
 ]
 
 function isActive(item: { path: string }) {
   if (item.path === '/') return route.path === '/'
   return route.path.startsWith(item.path)
+}
+
+function isGroupActive(item: any) {
+  return (item.children || []).some((child: any) => route.path.startsWith(child.path))
 }
 
 function go(path: string) {
@@ -112,6 +156,11 @@ async function doLogout() {
 </script>
 
 <style scoped>
+.nav-group { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.nav-caret { font-size: 10px; opacity: .6; }
+.nav-label { margin-left: 6px; }
+.nav-hint { margin-left: 8px; color: var(--text-3); font-size: 11px; font-style: normal; }
+
 .public-header {
   position: sticky;
   top: 0;
