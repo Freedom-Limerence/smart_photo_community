@@ -1,9 +1,13 @@
 <template>
   <!-- @author 程序员鱼皮 <a href="https://www.codefather.cn">编程导航原创项目</a> -->
-  <div id="addPictureBatchPage">
-    <h2 style="margin-bottom: 16px">批量创建</h2>
+  <div id="addPictureBatchPage" class="container" style="padding: 24px 20px 48px">
+    <header style="margin-bottom: 20px">
+      <p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">UPLOAD / BATCH</p>
+      <h1 style="margin: 6px 0 8px; font-size: var(--font-7)">批量创建</h1>
+      <p style="margin: 0; color: var(--text-2)">按关键词批量抓取图片入库，可指定数量与名称前缀</p>
+    </header>
     <!-- 图片信息表单 -->
-    <a-form name="formData" layout="vertical" :model="formData" @finish="handleSubmit">
+    <a-card :bordered="false" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-1); max-width: 560px"><a-form name="formData" layout="vertical" :model="formData" @finish="handleSubmit">
       <a-form-item name="searchText" label="关键词">
         <a-input v-model:value="formData.searchText" placeholder="请输入关键词" allow-clear />
       </a-form-item>
@@ -29,7 +33,7 @@
           执行任务
         </a-button>
       </a-form-item>
-    </a-form>
+    </a-form></a-card>
     <a-alert
       v-if="batchResult"
       class="result-summary"
