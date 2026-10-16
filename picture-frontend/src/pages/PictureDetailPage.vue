@@ -1,14 +1,59 @@
 <template>
-  <div id="pictureDetailPage">
+  <div id="pictureDetailPage" class="container">
     <a-row :gutter="[16, 16]">
-      <!-- 图片预览 -->
-      <a-col :sm="24" :md="16" :xl="18">
-        <a-card title="图片预览">
-          <a-image :src="picture.url" style="max-height: 600px; object-fit: contain" />
+      <!-- 图片预览 + 工具条 -->
+      <a-col :sm="24" :md="15" :xl="17">
+        <a-card :bordered="false" class="panel">
+          <template #title>
+            <span class="card-title">{{ picture.name || '图片预览' }}</span>
+          </template>
+          <template #extra>
+            <a-space :size="4" wrap>
+              <a-button size="small" :loading="downloading" @click="download"><DownloadOutlined /> 下载原图</a-button>
+              <a-button size="small" @click="findSimilar"><PictureOutlined /> 找相似</a-button>
+              <a-button size="small" @click="share"><ShareAltOutlined /> 分享</a-button>
+              <a-button v-if="isOwner" size="small" @click="openEdit"><EditOutlined /> 编辑</a-button>
+              <a-button v-if="isOwner" size="small" danger @click="removePicture"><DeleteOutlined /> 删除</a-button>
+              <a-button v-if="!isOwner" size="small" @click="reportOpen = true"><WarningOutlined /> 举报</a-button>
+            </a-space>
+          </template>
+
+          <div class="preview-wrap">
+            <a-image :src="picture.url" :fallback="picture.thumbnailUrl" class="preview-img" />
+          </div>
+
+          <!-- 参数面板（可展开/收起） -->
+          <div class="params">
+            <div class="params-head" @click="showParams = !showParams">
+              <span class="eyebrow">IMAGE NOTES / 图片参数</span>
+              <a-button type="text" size="small">
+                {{ showParams ? '收起' : '展开' }} <DownOutlined v-if="!showParams" /><UpOutlined v-else />
+              </a-button>
+            </div>
+            <a-descriptions v-show="showParams" :column="2" size="small" bordered class="params-body">
+              <a-descriptions-item label="格式">{{ picture.picFormat ? String(picture.picFormat).toUpperCase() : '-' }}</a-descriptions-item>
+              <a-descriptions-item label="尺寸">{{ sizeText }}</a-descriptions-item>
+              <a-descriptions-item label="宽高比">{{ picture.picScale ?? '-' }}</a-descriptions-item>
+              <a-descriptions-item label="主色">
+                <span v-if="picture.picColor" class="color-dot" :style="{ background: picture.picColor }" />{{ picture.picColor ?? '-' }}
+              </a-descriptions-item>
+              <a-descriptions-item label="体积">{{ picture.picSize ? Math.round(Number(picture.picSize) / 1024) + ' KB' : '-' }}</a-descriptions-item>
+              <a-descriptions-item label="上传时间">{{ fmt(picture.createTime) }}</a-descriptions-item>
+              <a-descriptions-item v-if="picture.shootTime" label="拍摄时间">{{ fmt(picture.shootTime) }}</a-descriptions-item>
+              <a-descriptions-item v-if="picture.shootLocation" label="拍摄地点">{{ picture.shootLocation }}</a-descriptions-item>
+              <a-descriptions-item v-if="picture.camera" label="相机">{{ picture.camera }}</a-descriptions-item>
+              <a-descriptions-item v-if="picture.lens" label="镜头">{{ picture.lens }}</a-descriptions-item>
+              <a-descriptions-item v-if="picture.exposureTime" label="快门">{{ picture.exposureTime }}</a-descriptions-item>
+              <a-descriptions-item v-if="picture.aperture" label="光圈">{{ picture.aperture }}</a-descriptions-item>
+              <a-descriptions-item v-if="picture.iso" label="ISO">{{ picture.iso }}</a-descriptions-item>
+              <a-descriptions-item v-if="picture.focalLength" label="焦距">{{ picture.focalLength }}</a-descriptions-item>
+            </a-descriptions>
+          </div>
         </a-card>
       </a-col>
-      <!-- 图片信息区域 -->
-      <a-col :sm="24" :md="8" :xl="6">
+
+      <!-- 信息区 -->
+      <a-col :sm="24" :md="9" :xl="7">
         <a-alert v-if="isOwner && reviewStatus === 0" type="warning" show-icon class="review-alert"
                  message="这张图片正在等待审核"
                  description="审核通过后才会出现在公共图库、被其他人看到。在此之前只有你自己能在这里看到它。" />
@@ -19,243 +64,271 @@
             <a-button type="link" size="small" @click="appealOpen = true">认为审核有误？提交申诉 →</a-button>
           </template>
         </a-alert>
-        <a-modal v-model:open="appealOpen" title="提交申诉" @ok="submitAppeal">
-          <p class="muted">请说明这张图片应当通过审核的理由（例如原创证明、分辨率说明、内容无违规）。</p>
-          <a-textarea v-model:value="appealReason" :rows="4" placeholder="申诉理由" />
-        </a-modal>
-        <a-card title="图片信息">
-          <a-descriptions :column="1">
-            <a-descriptions-item label="审核状态">
-              <a-tag :color="reviewColor">{{ reviewText }}</a-tag>
-            </a-descriptions-item>
-            <a-descriptions-item label="作者">
-              <a-space>
-                <a-avatar :size="24" :src="picture.user?.userAvatar" />
-                <div>{{ picture.user?.userName }}</div>
-              </a-space>
-            </a-descriptions-item>
-            <a-descriptions-item label="名称">
-              {{ picture.name ?? '未命名' }}
-            </a-descriptions-item>
-            <a-descriptions-item label="简介">
-              {{ picture.introduction ?? '-' }}
-            </a-descriptions-item>
-            <a-descriptions-item label="分类">
-              {{ picture.category ?? '默认' }}
-            </a-descriptions-item>
+
+        <a-card :bordered="false" class="panel">
+          <template #title><span class="card-title">作者</span></template>
+          <div class="author-row">
+            <router-link :to="'/photographers/' + picture.userId" class="author-main">
+              <a-avatar :size="40" :src="picture.user?.userAvatar">{{ (picture.user?.userName || '光').slice(0, 1) }}</a-avatar>
+              <div>
+                <strong>{{ picture.user?.userName || '未知作者' }}</strong>
+                <span class="muted">{{ picture.category || '未分类' }}</span>
+              </div>
+            </router-link>
+            <a-button v-if="!isOwner" size="small" type="primary" @click="router.push('/photographers/' + picture.userId)">
+              进入主页
+            </a-button>
+          </div>
+        </a-card>
+
+        <a-card :bordered="false" class="panel">
+          <template #title><span class="card-title">图片信息</span></template>
+          <a-descriptions :column="1" size="small">
+            <a-descriptions-item label="审核状态"><a-tag :color="reviewColor">{{ reviewText }}</a-tag></a-descriptions-item>
+            <a-descriptions-item label="名称">{{ picture.name ?? '未命名' }}</a-descriptions-item>
+            <a-descriptions-item label="简介">{{ picture.introduction || '-' }}</a-descriptions-item>
+            <a-descriptions-item label="分类">{{ picture.category ?? '默认' }}</a-descriptions-item>
             <a-descriptions-item label="标签">
-              <a-tag v-for="tag in picture.tags" :key="tag">
-                {{ tag }}
-              </a-tag>
-            </a-descriptions-item>
-            <a-descriptions-item label="格式">
-              {{ picture.picFormat ?? '-' }}
-            </a-descriptions-item>
-            <a-descriptions-item label="宽度">
-              {{ picture.picWidth ?? '-' }}
-            </a-descriptions-item>
-            <a-descriptions-item label="高度">
-              {{ picture.picHeight ?? '-' }}
-            </a-descriptions-item>
-            <a-descriptions-item label="宽高比">
-              {{ picture.picScale ?? '-' }}
-            </a-descriptions-item>
-            <a-descriptions-item label="大小">
-              {{ formatSize(picture.picSize) }}
-            </a-descriptions-item>
-            <a-descriptions-item label="主色调">
-              <a-space>
-                {{ picture.picColor ?? '-' }}
-                <div
-                  v-if="picture.picColor"
-                  :style="{
-                    width: '16px',
-                    height: '16px',
-                    backgroundColor: toHexColor(picture.picColor),
-                  }"
-                />
-              </a-space>
+              <a-tag v-for="tag in picture.tags || []" :key="tag">{{ tag }}</a-tag>
+              <span v-if="!(picture.tags || []).length" class="muted">-</span>
             </a-descriptions-item>
           </a-descriptions>
-          <!-- 图片操作 -->
-          <a-space wrap>
-            <a-button type="primary" @click="doDownload">
-              免费下载
-              <template #icon>
-                <DownloadOutlined />
-              </template>
-            </a-button>
-            <a-button :icon="h(ShareAltOutlined)" type="primary" ghost @click="doShare">
-              分享
-            </a-button>
-            <a-button v-if="canEdit" :icon="h(EditOutlined)" type="default" @click="doEdit">
-              编辑
-            </a-button>
-            <a-button v-if="canDelete" :icon="h(DeleteOutlined)" danger @click="doDelete">
-              删除
-            </a-button>
-          </a-space>
+
+          <div class="info-actions">
+            <a-button size="small" @click="share">复制链接</a-button>
+            <a-button size="small" @click="copyUrl">复制图片地址</a-button>
+          </div>
         </a-card>
       </a-col>
     </a-row>
-    <ShareModal ref="shareModalRef" :link="shareLink" />
+
+    <!-- 编辑弹窗 -->
+    <a-modal v-model:open="editOpen" title="编辑图片信息" :confirm-loading="saving" ok-text="保存" @ok="saveEdit">
+      <a-form layout="vertical">
+        <a-form-item label="名称"><a-input v-model:value="form.name" placeholder="给这张图片起个名字" /></a-form-item>
+        <a-form-item label="简介"><a-textarea v-model:value="form.introduction" :rows="3" placeholder="拍摄思路、地点、故事" /></a-form-item>
+        <a-form-item label="分类"><a-input v-model:value="form.category" placeholder="例如：风光 / 人像 / 街拍" /></a-form-item>
+        <a-form-item label="标签">
+          <a-select v-model:value="form.tags" mode="tags" style="width: 100%" placeholder="回车添加标签" />
+        </a-form-item>
+      </a-form>
+      <p class="muted">修改后审核状态会重置为「待审核」，需要重新过审。</p>
+    </a-modal>
+
+    <!-- 申诉弹窗 -->
+    <a-modal v-model:open="appealOpen" title="提交申诉" @ok="submitAppealAction">
+      <p class="muted">请说明这张图片应当通过审核的理由（例如原创证明、分辨率说明、内容无违规）。</p>
+      <a-textarea v-model:value="appealReason" :rows="4" placeholder="申诉理由" />
+    </a-modal>
+
+    <!-- 举报弹窗 -->
+    <a-modal v-model:open="reportOpen" title="举报该图片" @ok="doReport">
+      <a-select v-model:value="reportReason" style="width: 100%; margin-bottom: 12px">
+        <a-select-option value="内容违规">内容违规</a-select-option>
+        <a-select-option value="侵权盗用">侵权盗用</a-select-option>
+        <a-select-option value="色情低俗">色情低俗</a-select-option>
+        <a-select-option value="广告营销">广告营销</a-select-option>
+        <a-select-option value="其他">其他</a-select-option>
+      </a-select>
+      <a-textarea v-model:value="reportDetail" :rows="3" placeholder="补充说明（可选）" />
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, h, onMounted, ref } from 'vue'
-import { deletePictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController.ts'
-import { message } from 'ant-design-vue'
-import { useLoginUserStore } from '@/stores/useLoginUserStore'
-import { submitAppeal as submitAppealApi } from '@/api/notification'
-import {
-  DeleteOutlined,
-  DownloadOutlined,
-  EditOutlined,
-  ShareAltOutlined,
-} from '@ant-design/icons-vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { saveAs } from 'file-saver'
-import { formatSize, toHexColor, parseId } from '@/utils'
-import { authorizeDownload, downloadAuthorizedFile } from '@/api/photoCommunity'
-import ShareModal from '@/components/ShareModal.vue'
-import { SPACE_PERMISSION_ENUM } from '@/constants/space.ts'
+import { message, Modal } from 'ant-design-vue'
+import {
+  DeleteOutlined, DownOutlined, DownloadOutlined, EditOutlined, PictureOutlined,
+  ShareAltOutlined, UpOutlined, WarningOutlined,
+} from '@ant-design/icons-vue'
+import { deletePictureUsingPost, editPictureUsingPost, getPictureVoByIdUsingGet } from '@/api/pictureController'
+import { authorizeDownload } from '@/api/photoCommunity'
+import { submitAppeal, submitReport } from '@/api/notification'
+import { useLoginUserStore } from '@/stores/useLoginUserStore'
 
-interface Props {
-  id: string | number
-}
-
-const props = defineProps<Props>()
 const route = useRoute()
-const picture = ref<API.PictureVO>({})
-const loginUserStore = useLoginUserStore()
-
-/** 审核状态：作者需要看到自己图片的审核进度 */
-const reviewStatus = computed(() => (picture.value as any).reviewStatus)
-const isOwner = computed(() => String(picture.value.userId) === String(loginUserStore.loginUser?.id))
-const reviewText = computed(() => (({ 0: "待审核", 1: "已通过", 2: "已拒绝" } as any)[reviewStatus.value as any] ?? "未知"))
-const reviewColor = computed(() => (({ 0: "orange", 1: "green", 2: "red" } as any)[reviewStatus.value as any] ?? "default"))
-
-/** 申诉：被拒绝的图片可由作者提交申诉 */
-const appealOpen = ref(false)
-const appealReason = ref("")
-async function submitAppeal() {
-  if (!appealReason.value.trim()) {
-    message.warning("请填写申诉理由")
-    return
-  }
-  const res: any = await submitAppealApi({ pictureId: String(picture.value.id), reason: appealReason.value.trim() })
-  if (res.data.code === 0) {
-    message.success("申诉已提交，我们会尽快复核")
-    appealOpen.value = false
-    appealReason.value = ""
-  } else {
-    message.error(res.data.message || "提交失败")
-  }
-}
-const pictureId = computed(() => parseId(props.id))
-
-// 通用权限检查函数
-function createPermissionChecker(permission: string) {
-  return computed(() => {
-    return (picture.value.permissionList ?? []).includes(permission)
-  })
-}
-
-// 定义权限检查
-const canEdit = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_EDIT)
-const canDelete = createPermissionChecker(SPACE_PERMISSION_ENUM.PICTURE_DELETE)
-
-// 获取图片详情
-const fetchPictureDetail = async () => {
-  try {
-    if (!pictureId.value) {
-      message.error('图片编号无效')
-      return
-    }
-    const res = await getPictureVoByIdUsingGet({ id: pictureId.value })
-    if (res.data.code === 0 && res.data.data) {
-      picture.value = res.data.data
-    } else {
-      message.error('获取图片详情失败，' + res.data.message)
-    }
-  } catch (e: any) {
-    message.error('获取图片详情失败：' + e.message)
-  }
-}
-
-onMounted(() => {
-  fetchPictureDetail()
-})
-
 const router = useRouter()
+const loginUser = useLoginUserStore()
 
-// 编辑
-const doEdit = () => {
-  router.push({
-    path: '/add_picture',
-    query: {
+const picture = ref<any>({})
+const loading = ref(false)
+const showParams = ref(true)
+const downloading = ref(false)
+const saving = ref(false)
+const appealOpen = ref(false)
+const appealReason = ref('')
+const reportOpen = ref(false)
+const reportReason = ref('内容违规')
+const reportDetail = ref('')
+const editOpen = ref(false)
+const form = ref<any>({ name: '', introduction: '', category: '', tags: [] })
+
+const pictureId = computed(() => String(route.params.id ?? ''))
+const isOwner = computed(() => String(picture.value?.userId ?? '') !== '' && String(picture.value?.userId) === String(loginUser.loginUser?.id ?? ''))
+const reviewStatus = computed(() => Number(picture.value?.reviewStatus ?? 1))
+const reviewText = computed(() => ({ 0: '待审核', 1: '已通过', 2: '未通过' } as Record<number, string>)[reviewStatus.value] || '未知')
+const reviewColor = computed(() => ({ 0: 'orange', 1: 'green', 2: 'red' } as Record<number, string>)[reviewStatus.value] || 'default')
+const sizeText = computed(() => (picture.value?.picWidth && picture.value?.picHeight)
+  ? picture.value.picWidth + ' × ' + picture.value.picHeight : '-')
+
+function fmt(value?: string) {
+  if (!value) return '-'
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
+async function load() {
+  if (!pictureId.value) return
+  loading.value = true
+  try {
+    const res: any = await getPictureVoByIdUsingGet({ id: pictureId.value })
+    if (res.data.code === 0) picture.value = res.data.data || {}
+    else message.error(res.data.message || '图片不存在或无权查看')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function download() {
+  if (!picture.value?.id) return
+  downloading.value = true
+  try {
+    const requestId = 'web-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
+    const res: any = await authorizeDownload({ pictureId: picture.value.id, requestId })
+    if (res.data.code !== 0) return message.error(res.data.message || '下载授权失败')
+    message.success('已授权下载')
+    window.open('http://localhost:8123' + res.data.data.downloadPath, '_blank')
+  } catch {
+    message.error('下载失败，请稍后重试')
+  } finally {
+    downloading.value = false
+  }
+}
+
+function findSimilar() {
+  router.push('/ai/similar?pictureId=' + pictureId.value)
+}
+
+async function share() {
+  try {
+    await navigator.clipboard.writeText(location.href)
+    message.success('链接已复制')
+  } catch {
+    message.warning('复制失败，请手动复制地址栏链接')
+  }
+}
+
+async function copyUrl() {
+  if (!picture.value?.url) return
+  try {
+    await navigator.clipboard.writeText(picture.value.url)
+    message.success('图片地址已复制')
+  } catch {
+    message.warning('复制失败')
+  }
+}
+
+function openEdit() {
+  form.value = {
+    name: picture.value.name || '',
+    introduction: picture.value.introduction || '',
+    category: picture.value.category || '',
+    tags: [...(picture.value.tags || [])],
+  }
+  editOpen.value = true
+}
+
+async function saveEdit() {
+  saving.value = true
+  try {
+    const res: any = await editPictureUsingPost({
       id: picture.value.id,
-      spaceId: picture.value.spaceId,
+      name: form.value.name,
+      introduction: form.value.introduction,
+      category: form.value.category,
+      tags: form.value.tags,
+    })
+    if (res.data.code === 0) {
+      message.success('已保存，图片将重新进入审核')
+      editOpen.value = false
+      await load()
+    } else {
+      message.error(res.data.message || '保存失败')
+    }
+  } finally {
+    saving.value = false
+  }
+}
+
+function removePicture() {
+  Modal.confirm({
+    title: '删除这张图片',
+    content: '删除后无法恢复，图片将从图库与所有空间中移除。',
+    okText: '确认删除',
+    okType: 'danger',
+    async onOk() {
+      const res: any = await deletePictureUsingPost({ id: picture.value.id })
+      if (res.data.code === 0) {
+        message.success('已删除')
+        router.push('/me/gallery')
+      } else {
+        message.error(res.data.message || '删除失败')
+      }
     },
   })
 }
 
-// 删除数据
-const doDelete = async () => {
-  const id = picture.value.id
-  if (!id) {
-    return
-  }
-  const res = await deletePictureUsingPost({ id })
+async function submitAppealAction() {
+  if (!appealReason.value.trim()) return message.warning('请填写申诉理由')
+  const res: any = await submitAppeal({ pictureId: picture.value.id, reason: appealReason.value })
   if (res.data.code === 0) {
-    message.success('删除成功')
+    message.success('申诉已提交，我们会尽快复核')
+    appealOpen.value = false
+    appealReason.value = ''
   } else {
-    message.error('删除失败')
+    message.error(res.data.message || '提交失败')
   }
 }
 
-// 通过短期授权令牌下载，避免把 COS 原图地址直接暴露给浏览器。
-const doDownload = async () => {
-  if (!pictureId.value) return
-  try {
-    const requestId = typeof crypto !== 'undefined' && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const workId = parseId(route.query.workId)
-    const authorizeRes: any = await authorizeDownload({ pictureId: pictureId.value, workId, requestId })
-    if (authorizeRes.data.code !== 0 || !authorizeRes.data.data?.downloadToken) {
-      message.error(authorizeRes.data.message || '暂无下载权限')
-      return
-    }
-    const fileRes: any = await downloadAuthorizedFile(authorizeRes.data.data.downloadToken)
-    const blob = fileRes.data instanceof Blob ? fileRes.data : new Blob([fileRes.data])
-    saveAs(blob, picture.value.name || `picture-${pictureId.value}`)
-    message.success('下载已开始')
-  } catch (error: unknown) {
-    message.error(error instanceof Error ? error.message : '下载失败，请稍后重试')
+
+async function doReport() {
+  const res: any = await submitReport({
+    targetType: 'picture',
+    targetId: pictureId.value,
+    reason: reportReason.value,
+    detail: reportDetail.value,
+  })
+  if (res.data.code === 0) {
+    message.success('举报已提交，我们会尽快处理')
+    reportOpen.value = false
+    reportDetail.value = ''
+  } else {
+    message.error(res.data.message || '提交失败')
   }
 }
 
-// ----- 分享操作 ----
-const shareModalRef = ref()
-// 分享链接
-const shareLink = ref('')
-// 分享
-const doShare = () => {
-  shareLink.value = `${window.location.protocol}//${window.location.host}/picture/${picture.value.id}`
-  if (shareModalRef.value) {
-    shareModalRef.value.openModal()
-  }
-}
+onMounted(load)
+watch(() => route.params.id, load)
 </script>
 
 <style scoped>
-#pictureDetailPage {
-  margin-bottom: 16px;
-}
-</style>
-
-<style scoped>
-.review-alert { margin-bottom: 12px; border-radius: var(--radius); }
+#pictureDetailPage { padding: var(--space-5) var(--space-5) var(--space-8); }
+.panel { border-radius: var(--radius-lg); box-shadow: var(--shadow-1); margin-bottom: var(--space-4); }
+.card-title { font-size: var(--font-3); }
+.preview-wrap { display: grid; place-items: center; background: var(--surface-2); border-radius: var(--radius); padding: var(--space-4); }
+.preview-img { max-height: 620px; object-fit: contain; }
+.params { margin-top: var(--space-4); }
+.params-head { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 6px 0; }
+.params-head .eyebrow { color: var(--text-3); font-size: 11px; letter-spacing: .18em; }
+.params-body { margin-top: 8px; }
+.color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; border: 1px solid var(--border-strong); vertical-align: -1px; }
+.author-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.author-main { display: flex; align-items: center; gap: 10px; }
+.author-main strong { display: block; }
+.author-main span { font-size: 12px; }
+.info-actions { display: flex; gap: 8px; margin-top: var(--space-3); }
+.review-alert { margin-bottom: var(--space-4); }
+.muted { color: var(--text-3); }
 </style>
