@@ -414,6 +414,14 @@ Test-Api -Name 'S26 采纳后展品带策展说明' -Path ('/exhibition/detail?e
 Test-Api -Name 'S26 重复评审被拦截' -Method POST -Path '/exhibition/submission/review' -Body @{ id=$Ctx['submissionId']; accept=$true } -As ADMIN -Expect fail
 Test-Api -Name 'S26 我的投稿可查询' -Path '/exhibition/call/my/all' -As A -Check { param($d) $d.Count -ge 1 }
 
+
+# ================= S27 作品批量删除（交互补齐 1）================
+$Current = 'S27 作品批量删除'
+Test-Api -Name 'S27 未登录不可删除作品' -Method POST -Path '/work/delete' -Body @{ ids=@($Ctx['riskWorkId']) } -As NONE -Expect fail
+Test-Api -Name 'S27 作者批量删除自己的作品' -Method POST -Path '/work/delete' -Body @{ ids=@($Ctx['riskWorkId']) } -As A -Check { param($d) [int]$d -ge 1 }
+Test-Api -Name 'S27 非作者删除他人作品无效' -Method POST -Path '/work/delete' -Body @{ ids=@($Ctx['workId']) } -As B -Check { param($d) [int]$d -eq 0 }
+Test-Api -Name 'S27 删除后作品不可见' -Path ('/work/get/vo?id=' + $Ctx['riskWorkId']) -As A -Expect fail
+
 Write-Host '================ 汇总 ================' -ForegroundColor Cyan
 $pass = ($script:Results | Where-Object { $_.pass }).Count
 $fail = ($script:Results | Where-Object { -not $_.pass }).Count

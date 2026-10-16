@@ -359,6 +359,25 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         }
         return true;
     }
+    @Override
+    public int deleteWorks(java.util.List<Long> ids, Long userId) {
+        if (ids == null || ids.isEmpty() || userId == null) {
+            return 0;
+        }
+        java.util.List<Long> owned = new java.util.ArrayList<>();
+        for (PhotoWork work : listByIds(ids)) {
+            if (work.getAuthorId() != null && work.getAuthorId().equals(userId)) {
+                owned.add(work.getId());
+            }
+        }
+        if (owned.isEmpty()) {
+            return 0;
+        }
+        update(new LambdaUpdateWrapper<PhotoWork>()
+                .in(PhotoWork::getId, owned)
+                .set(PhotoWork::getIsDelete, 1));
+        return owned.size();
+    }
     /** 管理端查询条件：不受可见性限制，可按状态与标题模糊筛选 */
     private LambdaQueryWrapper<PhotoWork> adminWrapper(String status, String keyword) {
         return new LambdaQueryWrapper<PhotoWork>()

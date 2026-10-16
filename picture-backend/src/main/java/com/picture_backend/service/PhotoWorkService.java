@@ -40,6 +40,9 @@ public interface PhotoWorkService {
     /** 评论点赞 / 取消 */
     boolean likeComment(Long commentId, Long userId, boolean like);
 
+    /** 作者批量删除自己的作品（逻辑删除） */
+    int deleteWorks(java.util.List<Long> ids, Long userId);
+
     /** 管理端：写入作品审核结论（通过/拒绝） */
     int updateReview(Long workId, Integer reviewStatus, String reviewMessage, Long reviewerId);
 

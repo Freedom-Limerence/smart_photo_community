@@ -43,6 +43,22 @@ public class PhotoWorkController {
     @PostMapping("/follow") public BaseResponse<Boolean> follow(@RequestBody FollowRequest body, HttpServletRequest request) { User user = userService.getLoginUser(request); boolean changed = workService.follow(body.getUserId(), user.getId(), true); if (changed) { notificationService.notifyFollow(body.getUserId(), user.getId()); } return ResultUtils.success(true); }
     @PostMapping("/unfollow") public BaseResponse<Boolean> unfollow(@RequestBody FollowRequest body, HttpServletRequest request) { User user = userService.getLoginUser(request); workService.follow(body.getUserId(), user.getId(), false); return ResultUtils.success(true); }
 
+    /** 作者批量删除自己的作品 */
+    @PostMapping("/delete") public BaseResponse<Integer> deleteWorks(@RequestBody java.util.Map<String, Object> body, HttpServletRequest request) {
+        User user = userService.getLoginUser(request);
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        Object raw = body.get("ids");
+        if (raw instanceof java.util.List<?> list) {
+            for (Object item : list) {
+                if (item instanceof Number number) {
+                    ids.add(number.longValue());
+                } else if (item != null) {
+                    try { ids.add(Long.parseLong(String.valueOf(item).trim())); } catch (NumberFormatException ignored) { }
+                }
+            }
+        }
+        return ResultUtils.success(workService.deleteWorks(ids, user.getId()));
+    }
     /** 相关推荐：同摄影师优先 + 最新作品补足 */
     @GetMapping("/related") public BaseResponse<List<PhotoWork>> related(@RequestParam Long id, @RequestParam(defaultValue = "6") Integer limit) { return ResultUtils.success(workService.related(id, limit)); }
 

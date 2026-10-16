@@ -187,3 +187,7 @@ export function listSubmissions(params: { callId: string | number; status?: stri
 export function reviewSubmission(data: { id: string | number; accept: boolean; caption?: string; sortOrder?: number }) {
   return request('/api/exhibition/submission/review', { method: 'POST', data })
 }
+
+export function deleteWorks(ids: Array<string | number>) {
+  return request('/api/work/delete', { method: 'POST', data: { ids } })
+}
