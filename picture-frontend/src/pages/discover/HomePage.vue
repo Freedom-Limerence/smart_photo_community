@@ -1,9 +1,10 @@
 <template>
   <div class="discover-page">
-    <!-- 光的接触印样：打开即进入摄影作品（主作品 + 连续影像索引） -->
-    <ContactSheet v-if="works.length" :works="works.slice(0, 12)" @open="openWork" />
+    <!-- 光的接触印样：打开即进入摄影作品（主作品 + 连续影像索引）。
+         常驻渲染：加载与空态由印样内部的暗房显影承接，避免整屏替换。 -->
+    <ContactSheet :works="works.slice(0, 12)" :loading="loading && !works.length" @open="openWork" />
 
-    <section v-if="!works.length" class="opening container">
+    <section v-if="!works.length && !loading" class="opening container">
       <div class="opening-copy">
         <span class="overline">GUANGYING · PHOTOGRAPHY COMMUNITY</span>
         <h1>{{ mode === 'community' ? '一张照片，\n一种看世界的方式。' : '在这里，\n看见更多视角。' }}</h1>
@@ -53,8 +54,6 @@ import ContactSheet from '@/components/home/ContactSheet.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import MasonryGrid from '@/components/common/MasonryGrid.vue'
-import WorkCard from '@/components/common/WorkCard.vue'
 import CardSkeleton from '@/components/common/CardSkeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { listWorks } from '@/api/photoCommunity'

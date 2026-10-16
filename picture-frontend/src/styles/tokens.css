@@ -10,6 +10,11 @@
   --surface-3: #E9E9E4;
   --surface-sunken: #EFEFEA;
 
+  /* 接触印样（首页首屏专属：冷白纸面 / 看图舞台暗场 / 印样分隔线） */
+  --surface-print: #F5F6F4;
+  --stage: #202621;
+  --print-line: #E4E6E2;
+
   /* 文字层级 */
   --text-1: #1C1C1A;
   --text-2: #5A5A56;

@@ -14,10 +14,11 @@
           <router-link v-if="!item.children" :to="item.path" class="nav-item" :class="{ active: isActive(item) }">
             {{ item.label }}
           </router-link>
-          <a-dropdown v-else placement="bottomLeft">
-            <span class="nav-item nav-group" :class="{ active: isGroupActive(item) }">
+          <a-dropdown v-else placement="bottomLeft" trigger="['hover', 'click']">
+            <button type="button" class="nav-item nav-group" :class="{ active: isGroupActive(item) }"
+                    :aria-haspopup="'menu'">
               {{ item.label }}<DownOutlined class="nav-caret" />
-            </span>
+            </button>
             <template #overlay>
               <a-menu>
                 <a-menu-item v-for="child in item.children" :key="child.path" @click="go(child.path)">
@@ -156,7 +157,8 @@ async function doLogout() {
 </script>
 
 <style scoped>
-.nav-group { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.nav-group { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; background: none; border: 0; font: inherit; }
+.nav-group:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .nav-caret { font-size: 10px; opacity: .6; }
 .nav-label { margin-left: 6px; }
 .nav-hint { margin-left: 8px; color: var(--text-3); font-size: 11px; font-style: normal; }
