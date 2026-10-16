@@ -1,10 +1,12 @@
 <template>
-  <div id="addSpacePage">
-    <h2 style="margin-bottom: 16px">
-      {{ route.query?.id ? '修改' : '创建' }} {{ SPACE_TYPE_MAP[spaceType] }}
-    </h2>
+  <div id="addSpacePage" class="container" style="padding: 24px 20px 48px">
+    <header style="margin-bottom: 20px">
+      <p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">SPACE / SETTINGS</p>
+      <h1 style="margin: 6px 0 8px; font-size: var(--font-7)">{{ route.query?.id ? '修改' : '创建' }}{{ SPACE_TYPE_MAP[spaceType] }}</h1>
+      <p style="margin: 0; color: var(--text-2)">空间用于组织图片资产：私有空间仅供自己使用，团队空间可邀请成员协作并分配角色</p>
+    </header>
     <!-- 空间信息表单 -->
-    <a-form name="spaceForm" layout="vertical" :model="spaceForm" @finish="handleSubmit">
+    <a-card :bordered="false" style="border-radius: var(--radius-lg); box-shadow: var(--shadow-1); max-width: 560px"><a-form name="spaceForm" layout="vertical" :model="spaceForm" @finish="handleSubmit">
       <a-form-item name="spaceName" label="空间名称">
         <a-input v-model:value="spaceForm.spaceName" placeholder="请输入空间" allow-clear />
       </a-form-item>
@@ -22,7 +24,7 @@
           提交
         </a-button>
       </a-form-item>
-    </a-form>
+    </a-form></a-card>
     <!-- 空间级别介绍 -->
     <a-card title="空间级别介绍">
       <a-typography-paragraph>

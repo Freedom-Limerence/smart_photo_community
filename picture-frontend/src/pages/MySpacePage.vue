@@ -1,5 +1,5 @@
 <template>
-  <div id="mySpacePage">
+  <div id="mySpacePage" class="container" style="padding: 40px 20px 64px">
     <a-card class="redirect-card">
       <a-spin v-if="loading" size="large" />
       <a-result v-else-if="error" status="warning" title="个人空间暂时无法打开" sub-title="请确认服务已启动并重试。">
