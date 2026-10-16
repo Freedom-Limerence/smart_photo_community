@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.picture_backend.exception.BusinessException;
 import com.picture_backend.mapper.PhotoWorkMapper;
 import com.picture_backend.mapper.WorkCommentMapper;
+import com.picture_backend.mapper.WorkCommentLikeMapper;
 import com.picture_backend.model.entity.PhotoWork;
 import com.picture_backend.model.entity.User;
 import com.picture_backend.model.entity.WorkComment;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.*;
 class PhotoWorkCommentTest {
     @Mock private PhotoWorkMapper workMapper;
     @Mock private WorkCommentMapper commentMapper;
+    @Mock private WorkCommentLikeMapper commentLikeMapper;
     @Mock private UserService userService;
 
     private PhotoWorkServiceImpl service;
@@ -35,6 +37,7 @@ class PhotoWorkCommentTest {
         service = new PhotoWorkServiceImpl();
         ReflectionTestUtils.setField(service, "baseMapper", workMapper);
         ReflectionTestUtils.setField(service, "workCommentMapper", commentMapper);
+        ReflectionTestUtils.setField(service, "workCommentLikeMapper", commentLikeMapper);
         ReflectionTestUtils.setField(service, "userService", userService);
     }
 
@@ -85,11 +88,35 @@ class PhotoWorkCommentTest {
         assertFalse(json.contains("userAccount"));
     }
 
+    @Test
+    void pendingReviewWorkCannotBeReadByVisitors() {
+        PhotoWork work = work("PUBLIC");
+        work.setReviewStatus(0);
+        when(workMapper.selectById(10L)).thenReturn(work);
+
+        assertThrows(BusinessException.class, () -> service.listComments(10L, null));
+        assertThrows(BusinessException.class, () -> service.listComments(10L, 2L));
+        verifyNoInteractions(commentMapper);
+    }
+
+    @Test
+    void hiddenCommentsCannotReceiveLikes() {
+        WorkComment comment = new WorkComment();
+        comment.setId(5L);
+        comment.setWorkId(10L);
+        comment.setStatus("HIDDEN");
+        when(commentMapper.selectById(5L)).thenReturn(comment);
+
+        assertThrows(BusinessException.class, () -> service.likeComment(5L, 2L, true));
+        verifyNoInteractions(commentLikeMapper);
+    }
+
     private PhotoWork work(String visibility) {
         PhotoWork work = new PhotoWork();
         work.setId(10L);
         work.setAuthorId(1L);
         work.setStatus("PUBLISHED");
+        work.setReviewStatus(1);
         work.setVisibility(visibility);
         return work;
     }

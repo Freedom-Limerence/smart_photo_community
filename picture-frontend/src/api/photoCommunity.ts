@@ -145,3 +145,8 @@ export function likeComment(data: { workId: string | number }) {
 export function unlikeComment(data: { workId: string | number }) {
   return request('/api/work/comment/unlike', { method: 'POST', data })
 }
+
+/* ===== 专题详情（B1）===== */
+export function getExhibitionDetail(exhibitionId: string | number) {
+  return request('/api/exhibition/detail', { method: 'GET', params: { exhibitionId } })
+}

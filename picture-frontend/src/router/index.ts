@@ -19,6 +19,7 @@ const SearchPage = () => import('@/pages/search/SearchPage.vue')
 const TagPage = () => import('@/pages/tags/TagPage.vue')
 const TagIndexPage = () => import('@/pages/tags/TagIndexPage.vue')
 const ExhibitionPage = () => import('@/pages/ExhibitionPage.vue')
+const ExhibitionDetailPage = () => import('@/pages/exhibition/ExhibitionDetailPage.vue')
 const PictureDetailPage = () => import('@/pages/PictureDetailPage.vue')
 const AccessCenterPage = () => import('@/pages/AccessCenterPage.vue')
 const SpaceDetailPage = () => import('@/pages/SpaceDetailPage.vue')
@@ -91,6 +92,7 @@ const router = createRouter({
         { path: 'tags', name: 'tag-index', component: TagIndexPage, meta: { title: '标签广场' } },
         { path: 'tags/:tag', name: 'tag', component: TagPage, props: true, meta: { title: '标签' } },
         { path: 'exhibitions', name: 'exhibitions', component: ExhibitionPage, meta: { title: '专题展览' } },
+        { path: 'exhibitions/:id', name: 'exhibition-detail', component: ExhibitionDetailPage, props: true, meta: { title: '专题详情' } },
         { path: 'picture/:id', name: 'picture-detail', component: PictureDetailPage, props: true, meta: { title: '图片详情' } },
         { path: 'access-center', name: 'access-center', component: AccessCenterPage, meta: { title: '访问控制中心' } },
         { path: 'ai/catalog', name: 'ai-catalog', component: AiCatalogPage, meta: { title: 'AI 摄影编目' } },

@@ -126,6 +126,7 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         validateVisible(work, userId);
         if (userId == null || !userId.equals(work.getAuthorId())) {
             update(new LambdaUpdateWrapper<PhotoWork>().eq(PhotoWork::getId, workId).setSql("viewCount = viewCount + 1"));
+            work.setViewCount((work.getViewCount() == null ? 0L : work.getViewCount()) + 1);
         }
         fillPictures(work);
         if (userId != null) {
@@ -148,7 +149,9 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
 
     private void validateVisible(PhotoWork work, Long userId) {
         if (userId != null && userId.equals(work.getAuthorId())) return;
-        if (!"PUBLISHED".equals(work.getStatus())) throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        if (!"PUBLISHED".equals(work.getStatus()) || !Integer.valueOf(1).equals(work.getReviewStatus())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
         boolean visible = "PUBLIC".equals(work.getVisibility());
         if ("FOLLOWER_ONLY".equals(work.getVisibility()) && userId != null) {
             visible = userFollowMapper.selectCount(new LambdaQueryWrapper<UserFollow>()
@@ -201,7 +204,7 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
                 .eq(WorkFavorite::getUserId, userId)
                 .orderByDesc(WorkFavorite::getCreateTime)
                 .last("limit " + Math.max(1, Math.min(limit, 100))));
-        return loadWorksInOrder(rows.stream().map(WorkFavorite::getWorkId).collect(Collectors.toList()));
+        return loadWorksInOrder(rows.stream().map(WorkFavorite::getWorkId).collect(Collectors.toList()), userId);
     }
 
     @Override
@@ -210,11 +213,11 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
                 .eq(WorkLike::getUserId, userId)
                 .orderByDesc(WorkLike::getCreateTime)
                 .last("limit " + Math.max(1, Math.min(limit, 100))));
-        return loadWorksInOrder(rows.stream().map(WorkLike::getWorkId).collect(Collectors.toList()));
+        return loadWorksInOrder(rows.stream().map(WorkLike::getWorkId).collect(Collectors.toList()), userId);
     }
 
-    /** 按给定 id 顺序返回作品（跳过已删除的），并补全作者与图片 */
-    private List<PhotoWork> loadWorksInOrder(List<Long> workIds) {
+    /** 按给定 id 顺序返回当前用户仍可访问的作品，并补全作者与图片 */
+    private List<PhotoWork> loadWorksInOrder(List<Long> workIds, Long userId) {
         if (workIds == null || workIds.isEmpty()) {
             return new java.util.ArrayList<>();
         }
@@ -224,6 +227,11 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         for (Long id : workIds) {
             PhotoWork work = map.get(id);
             if (work != null) {
+                try {
+                    validateVisible(work, userId);
+                } catch (BusinessException ignored) {
+                    continue;
+                }
                 fillPictures(work);
                 result.add(work);
             }
@@ -325,10 +333,16 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean likeComment(Long commentId, Long userId, boolean like) {
         if (commentId == null || userId == null) {
-            return false;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        WorkComment comment = workCommentMapper.selectById(commentId);
+        if (comment == null || !"VISIBLE".equals(comment.getStatus())) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "评论不存在");
+        }
+        validateVisible(comment.getWorkId(), userId);
         WorkCommentLike existing = workCommentLikeMapper.selectOne(new LambdaQueryWrapper<WorkCommentLike>()
                 .eq(WorkCommentLike::getCommentId, commentId).eq(WorkCommentLike::getUserId, userId));
         if (like && existing == null) {
@@ -384,6 +398,7 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         WorkLike existing = workLikeMapper.selectOne(new LambdaQueryWrapper<WorkLike>().eq(WorkLike::getWorkId, workId).eq(WorkLike::getUserId, userId));
         if (like && existing == null) { WorkLike record = new WorkLike(); record.setWorkId(workId); record.setUserId(userId); workLikeMapper.insert(record); update(new LambdaUpdateWrapper<PhotoWork>().eq(PhotoWork::getId, workId).setSql("likeCount = likeCount + 1")); }
         else if (!like && existing != null) { workLikeMapper.deleteById(existing.getId()); update(new LambdaUpdateWrapper<PhotoWork>().eq(PhotoWork::getId, workId).gt(PhotoWork::getLikeCount, 0).setSql("likeCount = likeCount - 1")); }
+        else return false;
         return true;
     }
 
@@ -394,6 +409,7 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         WorkFavorite existing = workFavoriteMapper.selectOne(new LambdaQueryWrapper<WorkFavorite>().eq(WorkFavorite::getWorkId, workId).eq(WorkFavorite::getUserId, userId));
         if (favorite && existing == null) { WorkFavorite record = new WorkFavorite(); record.setWorkId(workId); record.setUserId(userId); workFavoriteMapper.insert(record); update(new LambdaUpdateWrapper<PhotoWork>().eq(PhotoWork::getId, workId).setSql("favoriteCount = favoriteCount + 1")); }
         else if (!favorite && existing != null) { workFavoriteMapper.deleteById(existing.getId()); update(new LambdaUpdateWrapper<PhotoWork>().eq(PhotoWork::getId, workId).gt(PhotoWork::getFavoriteCount, 0).setSql("favoriteCount = favoriteCount - 1")); }
+        else return false;
         return true;
     }
 
@@ -461,5 +477,25 @@ public class PhotoWorkServiceImpl extends ServiceImpl<PhotoWorkMapper, PhotoWork
         comments.forEach(comment -> comment.setUser(authors.get(comment.getUserId())));
         return comments;
     }
-    @Override @Transactional(rollbackFor = Exception.class) public boolean follow(Long followingId, Long followerId, boolean follow) { if (followingId == null || followingId.equals(followerId) || userService.getById(followingId) == null) throw new BusinessException(ErrorCode.PARAMS_ERROR, "关注对象不合法"); UserFollow existing = userFollowMapper.selectOne(new LambdaQueryWrapper<UserFollow>().eq(UserFollow::getFollowerId, followerId).eq(UserFollow::getFollowingId, followingId)); if (follow && existing == null) { UserFollow record = new UserFollow(); record.setFollowerId(followerId); record.setFollowingId(followingId); userFollowMapper.insert(record); } else if (!follow && existing != null) userFollowMapper.deleteById(existing.getId()); return true; }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean follow(Long followingId, Long followerId, boolean follow) {
+        if (followingId == null || followingId.equals(followerId) || userService.getById(followingId) == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "关注对象不合法");
+        }
+        UserFollow existing = userFollowMapper.selectOne(new LambdaQueryWrapper<UserFollow>()
+                .eq(UserFollow::getFollowerId, followerId).eq(UserFollow::getFollowingId, followingId));
+        if (follow && existing == null) {
+            UserFollow record = new UserFollow();
+            record.setFollowerId(followerId);
+            record.setFollowingId(followingId);
+            userFollowMapper.insert(record);
+            return true;
+        }
+        if (!follow && existing != null) {
+            userFollowMapper.deleteById(existing.getId());
+            return true;
+        }
+        return false;
+    }
 }

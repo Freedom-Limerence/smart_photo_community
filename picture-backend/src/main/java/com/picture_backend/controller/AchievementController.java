@@ -47,7 +47,9 @@ public class AchievementController {
             return ResultUtils.success(new LinkedHashMap<>());
         }
         User user = userService.getById(targetId);
-        List<PhotoWork> works = photoWorkService.pageByAuthor(targetId, 1, 200, targetId).getRecords();
+        boolean isSelf = viewer != null && targetId.equals(viewer.getId());
+        List<PhotoWork> works = photoWorkService.pageByAuthor(targetId, 1, 200,
+                viewer == null ? null : viewer.getId()).getRecords();
         long likes = 0L;
         long favorites = 0L;
         long views = 0L;
@@ -56,8 +58,12 @@ public class AchievementController {
             favorites += work.getFavoriteCount() == null ? 0L : work.getFavoriteCount();
             views += work.getViewCount() == null ? 0L : work.getViewCount();
         }
-        long pictures = pictureService.count(new LambdaQueryWrapper<Picture>()
-                .eq(Picture::getUserId, targetId).eq(Picture::getIsDelete, 0));
+        LambdaQueryWrapper<Picture> pictureQuery = new LambdaQueryWrapper<Picture>()
+                .eq(Picture::getUserId, targetId).eq(Picture::getIsDelete, 0);
+        if (!isSelf) {
+            pictureQuery.isNull(Picture::getSpaceId).eq(Picture::getReviewStatus, 1);
+        }
+        long pictures = pictureService.count(pictureQuery);
         long followers = userFollowMapper.selectCount(new LambdaQueryWrapper<UserFollow>()
                 .eq(UserFollow::getFollowingId, targetId));
         long following = userFollowMapper.selectCount(new LambdaQueryWrapper<UserFollow>()

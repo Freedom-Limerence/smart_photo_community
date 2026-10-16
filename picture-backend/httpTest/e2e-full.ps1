@@ -307,6 +307,92 @@ Test-Api -Name 'S17 检索返回命中字段与标签' -Path '/ai/search/evidenc
 Test-Api -Name 'S17 检索结果带权限依据' -Path '/ai/search/evidence?query=%E9%A3%8E%E6%99%AF&topK=5' -As A -Check { param($d) $d[0].accessReason -match '本人|团队|审核' }
 Test-Api -Name 'S17 他人任务列表相互隔离' -Path '/ai/task/page/my' -As B -Check { param($d) $d.Count -eq 0 }
 
+
+# ================= S18 通知中心 =================
+$Current = 'S18 通知中心'
+Test-Api -Name 'S18 未读数可查询' -Path '/notification/unread/count' -As A -Check { param($d) $null -ne $d.count }
+Test-Api -Name 'S18 通知列表可查询' -Path '/notification/list?current=1&size=10' -As A -Check { param($d) $null -ne $d.total }
+Test-Api -Name 'S18 通知仅本人可见' -Path '/notification/list?current=1&size=10' -As C -Check { param($d) ($d.records | Where-Object { "$($_.userId)" -eq $Ctx['aId'] }).Count -eq 0 }
+Test-Api -Name 'S18 互动触发通知（C 点赞 A 的作品）' -Method POST -Path '/work/like' -Body @{ workId = $Ctx['workId'] } -As C -Expect ok
+Test-Api -Name 'S18 点赞后 A 有未读通知' -Path '/notification/unread/count' -As A -Check { param($d) [int]$d.count -ge 1 }
+Test-Api -Name 'S18 标记全部已读' -Method POST -Path '/notification/read' -Body @{ all = $true } -As A -Check { param($d) [int]$d -ge 0 }
+Test-Api -Name 'S18 已读后未读数归零' -Path '/notification/unread/count' -As A -Check { param($d) [int]$d.count -eq 0 }
+Test-Api -Name 'S18 未登录不可查通知' -Path '/notification/list' -As NONE -Expect fail
+
+# ================= S19 内容举报 =================
+$Current = 'S19 内容举报'
+Test-Api -Name 'S19 普通用户不可访问举报中心' -Path '/admin/console/reports' -As A -Expect fail
+Test-Api -Name 'S19 提交举报' -Method POST -Path '/report/submit' -Body @{ targetType='work'; targetId=$Ctx['workId']; reason='内容违规'; detail='e2e 举报' } -As C -Check { param($d) $null -ne $d }
+$Ctx['reportId'] = "$($script:LastData)"
+Test-Api -Name 'S19 重复举报被拦截' -Method POST -Path '/report/submit' -Body @{ targetType='work'; targetId=$Ctx['workId']; reason='重复举报' } -As C -Expect fail
+Test-Api -Name 'S19 管理员可见待处理举报' -Path '/admin/console/reports?status=PENDING' -As ADMIN -Check { param($d) [int]$d.pendingCount -ge 1 }
+Test-Api -Name 'S19 管理员处置举报' -Method POST -Path '/admin/console/reports/handle' -Body @{ id=$Ctx['reportId']; action='RESOLVE'; result='e2e 已核实' } -As ADMIN -Check { param($d) $d -eq $true }
+Test-Api -Name 'S19 举报人收到结果通知' -Path '/notification/list?current=1&size=10' -As C -Check { param($d) ($d.records | Where-Object { $_.title -like '*举报*' }).Count -ge 1 }
+
+# ================= S20 审核申诉 =================
+$Current = 'S20 审核申诉'
+Test-Api -Name 'S20 管理员拒绝 A 的图片' -Method POST -Path '/admin/console/moderate' -Body @{ type='picture'; action='REJECT'; ids=@($Ctx['picA']); reason='e2e 驳回' } -As ADMIN -Check { param($d) [int]$d -ge 1 }
+Test-Api -Name 'S20 非作者不可申诉' -Method POST -Path '/appeal/submit' -Body @{ pictureId=$Ctx['picA']; reason='越权申诉' } -As B -Expect fail
+Test-Api -Name 'S20 作者提交申诉' -Method POST -Path '/appeal/submit' -Body @{ pictureId=$Ctx['picA']; reason='e2e 申诉理由' } -As A -Check { param($d) $null -ne $d }
+$Ctx['appealId'] = "$($script:LastData)"
+Test-Api -Name 'S20 重复申诉被拦截' -Method POST -Path '/appeal/submit' -Body @{ pictureId=$Ctx['picA']; reason='重复申诉' } -As A -Expect fail
+Test-Api -Name 'S20 管理员可见待处理申诉' -Path '/admin/console/appeals?status=PENDING' -As ADMIN -Check { param($d) [int]$d.pendingCount -ge 1 }
+Test-Api -Name 'S20 受理申诉' -Method POST -Path '/admin/console/appeals/handle' -Body @{ id=$Ctx['appealId']; action='ACCEPT'; result='e2e 复核通过' } -As ADMIN -Check { param($d) $d -eq $true }
+Test-Api -Name 'S20 受理后图片重新上架' -Path ('/picture/get/vo?id=' + $Ctx['picA']) -As A -Check { param($d) [int]$d.reviewStatus -eq 1 }
+Test-Api -Name 'S20 作者收到申诉结果通知' -Path '/notification/list?current=1&size=10' -As A -Check { param($d) ($d.records | Where-Object { $_.title -like '*申诉*' }).Count -ge 1 }
+
+# ================= S21 机审（自动审核） =================
+$Current = 'S21 机审'
+Test-Api -Name 'S21 普通用户不可读机审策略' -Path '/admin/console/auto-review/config' -As A -Expect fail
+Test-Api -Name 'S21 管理员读取机审策略' -Path '/admin/console/auto-review/config' -As ADMIN -Check { param($d) $null -ne $d.'autoReview.enabled' }
+Test-Api -Name 'S21 保存机审策略' -Method POST -Path '/admin/console/auto-review/config' -Body @{ 'autoReview.minWidth'=300 } -As ADMIN -Check { param($d) $d -eq $true }
+Test-Api -Name 'S21 一键机审可运行' -Method POST -Path '/admin/console/auto-review/run?limit=50' -As ADMIN -Check { param($d) $null -ne $d.scanned }
+Test-Api -Name 'S21 发布带风险词的作品' -Method POST -Path '/work/save' -Body @{ title='赌博推广e2e'; description='e2e 机审'; visibility='PUBLIC'; pictureIds=@($Ctx['picA']) } -As A -Check { param($d) $null -ne $d }
+$Ctx['riskWorkId'] = "$($script:LastData)"
+Test-Api -Name 'S21 发布该作品' -Method POST -Path ('/work/publish?workId=' + $Ctx['riskWorkId'] + '&publish=true') -As A -Expect ok
+Test-Api -Name 'S21 风险作品进入待审' -Path ('/work/get/vo?id=' + $Ctx['riskWorkId']) -As A -Check { param($d) [int]$d.reviewStatus -eq 0 }
+Test-Api -Name 'S21 待审作品不出现在公开流' -Path '/work/page?current=1&size=50' -As NONE -Check { param($d) ($d.records | ForEach-Object { "$($_.id)" }) -notcontains $Ctx['riskWorkId'] }
+
+# ================= S22 评论点赞与评论机审 =================
+$Current = 'S22 评论点赞'
+Test-Api -Name 'S22 发表正常评论' -Method POST -Path '/work/comment' -Body @{ workId=$Ctx['workId']; content='e2e 正常评论' } -As C -Check { param($d) $null -ne $d.id }
+$Ctx['commentId'] = "$($script:LastData.id)"
+Test-Api -Name 'S22 评论初始点赞数为 0' -Path ('/work/comments?workId=' + $Ctx['workId']) -As C -Check { param($d) [int](($d | Where-Object { "$($_.id)" -eq $Ctx['commentId'] }).likeCount) -eq 0 }
+Test-Api -Name 'S22 点赞评论' -Method POST -Path '/work/comment/like' -Body @{ workId=$Ctx['commentId'] } -As B -Check { param($d) $d -eq $true }
+Test-Api -Name 'S22 点赞数变为 1' -Path ('/work/comments?workId=' + $Ctx['workId']) -As B -Check { param($d) [int](($d | Where-Object { "$($_.id)" -eq $Ctx['commentId'] }).likeCount) -eq 1 }
+Test-Api -Name 'S22 取消点赞' -Method POST -Path '/work/comment/unlike' -Body @{ workId=$Ctx['commentId'] } -As B -Check { param($d) $d -eq $true }
+Test-Api -Name 'S22 点赞数回到 0' -Path ('/work/comments?workId=' + $Ctx['workId']) -As B -Check { param($d) [int](($d | Where-Object { "$($_.id)" -eq $Ctx['commentId'] }).likeCount) -eq 0 }
+Test-Api -Name 'S22 评论含风险词' -Method POST -Path '/work/comment' -Body @{ workId=$Ctx['workId']; content='这里有赌博链接' } -As C -Expect ok
+Test-Api -Name 'S22 管理员可见已隐藏评论' -Path '/admin/console/comments?status=HIDDEN' -As ADMIN -Check { param($d) [int]$d.hiddenCount -ge 1 }
+Test-Api -Name 'S22 普通用户不可访问评论管理' -Path '/admin/console/comments' -As C -Expect fail
+
+# ================= S23 关注流与相关推荐 =================
+$Current = 'S23 关注流'
+Test-Api -Name 'S23 关注流可查询' -Path '/work/page?current=1&size=5&feed=following' -As B -Check { param($d) $null -ne $d.total }
+Test-Api -Name 'S23 相关推荐返回作品' -Path ('/work/related?id=' + $Ctx['workId'] + '&limit=6') -As A -Check { param($d) $d.Count -ge 1 }
+Test-Api -Name 'S23 相关推荐不含自身' -Path ('/work/related?id=' + $Ctx['workId'] + '&limit=6') -As A -Check { param($d) ($d | ForEach-Object { "$($_.id)" }) -notcontains $Ctx['workId'] }
+Test-Api -Name 'S23 详情返回浏览量' -Path ('/work/get/vo?id=' + $Ctx['workId']) -As NONE -Check { param($d) $null -ne $d.viewCount }
+
+# ================= S24 成就与审核流水 =================
+$Current = 'S24 成就与流水'
+Test-Api -Name 'S24 查看自己的成就' -Path '/user/achievement' -As A -Check { param($d) [int]$d.level -ge 1 -and $d.badges.Count -ge 5 }
+Test-Api -Name 'S24 查看他人成就' -Path ('/user/achievement?userId=' + $Ctx['aId']) -As B -Check { param($d) $null -ne $d.levelName }
+Test-Api -Name 'S24 普通用户不可查审核流水' -Path '/admin/console/review-logs' -As A -Expect fail
+Test-Api -Name 'S24 管理员可查审核流水' -Path '/admin/console/review-logs?current=1&size=10' -As ADMIN -Check { param($d) [int]$d.total -ge 1 }
+Test-Api -Name 'S24 流水含动作与操作人' -Path '/admin/console/review-logs?current=1&size=5' -As ADMIN -Check { param($d) $null -ne $d.records[0].action -and $null -ne $d.records[0].operatorName }
+
+
+# ================= S25 专题详情（B1）================
+$Current = 'S25 专题详情'
+Test-Api -Name 'S25 专题详情返回专题与展品' -Path ('/exhibition/detail?exhibitionId=' + $Ctx['exhId']) -As B -Check { param($d) "$($d.exhibition.id)" -eq $Ctx['exhId'] -and $null -ne $d.works }
+Test-Api -Name 'S25 专题详情含浏览计数' -Path ('/exhibition/detail?exhibitionId=' + $Ctx['exhId']) -As B -Check { param($d) [int]$d.exhibition.viewCount -ge 1 }
+Test-Api -Name 'S25 专题详情返回展品说明映射' -Path ('/exhibition/detail?exhibitionId=' + $Ctx['exhId']) -As B -Check { param($d) $null -ne $d.captions }
+Test-Api -Name 'S25 管理员新建未发布专题' -Method POST -Path '/exhibition/add' -Body @{ title=('e2e未发布专题_' + $ts); theme='未发布'; description='E2E'; startTime='2026-01-01T00:00:00'; endTime='2027-01-01T00:00:00' } -As ADMIN -Check { param($d) $null -ne $d }
+$Ctx['draftExhId'] = "$($script:LastData)"
+Test-Api -Name 'S25 未发布专题：普通用户被拒' -Path ('/exhibition/detail?exhibitionId=' + $Ctx['draftExhId']) -As B -Expect fail
+Test-Api -Name 'S25 未发布专题：管理员可见' -Path ('/exhibition/detail?exhibitionId=' + $Ctx['draftExhId']) -As ADMIN -Check { param($d) $null -ne $d.exhibition }
+Test-Api -Name 'S25 不存在的专题返回错误' -Path '/exhibition/detail?exhibitionId=99999999999' -As B -Expect fail
+
 Write-Host '================ 汇总 ================' -ForegroundColor Cyan
 $pass = ($script:Results | Where-Object { $_.pass }).Count
 $fail = ($script:Results | Where-Object { -not $_.pass }).Count
