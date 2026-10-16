@@ -20,6 +20,23 @@ import java.util.Map;
 @RestController
 @RequestMapping("/notification")
 public class NotificationController {
+    /** 批量删除通知 */
+    @PostMapping("/delete") public BaseResponse<Integer> delete(@RequestBody java.util.Map<String, Object> body, jakarta.servlet.http.HttpServletRequest request) {
+        User user = userService.getLoginUser(request);
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        Object raw = body.get("ids");
+        if (raw instanceof java.util.List<?> list) {
+            for (Object item : list) {
+                if (item instanceof Number number) {
+                    ids.add(number.longValue());
+                } else if (item != null) {
+                    try { ids.add(Long.parseLong(String.valueOf(item).trim())); } catch (NumberFormatException ignored) { }
+                }
+            }
+        }
+        return ResultUtils.success(notificationService.deleteNotifications(ids, user.getId()));
+    }
+
 
     @Resource private NotificationService notificationService;
     @Resource private UserService userService;

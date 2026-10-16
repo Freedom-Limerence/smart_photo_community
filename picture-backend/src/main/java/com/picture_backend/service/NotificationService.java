@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.picture_backend.model.entity.Notification;
 
 public interface NotificationService {
+    /** 批量删除自己的通知 */
+    int deleteNotifications(java.util.List<Long> ids, Long userId);
+
     /** 创建一条通知（自己触发自己的动作不会通知） */
     void push(Long userId, String type, String title, String content, Long senderId, String targetType, Long targetId);
 

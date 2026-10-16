@@ -440,6 +440,16 @@ Test-Api -Name 'S28 批量取消收藏' -Method POST -Path '/favorite/cancel' -B
 Test-Api -Name 'S28 删除收藏夹' -Method POST -Path '/favorite/folder/delete' -Body @{ id=$Ctx['folderId'] } -As A -Check { param($d) $d -eq $true }
 Test-Api -Name 'S28 删除后列表不含该夹' -Path '/favorite/folders' -As A -Check { param($d) ($d.folders | ForEach-Object { "$($_.id)" }) -notcontains $Ctx['folderId'] }
 
+
+# ================= S29 通知删除（P1）================
+$Current = 'S29 通知删除'
+Test-Api -Name 'S29 未登录不可删除通知' -Method POST -Path '/notification/delete' -Body @{ ids=@('1') } -As NONE -Expect fail
+Test-Api -Name 'S29 互动产生通知' -Method POST -Path '/work/like' -Body @{ workId=$Ctx['workId'] } -As C -Expect ok
+Test-Api -Name 'S29 A 可查到通知' -Path '/notification/list?current=1&size=5' -As A -Check { param($d) [int]$d.total -ge 1 }
+$Ctx['notiId'] = "$($script:LastData.records[0].id)"
+Test-Api -Name 'S29 删除他人通知无效' -Method POST -Path '/notification/delete' -Body @{ ids=@($Ctx['notiId']) } -As B -Check { param($d) [int]$d -eq 0 }
+Test-Api -Name 'S29 删除自己的通知' -Method POST -Path '/notification/delete' -Body @{ ids=@($Ctx['notiId']) } -As A -Check { param($d) [int]$d -ge 1 }
+
 Write-Host '================ 汇总 ================' -ForegroundColor Cyan
 $pass = ($script:Results | Where-Object { $_.pass }).Count
 $fail = ($script:Results | Where-Object { -not $_.pass }).Count

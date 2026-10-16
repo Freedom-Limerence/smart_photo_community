@@ -43,3 +43,6 @@ export const handleAppeal = (data: { id: string | number; action: 'ACCEPT' | 'RE
 
 /* ===== 用户成就 ===== */
 export const getAchievement = (userId?: string | number) => request('/api/user/achievement', { method: 'GET', params: userId ? { userId } : {} })
+
+export const deleteNotifications = (ids: (string | number)[]) =>
+  request('/api/notification/delete', { method: 'POST', data: { ids } })

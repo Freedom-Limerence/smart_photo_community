@@ -20,6 +20,16 @@ import java.util.List;
 @Slf4j
 @Service
 public class NotificationServiceImpl implements NotificationService {
+    @Override
+    public int deleteNotifications(java.util.List<Long> ids, Long userId) {
+        if (ids == null || ids.isEmpty() || userId == null) {
+            return 0;
+        }
+        return notificationMapper.delete(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.picture_backend.model.entity.Notification>()
+                .eq(com.picture_backend.model.entity.Notification::getUserId, userId)
+                .in(com.picture_backend.model.entity.Notification::getId, ids));
+    }
+
 
     @Resource private NotificationMapper notificationMapper;
     @Resource private PhotoWorkService photoWorkService;
