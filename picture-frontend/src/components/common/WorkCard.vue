@@ -16,6 +16,12 @@
       </div>
 
       <span v-if="work.visibility && work.visibility !== 'PUBLIC'" class="badge">{{ visibilityText }}</span>
+
+      <!-- EXIF 信息条（P2-5）：悬停 320ms 后从封面底部升起；缺失字段自动省略 -->
+      <div v-if="exifText || exifColor" class="exif-strip" aria-hidden="true">
+        <span v-if="exifText">{{ exifText }}</span>
+        <span v-if="exifColor" class="exif-dot" :style="{ background: exifColor }" />
+      </div>
     </div>
 
     <div class="body">
@@ -64,6 +70,18 @@ const st = computed(() => store.ensure(props.work))
 const cover = computed(() => {
   const w = props.work || {}
   return w.coverUrl || w.pictures?.[0]?.thumbnailUrl || w.pictures?.[0]?.url || ''
+})
+
+/** EXIF 信息条（P2-5）：画幅 / 格式 / 主色，缺失字段自动省略；主色 0xRRGGBB 转 #RRGGBB 供 CSS */
+const exifColor = computed(() => {
+  const raw = props.work?.pictures?.[0]?.picColor || ''
+  return raw.startsWith('0x') || raw.startsWith('0X') ? '#' + raw.slice(2) : raw
+})
+const exifText = computed(() => {
+  const pic = props.work?.pictures?.[0] || {}
+  const dims = pic.picWidth && pic.picHeight ? `画幅 ${pic.picWidth} × ${pic.picHeight}` : ''
+  const format = pic.picFormat ? String(pic.picFormat).toUpperCase() : ''
+  return [dims, format].filter(Boolean).join(' · ')
 })
 
 const author = computed(() => props.work?.author)
@@ -138,11 +156,50 @@ async function doFollow() {
   gap: 6px;
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease), bottom var(--dur) var(--ease);
 }
 
 .work-card:hover .quick-actions,
-.work-card:focus-within .quick-actions { opacity: 1; transform: none; }
+.work-card:focus-within .quick-actions { opacity: 1; transform: none; bottom: 54px; }
+
+/* EXIF 信息条（P2-5）：backdrop-filter 半透明条，悬停 320ms 后升起 */
+.exif-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  background: rgba(20, 20, 22, .55);
+  backdrop-filter: blur(8px);
+  color: rgba(242, 244, 241, .92);
+  font-size: 12px;
+  letter-spacing: .02em;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity var(--dur) var(--ease) 320ms, transform var(--dur) var(--ease) 320ms;
+  pointer-events: none;
+}
+.work-card:hover .exif-strip,
+.work-card:focus-within .exif-strip { opacity: 1; transform: none; transition-delay: 0s; }
+.exif-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .55);
+}
+/* 触屏设备无悬停：信息常显一行（P2-5） */
+@media (hover: none) {
+  .exif-strip { opacity: 1; transform: none; height: 32px; font-size: 12px; transition: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .exif-strip { transition: opacity var(--dur-fast) var(--ease); transition-delay: 0s; }
+}
 
 .quick-btn {
   display: inline-flex;

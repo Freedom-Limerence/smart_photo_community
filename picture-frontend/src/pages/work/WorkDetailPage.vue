@@ -70,7 +70,7 @@
           <dl class="notes">
             <div v-if="meta.picWidth"><dt>画幅</dt><dd>{{ meta.picWidth }} × {{ meta.picHeight }}</dd></div>
             <div v-if="meta.picFormat"><dt>格式</dt><dd>{{ String(meta.picFormat).toUpperCase() }}</dd></div>
-            <div v-if="meta.picColor"><dt>主色</dt><dd><i class="dot" :style="{ background: meta.picColor }" />{{ meta.picColor }}</dd></div>
+            <div v-if="meta.picColor"><dt>主色</dt><dd><i class="dot" :style="{ background: normalColor(meta.picColor) }" />{{ meta.picColor }}</dd></div>
             <div v-if="work.shootTime"><dt>拍摄</dt><dd>{{ formatDate(work.shootTime) }}</dd></div>
             <div v-if="work.shootLocation"><dt>地点</dt><dd>{{ work.shootLocation }}</dd></div>
             <div v-if="work.copyrightNotice"><dt>版权</dt><dd>{{ work.copyrightNotice }}</dd></div>
@@ -245,6 +245,12 @@ const commentTree = computed(() => {
   }
   return roots.map((root) => ({ ...root, children: byParent[String(root.id)] || [] }))
 })
+
+/** 主色 0xRRGGBB → #RRGGBB（CSS 可用） */
+function normalColor(value?: string) {
+  if (!value) return ''
+  return value.startsWith('0x') || value.startsWith('0X') ? '#' + value.slice(2) : value
+}
 
 function formatDate(value?: string) {
   if (!value) return '-'
