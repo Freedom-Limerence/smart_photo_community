@@ -40,6 +40,9 @@ h1, h2, h3, h4 { color: var(--text-1); }
 /* 详情 / 表单类页面的窄版心 */
 .container-narrow { max-width: 960px; }
 
+/* 管理后台页面根节点：宽度交由 .admin-content 控制，不再套前台版心（P0-6 栅格收口） */
+.admin-page { width: 100%; }
+
 /* 页面区块的垂直节奏（与版心配合使用） */
 .page { padding-top: var(--space-6); padding-bottom: var(--space-8); }
 .page-tight { padding-top: var(--space-5); padding-bottom: var(--space-6); }

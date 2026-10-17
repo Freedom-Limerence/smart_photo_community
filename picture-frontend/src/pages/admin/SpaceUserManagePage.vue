@@ -1,5 +1,5 @@
 <template>
-  <div id="spaceManagePage" class="container" style="padding: 24px 20px 48px">
+  <div id="spaceManagePage" class="admin-page">
     <a-flex justify="space-between">
       <header style="margin-bottom: 20px"><p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 12px; letter-spacing: .2em">ADMIN / MEMBERS</p><h1 style="margin: 6px 0 8px; font-size: var(--font-7)">空间成员管理</h1></header>
       <a-space>
