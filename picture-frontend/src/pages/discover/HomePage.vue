@@ -2,7 +2,7 @@
   <div class="discover-page">
     <ContactSheet v-if="mode === 'home'" :works="featuredWorks" :loading="loading && !works.length" @open="openWork" />
     <section id="works-feed" class="feed container">
-      <header class="feed-heading">
+      <header v-reveal class="feed-heading">
         <div class="feed-intro">
           <span class="feed-no" aria-hidden="true">N°01</span>
           <div>
@@ -28,7 +28,7 @@
       </div>
       <div v-else-if="works.length" class="feed-end"><span />每一次停留，都是新的发现<span /></div>
     </section>
-    <section class="curation-link container">
+    <section v-reveal class="curation-link container">
       <div><h2>让作品之间，<em>发生对话</em>。</h2><p>从一组影像出发，走进不同的摄影主题。</p></div>
       <router-link to="/exhibitions">走进专题展览 <ArrowRightOutlined /></router-link>
     </section>

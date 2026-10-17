@@ -1,6 +1,6 @@
 <template>
   <div class="contact-feed">
-    <article v-for="(item, i) in works" :key="item.id" class="frame" :class="frameClass(i)">
+    <article v-for="(item, i) in works" :key="item.id" v-reveal="(i % 6) * 60" class="frame" :class="frameClass(i)">
       <button type="button" class="frame-image" :aria-label="'欣赏作品：' + (item.title || '未命名作品')" @click="emit('open',item)">
         <img :src="imageOf(item)" :alt="item.title || '摄影作品'" loading="lazy" decoding="async" />
         <span class="frame-action">欣赏作品 <ArrowRightOutlined /></span>
@@ -22,8 +22,8 @@ function imageOf(w:any) { return w.coverUrl || w.pictures?.[0]?.url || w.thumbna
 .frame { min-width:0; }.lead { grid-column:span 4; }.portrait { grid-column:span 2; }.third { grid-column:span 2; }.panorama { grid-column:span 6; }
 .frame-image { position:relative; display:block; overflow:hidden; width:100%; padding:0; border:0; background:var(--surface-3); cursor:pointer; aspect-ratio:1.5; }
 .lead .frame-image,.portrait .frame-image { height:clamp(270px,32vw,480px); aspect-ratio:auto; }.panorama .frame-image { aspect-ratio:2.75; }
-.frame-image img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 600ms var(--ease); }
-.frame-image:hover img { transform:scale(1.025); }
+.frame-image img { width:100%; height:100%; object-fit:cover; display:block; filter:saturate(.82); transition:transform 700ms var(--ease), filter 500ms var(--ease); }
+.frame-image:hover img { transform:scale(1.035); filter:saturate(1.05); }
 .frame-action { position:absolute; left:16px; bottom:16px; display:flex; align-items:center; gap:24px; padding:11px 15px; background:var(--surface); color:var(--text-1); font-size:12px; opacity:0; transform:translateY(6px); transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease); }
 .frame-image:hover .frame-action,.frame-image:focus-visible .frame-action { opacity:1; transform:none; }
 .frame-count { position:absolute; right:12px; top:12px; padding:4px 8px; background:rgba(15,20,17,.75); color:white; font-size:12px; }

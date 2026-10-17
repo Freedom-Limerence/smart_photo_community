@@ -294,3 +294,34 @@ body.wall-focus .ai-chat-dock { display: none; }
 }
 .admin-sider-drawer .admin-menu { flex: 1 1 auto; }
 .admin-sider-drawer .admin-sider-foot { padding: var(--space-4); border-top: 1px solid rgba(255, 255, 255, .08); }
+
+
+/* —— 滚动入场（v-reveal）：上浮 + 显现，级联用 --reveal-delay —— */
+.will-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+}
+.is-revealed {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .will-reveal { opacity: 1; transform: none; }
+  .is-revealed { transition: none; }
+}
+
+/* —— 胶片颗粒（暗色画廊氛围层）：极低透明度覆盖全站，指针穿透 —— */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  opacity: .038;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  body::after { opacity: .025; }
+}
