@@ -2,7 +2,7 @@
   <!-- @author 程序员鱼皮 <a href="https://www.codefather.cn">编程导航原创项目</a> -->
   <div id="addPictureBatchPage" class="container" style="padding: 24px 20px 48px">
     <header style="margin-bottom: 20px">
-      <p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">UPLOAD / BATCH</p>
+      <p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 12px; letter-spacing: .2em">UPLOAD / BATCH</p>
       <h1 style="margin: 6px 0 8px; font-size: var(--font-7)">批量创建</h1>
       <p style="margin: 0; color: var(--text-2)">按关键词批量抓取图片入库，可指定数量与名称前缀</p>
     </header>

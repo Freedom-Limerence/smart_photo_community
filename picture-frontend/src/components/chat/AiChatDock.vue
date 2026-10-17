@@ -195,7 +195,7 @@ watch(() => store.messages.map((m) => m.content.length).join(','), async () => {
   background: var(--accent-soft); color: #4F5F53; font-size: 12px; font-weight: 600;
 }
 .chat-title strong { display: block; font-size: var(--font-3); }
-.chat-title em { color: var(--text-3); font-size: 11px; font-style: normal; }
+.chat-title em { color: var(--text-3); font-size: 12px; font-style: normal; }
 
 .chat-body { flex: 1 1 auto; overflow-y: auto; padding: 16px 14px; background: var(--surface-2); }
 .chat-anchor { height: 1px; }
@@ -212,11 +212,11 @@ watch(() => store.messages.map((m) => m.content.length).join(','), async () => {
 
 .chat-composer { border-top: 1px solid var(--border); padding: 10px 12px 12px; background: var(--surface); }
 .composer-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
-.composer-hint { color: var(--text-3); font-size: 11px; }
+.composer-hint { color: var(--text-3); font-size: 12px; }
 
 .session-item { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
 .session-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.session-body span { font-size: 11px; }
+.session-body span { font-size: 12px; }
 
 .chat-panel-enter-active, .chat-panel-leave-active { transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
 .chat-panel-enter-from, .chat-panel-leave-to { opacity: 0; transform: translateY(12px) scale(.98); }

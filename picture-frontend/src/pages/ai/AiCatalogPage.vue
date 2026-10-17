@@ -211,7 +211,7 @@ onMounted(async () => {
 <style scoped>
 .ai-page { max-width: 1180px; margin: 0 auto; }
 .page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
-.eyebrow { margin: 0 0 8px; color: #668473; font-size: 11px; letter-spacing: .16em; }
+.eyebrow { margin: 0 0 8px; color: #668473; font-size: 12px; letter-spacing: .16em; }
 h1 { margin: 0 0 6px; font-size: 26px; }
 .mt12 { margin-top: 12px; }
 .mt16 { margin-top: 16px; }

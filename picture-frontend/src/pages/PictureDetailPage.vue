@@ -343,7 +343,7 @@ watch(() => route.params.id, load)
 .preview-img { max-height: 620px; object-fit: contain; }
 .params { margin-top: var(--space-4); }
 .params-head { display: flex; align-items: center; justify-content: space-between; cursor: pointer; padding: 6px 0; }
-.params-head .eyebrow { color: var(--text-3); font-size: 11px; letter-spacing: .18em; }
+.params-head .eyebrow { color: var(--text-3); font-size: 12px; letter-spacing: .18em; }
 .params-body { margin-top: 8px; }
 .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; border: 1px solid var(--border-strong); vertical-align: -1px; }
 .author-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }

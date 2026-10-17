@@ -85,7 +85,7 @@ function providerLabel(provider: string) {
 .tool-trace { display: flex; flex-wrap: wrap; gap: 6px; }
 .tool-chip {
   display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
-  border-radius: var(--radius-pill); background: var(--surface-3); color: var(--text-2); font-size: 11px;
+  border-radius: var(--radius-pill); background: var(--surface-3); color: var(--text-2); font-size: 12px;
 }
 
 .provider { font-size: 10px; }

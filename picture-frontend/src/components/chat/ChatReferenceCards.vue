@@ -40,7 +40,7 @@ defineEmits<{ (e: 'open', ref: ChatReference): void }>()
 .ref-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ref-icon { display: grid; place-items: center; width: 100%; height: 100%; color: var(--text-3); }
 
-.ref-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 11px; }
+.ref-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12px; }
 .ref-body strong { font-size: var(--font-2); }
 .ref-reason { color: var(--text-3); line-height: 1.5; }
 .work-ref { display:block; padding:0; overflow:hidden; border-radius:6px; }

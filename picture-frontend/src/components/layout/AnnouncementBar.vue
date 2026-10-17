@@ -47,7 +47,7 @@ onMounted(async () => {
 .ann-bar.level-warning { background: #FBF6EC; }
 .ann-bar.level-important { background: var(--danger-soft); }
 .ann-inner { display: flex; align-items: center; gap: 10px; height: 40px; }
-.ann-tag { flex: 0 0 auto; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border); color: var(--text-2); font-size: 11px; }
+.ann-tag { flex: 0 0 auto; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--surface); border: 1px solid var(--border); color: var(--text-2); font-size: 12px; }
 .ann-title { flex: 0 0 auto; }
 .ann-content { flex: 1 1 auto; color: var(--text-2); min-width: 0; }
 .ann-close { flex: 0 0 auto; width: 22px; height: 22px; border: none; border-radius: 50%; background: transparent; color: var(--text-3); font-size: 16px; line-height: 1; cursor: pointer; }

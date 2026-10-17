@@ -1,7 +1,7 @@
 <template>
   <div id="addSpacePage" class="container" style="padding: 24px 20px 48px">
     <header style="margin-bottom: 20px">
-      <p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">SPACE / SETTINGS</p>
+      <p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 12px; letter-spacing: .2em">SPACE / SETTINGS</p>
       <h1 style="margin: 6px 0 8px; font-size: var(--font-7)">{{ route.query?.id ? '修改' : '创建' }}{{ SPACE_TYPE_MAP[spaceType] }}</h1>
       <p style="margin: 0; color: var(--text-2)">空间用于组织图片资产：私有空间仅供自己使用，团队空间可邀请成员协作并分配角色</p>
     </header>

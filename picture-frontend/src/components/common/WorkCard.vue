@@ -173,7 +173,7 @@ async function doFollow() {
   border-radius: var(--radius-pill);
   background: rgba(28, 28, 26, .62);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: .02em;
   backdrop-filter: blur(6px);
 }
@@ -211,7 +211,7 @@ async function doFollow() {
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--text-2);
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease);
 }

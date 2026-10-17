@@ -122,7 +122,7 @@ function onMenuClick({ key }: { key: string }) {
   font-weight: 600;
 }
 .admin-brand-text strong { display: block; color: var(--ink-text); font-size: var(--font-3); }
-.admin-brand-text em { color: var(--ink-text-dim); font-size: 11px; font-style: normal; }
+.admin-brand-text em { color: var(--ink-text-dim); font-size: 12px; font-style: normal; }
 
 .admin-menu { flex: 1 1 auto; background: transparent; border-inline-end: none !important; }
 .admin-sider-foot { padding: var(--space-4); border-top: 1px solid rgba(255, 255, 255, .08); }

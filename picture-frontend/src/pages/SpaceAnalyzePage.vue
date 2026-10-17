@@ -1,6 +1,6 @@
 <template>
   <div id="spaceAnalyzePage" class="container" style="padding: 24px 20px 48px">
-    <header style="margin-bottom: 20px"><p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 11px; letter-spacing: .2em">SPACE / ANALYTICS</p><h1 style="margin: 6px 0 8px; font-size: var(--font-7)">
+    <header style="margin-bottom: 20px"><p class="eyebrow" style="margin: 0; color: var(--text-3); font-size: 12px; letter-spacing: .2em">SPACE / ANALYTICS</p><h1 style="margin: 6px 0 8px; font-size: var(--font-7)">
       空间图库分析 -
       <span v-if="queryAll">全部空间</span>
       <span v-else-if="queryPublic">公共图库</span>

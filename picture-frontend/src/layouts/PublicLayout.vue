@@ -1,10 +1,12 @@
 <template>
   <div class="public-layout" :class="{ 'is-immersive': isWorkDetail }">
+    <!-- 键盘跳转：Tab 第一站直达内容区（P0-7） -->
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
     <!-- 摄影演示模式提示条：仅开发环境 ?demo=photography 时显示 -->
     <PhotographyPreviewBar />
     <PublicHeader v-if="!isWorkDetail" />
     <AnnouncementBar v-if="!isWorkDetail" />
-    <main class="public-main">
+    <main id="main-content" class="public-main">
       <router-view v-slot="{ Component, route }">
         <transition name="page" mode="out-in">
           <component :is="Component" :key="route.path" />
@@ -58,4 +60,20 @@ const isWorkDetail = computed(() => route.name === 'work-detail')
   flex: 1 1 auto;
   min-height: calc(100vh - var(--header-h) - 220px);
 }
+
+/* 跳转链接：默认视觉隐藏，键盘聚焦时出现在左上角（P0-7） */
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 12px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: var(--accent-ink);
+  color: var(--accent-contrast);
+  text-decoration: none;
+  font-size: 13px;
+  transition: top var(--dur-fast) var(--ease);
+}
+.skip-link:focus-visible { top: 12px; }
 </style>

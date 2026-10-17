@@ -11,7 +11,8 @@
 
       <nav class="nav" aria-label="主导航">
         <template v-for="item in navItems" :key="item.label">
-          <router-link v-if="!item.children" :to="item.path" class="nav-item" :class="{ active: isActive(item) }">
+          <router-link v-if="!item.children" :to="item.path" class="nav-item"
+                       :class="{ active: isActive(item) }" :aria-current="isActive(item) ? 'page' : undefined">
             {{ item.label }}
           </router-link>
           <a-dropdown v-else placement="bottomLeft" trigger="['hover', 'click']">
@@ -161,7 +162,7 @@ async function doLogout() {
 .nav-group:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .nav-caret { font-size: 10px; opacity: .6; }
 .nav-label { margin-left: 6px; }
-.nav-hint { margin-left: 8px; color: var(--text-3); font-size: 11px; font-style: normal; }
+.nav-hint { margin-left: 8px; color: var(--text-3); font-size: 12px; font-style: normal; }
 
 .public-header {
   position: sticky;
@@ -199,7 +200,7 @@ async function doLogout() {
 
 .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-text strong { font-size: var(--font-4); letter-spacing: .02em; }
-.brand-text em { color: var(--text-3); font-size: 11px; font-style: normal; }
+.brand-text em { color: var(--text-3); font-size: 12px; font-style: normal; }
 
 .nav { display: flex; align-items: center; gap: var(--space-1); flex: 1 1 auto; }
 
@@ -209,6 +210,7 @@ async function doLogout() {
   border-radius: var(--radius-pill);
   color: var(--text-2);
   font-size: var(--font-3);
+  white-space: nowrap;
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 

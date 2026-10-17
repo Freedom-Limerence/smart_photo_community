@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
 .wall-btn:hover { color: #fff; background: rgba(255,255,255,.08); }
 
 .wall-caption { position: absolute; left: 34px; bottom: 86px; z-index: 2; max-width: 620px; }
-.wall-caption .eyebrow { margin: 0 0 8px; font-size: 11px; letter-spacing: .22em; color: rgba(242,242,239,.6); }
+.wall-caption .eyebrow { margin: 0 0 8px; font-size: 12px; letter-spacing: .22em; color: rgba(242,242,239,.6); }
 .wall-caption h1 { margin: 0 0 10px; font-size: clamp(28px, 4vw, 46px); font-weight: 500; line-height: 1.15; }
 .wall-caption .desc { margin: 0 0 14px; color: rgba(242,242,239,.78); line-height: 1.8; }
 .wall-caption .stats { display: flex; gap: 18px; color: rgba(242,242,239,.72); font-size: 13px; }

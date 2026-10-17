@@ -15,10 +15,10 @@
   --stage: #202621;
   --print-line: #E4E6E2;
 
-  /* 文字层级 */
+  /* 文字层级（--text-3 达 5.06:1 对比度，满足 WCAG AA；原 #8E8E88 仅 3.29:1） */
   --text-1: #1C1C1A;
   --text-2: #5A5A56;
-  --text-3: #8E8E88;
+  --text-3: #6F6F69;
   --text-inverse: #F6F6F3;
 
   /* 边框与分隔 */
@@ -41,6 +41,7 @@
   --radius-sm: 6px;
   --radius: 10px;
   --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-pill: 999px;
 
   /* 阴影（极浅、多层） */
@@ -58,6 +59,13 @@
   --space-7: 40px;
   --space-8: 56px;
 
+  /* 间距补位（P0-3）：旧 --space-* 缺档的 10/14/18/20/48，字面命名不与旧序号混淆 */
+  --sp-10: 10px;
+  --sp-14: 14px;
+  --sp-18: 18px;
+  --sp-20: 20px;
+  --sp-48: 48px;
+
   /* 字阶（1.25 模数） */
   --font-1: 12px;
   --font-2: 13px;
@@ -67,6 +75,12 @@
   --font-6: 22px;
   --font-7: 28px;
   --font-8: 40px;
+
+  /* 行高与辅助字号（P0-4）：中文小字下限 12px，meta 说明统一走 --text-meta */
+  --lh-tight: 1.25;
+  --lh-body: 1.65;
+  --lh-loose: 1.8;
+  --text-meta: var(--font-1);
 
   /* 字体族：正文无衬线 / 展示级衬线（标题、数字、标签） */
   --font-sans: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;

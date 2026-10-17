@@ -375,7 +375,7 @@ watch(sortBy, () => {
 .space-page { padding: var(--space-6) var(--space-5) var(--space-8); }
 .space-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-5); flex-wrap: wrap; margin-bottom: var(--space-4); }
 .head-main { flex: 1 1 420px; min-width: 0; }
-.head-main .eyebrow { margin: 0 0 6px; color: var(--text-3); font-size: 11px; letter-spacing: .2em; }
+.head-main .eyebrow { margin: 0 0 6px; color: var(--text-3); font-size: 12px; letter-spacing: .2em; }
 .head-main h1 { margin: 0 0 10px; font-size: var(--font-7); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .head-stats { display: flex; flex-wrap: wrap; gap: 18px; color: var(--text-2); font-size: var(--font-2); margin-bottom: 8px; }
 .head-stats span { display: inline-flex; align-items: center; gap: 6px; }

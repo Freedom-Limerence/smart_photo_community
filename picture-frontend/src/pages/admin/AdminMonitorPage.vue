@@ -153,7 +153,7 @@ watch(hours, () => void load())
 <style scoped>
 .monitor-page { display: flex; flex-direction: column; }
 .page-title { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; }
-.page-title span { color: var(--text-3); font-size: 11px; letter-spacing: .18em; }
+.page-title span { color: var(--text-3); font-size: 12px; letter-spacing: .18em; }
 .page-title h1 { margin: 4px 0; font-size: var(--font-6); }
 .page-title p { margin: 0; color: var(--text-2); font-size: var(--font-2); }
 .metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -161,10 +161,10 @@ watch(hours, () => void load())
 .metric span { color: var(--text-3); font-size: var(--font-1); }
 .metric strong { font-size: var(--font-6); line-height: 1.2; }
 .metric strong i { font-size: var(--font-2); font-style: normal; color: var(--text-3); margin-left: 2px; }
-.metric em { color: var(--text-3); font-size: 11px; font-style: normal; }
+.metric em { color: var(--text-3); font-size: 12px; font-style: normal; }
 .panel { border-radius: var(--radius-lg); box-shadow: var(--shadow-1); margin-bottom: 16px; }
 .chart { height: 260px; }
-.method { display: inline-block; min-width: 46px; margin-right: 8px; padding: 1px 6px; border-radius: 4px; font-size: 11px; text-align: center; background: var(--surface-3); color: var(--text-2); }
+.method { display: inline-block; min-width: 46px; margin-right: 8px; padding: 1px 6px; border-radius: 4px; font-size: 12px; text-align: center; background: var(--surface-3); color: var(--text-2); }
 .method.post { background: #E9EFE9; color: #4F5F53; }
 .method.get { background: #EFF1F4; color: #5A6472; }
 .bar-wrap { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }

@@ -175,7 +175,7 @@ onMounted(load)
 
 <style scoped>
 .page-title { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; }
-.page-title span { color: var(--text-3); font-size: 11px; letter-spacing: .18em; }
+.page-title span { color: var(--text-3); font-size: 12px; letter-spacing: .18em; }
 .page-title h1 { margin: 4px 0; font-size: var(--font-6); }
 .page-title p { margin: 0; color: var(--text-2); font-size: var(--font-2); }
 .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -183,5 +183,5 @@ onMounted(load)
 .metric span { color: var(--text-3); font-size: var(--font-1); }
 .metric strong { font-size: var(--font-6); }
 .panel { border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }
-.tip { margin-left: 10px; font-size: 11px; }
+.tip { margin-left: 10px; font-size: 12px; }
 </style>

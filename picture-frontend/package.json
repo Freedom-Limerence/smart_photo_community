@@ -12,7 +12,8 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "design:gate": "node scripts/design-gate.mjs"
   },
   "dependencies": {
     "@fontsource/noto-serif-sc": "^5.3.1",

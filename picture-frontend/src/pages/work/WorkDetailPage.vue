@@ -454,7 +454,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .description { margin: 0 0 var(--space-4); color: var(--text-2); font-size: var(--font-2); line-height: 1.8; white-space: pre-wrap; }
 .notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px var(--space-4); margin: 0 0 var(--space-4); padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius); }
 .notes div { display: flex; flex-direction: column; gap: 2px; }
-.notes dt { color: var(--text-3); font-size: 11px; }
+.notes dt { color: var(--text-3); font-size: 12px; }
 .notes dd { margin: 0; font-size: var(--font-2); display: flex; align-items: center; gap: 6px; }
 .dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--border-strong); }
 .actions { display: flex; align-items: center; gap: var(--space-3); padding-bottom: var(--space-5); border-bottom: 1px solid var(--border); }
@@ -474,7 +474,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .comment-main { flex: 1 1 auto; min-width: 0; }
 .comment-head { display: flex; align-items: baseline; gap: 8px; }
 .comment-head strong { font-size: var(--font-2); }
-.comment-head span { font-size: 11px; }
+.comment-head span { font-size: 12px; }
 .comment-text { margin: 4px 0 6px; font-size: var(--font-2); color: var(--text-2); line-height: 1.7; white-space: pre-wrap; }
 .comment-ops { display: flex; gap: 14px; }
 .comment-ops button { border: none; background: none; padding: 0; color: var(--text-3); font-size: 12px; cursor: pointer; }

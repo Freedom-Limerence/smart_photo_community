@@ -300,7 +300,7 @@ watch(() => route.params.id, load)
 .call-side { display: flex; align-items: center; gap: 18px; }
 .countdown { display: flex; flex-direction: column; align-items: flex-end; }
 .countdown strong { font-size: var(--font-4); font-variant-numeric: tabular-nums; }
-.countdown span { color: var(--text-3); font-size: 11px; }
+.countdown span { color: var(--text-3); font-size: 12px; }
 .quota { color: var(--text-2); font-size: var(--font-1); }
 .submit-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; }
 .work-picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-height: 420px; overflow-y: auto; padding-right: 4px; }

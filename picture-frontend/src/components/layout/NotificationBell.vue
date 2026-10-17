@@ -108,7 +108,7 @@ function timeText(value: string) {
 .dot.follow { background: #7C8B7F; }
 .bell-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .bell-body strong { font-size: var(--font-2); font-weight: 500; }
-.bell-body span { font-size: 11px; }
+.bell-body span { font-size: 12px; }
 .bell-foot { padding: 8px 14px 12px; text-align: center; border-top: 1px solid var(--border); font-size: var(--font-2); }
 .bell-foot a { color: var(--accent-hover); }
 </style>
