@@ -6,7 +6,7 @@
       <div v-if="work" class="work-layout">
         <!-- ============ 主区：沉浸式看图 ============ -->
         <section class="viewer">
-          <div class="stage" :class="{ fullscreen }">
+          <div class="stage" :class="{ fullscreen }" :style="{ '--stage-glow': stageGlow }">
             <img v-if="activePicture" :src="activePicture.url || activePicture.thumbnailUrl" :alt="work.title"
                  class="stage-img" @click="toggleFullscreen" />
             <button class="nav prev" type="button" :disabled="pictures.length < 2" aria-label="上一张" @click="step(-1)">
@@ -188,6 +188,7 @@ import {
 } from '@ant-design/icons-vue'
 import WorkCard from '@/components/common/WorkCard.vue'
 import LikeButton from '@/components/common/LikeButton.vue'
+import { useAmbientGlow } from '@/composables/useAmbientGlow'
 import {
   authorizeDownload, commentWork, favoriteWork, followUser, getWorkDetail, likeComment, likeWork,
   listComments, listRelatedWorks, unfavoriteWork, unfollowUser, unlikeComment, unlikeWork,
@@ -226,6 +227,8 @@ const workId = computed(() => String(route.params.id))
 const pictures = computed(() => (work.value?.pictures?.length ? work.value.pictures : []))
 const activePicture = computed(() => pictures.value[activeIndex.value] || pictures.value[0] || null)
 const meta = computed(() => activePicture.value || {})
+/** 环境光晕（P2-1）：从当前大图提取主色，舞台呼吸光随之变化 */
+const stageGlow = useAmbientGlow(() => activePicture.value?.url || activePicture.value?.thumbnailUrl)
 const authorText = computed(() => (work.value?.author?.userName || '光').slice(0, 1))
 const isSelf = computed(() => String(work.value?.authorId) === String(loginUserStore.loginUser?.id))
 
@@ -426,8 +429,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 /* 主区 */
 .viewer { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
 .stage { position: relative; flex: 1 1 auto; display: grid; place-items: center; min-height: 62vh; background: #0c0c0e; border-radius: var(--radius-lg); overflow: hidden; }
+/* 环境光晕（P2-1）：主色驱动的舞台呼吸光，在图片后方缓慢起伏 */
+.stage::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  background: radial-gradient(58% 50% at 50% 42%, var(--stage-glow, rgba(124, 139, 127, .26)), transparent 72%);
+  filter: blur(46px);
+  animation: glow-breathe 9s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes glow-breathe { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .stage::before { animation: none; } }
 .stage.fullscreen { border-radius: 0; min-height: 100vh; }
-.stage-img { max-width: 100%; max-height: calc(100vh - 220px); object-fit: contain; cursor: zoom-in; }
+.stage-img { position: relative; z-index: 1; max-width: 100%; max-height: calc(100vh - 220px); object-fit: contain; cursor: zoom-in; }
 .nav { position: absolute; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; background: rgba(20,20,22,.6); color: #EDEDEA; font-size: 16px; cursor: pointer; transition: background var(--dur-fast) var(--ease); }
 .nav:hover:not(:disabled) { background: rgba(20,20,22,.92); }
 .nav:disabled { opacity: .28; cursor: default; }
