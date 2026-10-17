@@ -5,6 +5,8 @@
         <component :is="Component" :key="route.path" />
       </transition>
     </router-view>
+    <!-- 全局命令面板：Ctrl/⌘+K，或顶栏搜索框聚焦唤起（P2-3） -->
+    <CommandPalette />
   </a-config-provider>
 </template>
 
@@ -13,6 +15,7 @@ import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import { antdTheme } from '@/config/antdTheme'
+import CommandPalette from '@/components/layout/CommandPalette.vue'
 
 dayjs.locale('zh-cn')
 </script>

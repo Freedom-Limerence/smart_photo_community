@@ -34,8 +34,9 @@
       </nav>
 
       <div class="header-actions">
-        <a-input-search v-model:value="keyword" class="header-search" placeholder="搜索作品 / 摄影师 / 专题"
-                        aria-label="搜索作品、摄影师或专题" allow-clear @search="doSearch" />
+        <a-input-search v-model:value="keyword" class="header-search" placeholder="搜索作品 / 摄影师 / 专题　⌘K"
+                        aria-label="搜索作品、摄影师或专题（快捷键 Ctrl+K）" allow-clear
+                        readonly @focus="openPalette" @click="openPalette" />
         <a-button type="primary" class="upload-btn" @click="go('/me/create-work')">
           <template #icon><CloudUploadOutlined /></template>
           发布作品
@@ -140,9 +141,10 @@ function go(path: string) {
   router.push(path)
 }
 
-function doSearch(value: string) {
-  if (!value?.trim()) return
-  router.push({ path: '/search', query: { q: value.trim() } })
+/** 顶栏搜索框：点击/聚焦唤起全局命令面板（P2-3，一个入口两种用法） */
+function openPalette() {
+  keyword.value = ''
+  window.dispatchEvent(new CustomEvent('photo:palette-open'))
 }
 
 async function doLogout() {

@@ -179,7 +179,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, theme as antdTheme } from 'ant-design-vue'
 import {
@@ -419,6 +419,19 @@ onMounted(() => {
   void load()
   window.addEventListener('keydown', onKeydown)
 })
+
+/** 记录最近浏览（P2-3 命令面板数据源），上限 6 条 */
+function rememberRecent() {
+  try {
+    const w = work.value
+    if (!w?.id) return
+    const list: { id: string; title: string; cover?: string }[] = JSON.parse(localStorage.getItem('photo_recent_works') || '[]')
+    const cover = w.coverUrl || w.pictures?.[0]?.thumbnailUrl || w.pictures?.[0]?.url || ''
+    const next = [{ id: String(w.id), title: w.title || '未命名作品', cover }, ...list.filter((r) => r.id !== String(w.id))].slice(0, 6)
+    localStorage.setItem('photo_recent_works', JSON.stringify(next))
+  } catch { /* ignore */ }
+}
+watch(work, (w: any) => { if (w?.id) rememberRecent() })
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
