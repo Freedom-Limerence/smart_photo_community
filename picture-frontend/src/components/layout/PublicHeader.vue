@@ -280,6 +280,6 @@ async function doLogout() {
   .nav-item { flex: 0 0 auto; padding: 10px 14px; font-size: 12px; }
   .header-actions { grid-area: actions; }
   .upload-btn { width: 36px; height: 36px; padding: 0; justify-content: center; font-size: 0; }
-  .upload-btn :deep(.anticon) { font-size: 16px; }
+  .upload-btn :deep(.anticon) { font-size: var(--icon-md); }
 }
 </style>

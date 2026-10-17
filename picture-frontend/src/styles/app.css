@@ -43,6 +43,13 @@ h1, h2, h3, h4 { color: var(--text-1); }
 /* 管理后台页面根节点：宽度交由 .admin-content 控制，不再套前台版心（P0-6 栅格收口） */
 .admin-page { width: 100%; }
 
+/* 后台表格表头吸顶（P1-2）：长列表滚动时列名不消失，行背景从表头下方滑过 */
+.admin-content .ant-table-thead > tr > th {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 3;
+}
+
 /* ------------------------------------------------------------
    卡片体系（P1-1）：全站只允许两种物理质感
    .surface-card 内容卡（白底 + 细边 + 轻环境影）

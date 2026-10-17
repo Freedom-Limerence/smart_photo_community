@@ -98,5 +98,5 @@ onMounted(() => fetchWorks())
 .curation-link h2 { font:400 clamp(24px,2.5vw,36px)/1.5 var(--font-display); margin:0; }
 .curation-link p { color:var(--text-2); margin:10px 0 0; }
 .curation-link a { display:flex; gap:24px; align-items:center; padding:14px 0; border-bottom:1px solid var(--text-1); white-space:nowrap; }
-@media(max-width:760px) { .feed-heading { flex-direction:column; align-items:flex-start; gap:16px; }.feed-tabs { width:100%; gap:26px; border-bottom:1px solid var(--border); }.curation-link { align-items:flex-start; flex-direction:column; margin-top:40px; }.feed-heading p { font-size:13px; } }
+@media(max-width:768px) { .feed-heading { flex-direction:column; align-items:flex-start; gap:16px; }.feed-tabs { width:100%; gap:26px; border-bottom:1px solid var(--border); }.curation-link { align-items:flex-start; flex-direction:column; margin-top:40px; }.feed-heading p { font-size:13px; } }
 </style>
