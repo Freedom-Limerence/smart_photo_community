@@ -70,7 +70,8 @@
         </div>
 
         <a-spin :spinning="loading">
-          <CardSkeleton v-if="loading && !works.length" variant="masonry" :count="6" ratio="72%" />
+          <ErrorState v-if="loadError" :description="loadError" @retry="loadWorks()" />
+          <CardSkeleton v-else-if="loading && !works.length" variant="masonry" :count="6" ratio="72%" />
           <MasonryGrid v-else-if="works.length" :items="works">
             <template #default="{ item }">
               <div class="work-wrap" :class="{ picked: picked.includes(String(item.id)) }">
@@ -98,7 +99,7 @@
             </template>
           </MasonryGrid>
 
-          <EmptyState v-else :title="activeFolder === 'ALL' ? '还没有收藏任何作品' : '这个收藏夹还是空的'"
+          <EmptyState v-else-if="!loadError" :title="activeFolder === 'ALL' ? '还没有收藏任何作品' : '这个收藏夹还是空的'"
                       :description="activeFolder === 'ALL' ? '在社区里遇到喜欢的作品，点一下星标就会出现在这里。' : '把喜欢的作品移动到这个收藏夹，方便日后回看。'">
             <a-button type="primary" @click="router.push('/community')">去社区逛逛</a-button>
           </EmptyState>
@@ -129,6 +130,7 @@ import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
 import CardSkeleton from '@/components/common/CardSkeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import ErrorState from '@/components/common/ErrorState.vue'
 import {
   addFavoriteFolder, cancelFavorites, deleteFavoriteFolder, listFavoriteFolders, listFavoriteWorks,
   moveFavorites, updateFavoriteFolder,
@@ -140,6 +142,7 @@ const foldersLoading = ref(false)
 const activeFolder = ref('ALL')
 const works = ref<any[]>([])
 const loading = ref(false)
+const loadError = ref('')
 const total = ref(0)
 const ungroupedCount = ref(0)
 const selectMode = ref(false)
@@ -165,6 +168,7 @@ async function loadFolders() {
 
 async function loadWorks() {
   loading.value = true
+  loadError.value = ''
   try {
     const folderId = activeFolder.value === 'NONE' ? null : activeFolder.value === 'ALL' ? undefined : activeFolder.value
     const res: any = await listFavoriteWorks({ folderId, current: 1, size: 60 })
@@ -175,6 +179,8 @@ async function loadWorks() {
         ? folders.value.reduce((sum, f) => sum + Number(f.workCount || 0), 0) + ungroupedCount.value
         : Number(res.data.data?.total || 0)
     }
+  } catch {
+    loadError.value = '收藏内容暂时无法加载，请稍后重试。'
   } finally {
     loading.value = false
   }

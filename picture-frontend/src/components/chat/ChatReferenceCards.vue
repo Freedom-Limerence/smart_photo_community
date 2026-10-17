@@ -31,7 +31,7 @@ defineEmits<{ (e: 'open', ref: ChatReference): void }>()
 .ref-card {
   display: flex; gap: 8px; padding: 8px; text-align: left; cursor: pointer;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  transition: all var(--dur-fast) var(--ease);
+  transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
 .ref-card:hover { border-color: var(--accent); box-shadow: var(--shadow-2); transform: translateY(-1px); }

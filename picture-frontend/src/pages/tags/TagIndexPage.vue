@@ -86,7 +86,7 @@ onMounted(async () => {
   background: var(--surface);
   color: var(--text-2);
   font-size: var(--font-3);
-  transition: all var(--dur-fast) var(--ease);
+  transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .tag-item:hover {
   border-color: var(--accent);

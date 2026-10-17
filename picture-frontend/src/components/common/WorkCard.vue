@@ -1,7 +1,7 @@
 <template>
   <article class="work-card hover-lift" tabindex="0" @click="$emit('open', work)" @keydown.enter="$emit('open', work)">
     <div class="cover">
-      <LazyImage :src="cover" :ratio="ratio" :alt="work.title" />
+      <LazyImage :src="cover" :preview="work.coverThumbnailUrl || work.thumbnailUrl || work.pictures?.[0]?.thumbnailUrl" :ratio="ratio" :alt="work.title" />
       <span class="cover-veil" aria-hidden="true" />
 
       <!-- 悬浮快捷互动：列表页即可点赞/收藏，无需进入详情 -->
@@ -213,7 +213,7 @@ async function doFollow() {
   color: var(--text-2);
   font-size: 12px;
   cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
+  transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .follow-btn:hover { border-color: var(--accent); color: var(--accent-hover); }
 .follow-btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }

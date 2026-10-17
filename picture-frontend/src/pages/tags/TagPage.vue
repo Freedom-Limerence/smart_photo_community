@@ -17,17 +17,19 @@
 
     <div class="container tag-body">
       <a-spin v-if="mode === 'work'" :spinning="worksLoading">
-        <CardSkeleton v-if="worksLoading && !works.length" variant="grid" :count="8" />
+        <ErrorState v-if="worksError" :description="worksError" @retry="loadWorks()" />
+        <CardSkeleton v-else-if="worksLoading && !works.length" variant="grid" :count="8" />
         <div v-else-if="works.length" class="card-grid">
           <WorkCard v-for="item in works" :key="item.id" :work="item" ratio="66%" @open="router.push('/works/' + item.id)" />
         </div>
-        <EmptyState v-else title="还没有含该标签的作品" description="换个标签看看，或者按图片浏览同类内容。">
+        <EmptyState v-else-if="!worksError" title="还没有含该标签的作品" description="换个标签看看，或者按图片浏览同类内容。">
           <a-button type="primary" @click="mode = 'picture'; onModeChange()">看看图片</a-button>
         </EmptyState>
       </a-spin>
 
       <a-spin v-if="mode === 'picture'" :spinning="loading">
-        <CardSkeleton v-if="loading && !pictures.length" variant="masonry" :count="8" ratio="72%" />
+        <ErrorState v-if="error" :description="error" @retry="load()" />
+        <CardSkeleton v-else-if="loading && !pictures.length" variant="masonry" :count="8" ratio="72%" />
         <MasonryGrid v-else-if="pictures.length" :items="pictures" key-field="id">
           <template #default="{ item }">
             <article class="pic-card hover-lift" tabindex="0" @click="router.push('/picture/' + item.id)" @keydown.enter="router.push('/picture/' + item.id)">
@@ -41,7 +43,7 @@
             </article>
           </template>
         </MasonryGrid>
-        <EmptyState v-else title="还没有该标签下的公开图片" description="去社区逛逛，发现更多同主题创作。">
+        <EmptyState v-else-if="!error" title="还没有该标签下的公开图片" description="去社区逛逛，发现更多同主题创作。">
           <a-button type="primary" @click="router.push('/community')">去社区逛逛</a-button>
         </EmptyState>
       </a-spin>
@@ -61,6 +63,7 @@ import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
 import CardSkeleton from '@/components/common/CardSkeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import ErrorState from '@/components/common/ErrorState.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import { listPictureVoByPageUsingPost } from '@/api/pictureController'
 import { listWorksByTag } from '@/api/photoCommunity'
@@ -70,6 +73,8 @@ const router = useRouter()
 const pictures = ref<any[]>([])
 const total = ref(0)
 const loading = ref(false)
+const error = ref('')
+const worksError = ref('')
 const loadingMore = ref(false)
 const current = ref(1)
 const mode = ref<'work' | 'picture'>('work')
@@ -79,9 +84,12 @@ const worksLoading = ref(false)
 async function loadWorks() {
   if (!tag.value) return
   worksLoading.value = true
+  worksError.value = ''
   try {
     const res: any = await listWorksByTag(tag.value, 24)
     works.value = res.data.code === 0 ? (res.data.data || []) : []
+  } catch {
+    worksError.value = '该标签的作品暂时无法加载，请稍后重试。'
   } finally {
     worksLoading.value = false
   }
@@ -105,6 +113,7 @@ function goTag(value: string) {
 
 async function load() {
   loading.value = true
+  error.value = ''
   try {
     const res: any = await listPictureVoByPageUsingPost({
       current: current.value,
@@ -117,6 +126,8 @@ async function load() {
       pictures.value = current.value === 1 ? records : [...pictures.value, ...records]
       total.value = Number(res.data.data?.total ?? records.length)
     }
+  } catch {
+    error.value = '该标签的内容暂时无法加载，请稍后重试。'
   } finally {
     loading.value = false
   }

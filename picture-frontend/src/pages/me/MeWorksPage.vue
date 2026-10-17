@@ -51,7 +51,8 @@
     </div>
 
     <a-spin :spinning="loading">
-      <CardSkeleton v-if="loading && !sorted.length" :variant="viewMode === 'grid' ? 'masonry' : 'list'" :count="viewMode === 'grid' ? 8 : 5" ratio="72%" />
+      <ErrorState v-if="loadError" :description="loadError" @retry="load()" />
+      <CardSkeleton v-else-if="loading && !sorted.length" :variant="viewMode === 'grid' ? 'masonry' : 'list'" :count="viewMode === 'grid' ? 8 : 5" ratio="72%" />
       <MasonryGrid v-else-if="sorted.length && viewMode === 'grid'" :items="sorted">
         <template #default="{ item }">
           <div class="work-wrap" :class="{ picked: picked.includes(String(item.id)) }">
@@ -98,7 +99,7 @@
         </li>
       </ul>
 
-      <EmptyState v-else :title="status === 'ALL' ? '还没有发布作品' : '该状态下没有作品'"
+      <EmptyState v-else-if="!loadError" :title="status === 'ALL' ? '还没有发布作品' : '该状态下没有作品'"
                   :description="status === 'ALL' ? '发布第一组作品，让它出现在社区里。' : '切换到其它状态看看。'">
         <a-button type="primary" @click="router.push('/community/create')">去发布作品</a-button>
       </EmptyState>
@@ -114,6 +115,7 @@ import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
 import CardSkeleton from '@/components/common/CardSkeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import ErrorState from '@/components/common/ErrorState.vue'
 import { deleteWorks, listWorksByAuthor } from '@/api/photoCommunity'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 
@@ -121,6 +123,7 @@ const router = useRouter()
 const loginUserStore = useLoginUserStore()
 const list = ref<any[]>([])
 const loading = ref(false)
+const loadError = ref('')
 const deleting = ref(false)
 const status = ref('ALL')
 const sort = ref('latest')
@@ -252,9 +255,12 @@ async function doDelete(ids: string[]) {
 async function load() {
   if (!userId.value) return
   loading.value = true
+  loadError.value = ''
   try {
     const res: any = await listWorksByAuthor({ authorId: userId.value, current: 1, size: 60 })
     list.value = res.data.code === 0 ? (res.data.data?.records ?? []) : []
+  } catch {
+    loadError.value = '作品列表暂时无法加载，请稍后重试。'
   } finally {
     loading.value = false
   }

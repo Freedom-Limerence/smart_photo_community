@@ -60,17 +60,19 @@
     </div>
 
     <a-spin v-if="mode === 'work'" :spinning="worksLoading">
-      <CardSkeleton v-if="worksLoading && !works.length" variant="grid" :count="8" />
+      <ErrorState v-if="worksError" :description="worksError" @retry="searchWorks()" />
+      <CardSkeleton v-else-if="worksLoading && !works.length" variant="grid" :count="8" />
       <div v-else-if="works.length" class="card-grid">
         <WorkCard v-for="item in works" :key="item.id" :work="item" ratio="66%" @open="router.push('/works/' + item.id)" />
       </div>
-      <EmptyState v-else title="没有找到匹配的作品" description="换个关键词，或者直接按图片语义检索。">
+      <EmptyState v-else-if="!worksError" title="没有找到匹配的作品" description="换个关键词，或者直接按图片语义检索。">
         <a-button type="primary" @click="mode = 'picture'; doSearch()">改搜图片</a-button>
       </EmptyState>
     </a-spin>
 
     <a-spin v-if="mode === 'picture'" :spinning="loading">
-      <CardSkeleton v-if="loading && !filtered.length" variant="grid" :count="8" />
+      <ErrorState v-if="error" :description="error" @retry="doSearch()" />
+      <CardSkeleton v-else-if="loading && !filtered.length" variant="grid" :count="8" />
       <MasonryGrid v-else-if="filtered.length && viewMode === 'grid'" :items="filtered" key-field="pictureId">
         <template #default="{ item }">
           <article class="hit-card hover-lift" tabindex="0" @click="openPicture(item)" @keydown.enter="openPicture(item)">
@@ -102,7 +104,7 @@
         </li>
       </ul>
 
-      <EmptyState v-else-if="!loading" :title="searched ? '没有找到匹配的内容' : '输入关键词开始搜索'"
+      <EmptyState v-else-if="!loading && !error" :title="searched ? '没有找到匹配的内容' : '输入关键词开始搜索'"
                   :description="searched ? '可以换一个说法，或用更具体的画面描述。' : '支持自然语言描述画面，例如「清晨湖面的薄雾」。'">
         <a-button v-if="searched" type="primary" @click="keyword = ''; doSearch()">看看全部图片</a-button>
       </EmptyState>
@@ -117,6 +119,7 @@ import MasonryGrid from '@/components/common/MasonryGrid.vue'
 import WorkCard from '@/components/common/WorkCard.vue'
 import CardSkeleton from '@/components/common/CardSkeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import ErrorState from '@/components/common/ErrorState.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import { searchWorksByKeyword } from '@/api/photoCommunity'
 import { searchWithEvidence } from '@/api/aiController'
@@ -126,6 +129,8 @@ const router = useRouter()
 const keyword = ref(String(route.query.q ?? ''))
 const items = ref<any[]>([])
 const loading = ref(false)
+const error = ref('')
+const worksError = ref('')
 const searched = ref(false)
 const viewMode = ref<'grid' | 'list'>('grid')
 const activeFields = ref<string[]>([])
@@ -138,9 +143,12 @@ async function searchWorks() {
   const word = keyword.value.trim()
   if (!word) { works.value = []; return }
   worksLoading.value = true
+  worksError.value = ''
   try {
     const res: any = await searchWorksByKeyword({ keyword: word, current: 1, size: 24 })
     works.value = res.data.code === 0 ? (res.data.data?.records || []) : []
+  } catch {
+    worksError.value = '作品检索暂时不可用，请稍后重试。'
   } finally {
     worksLoading.value = false
   }
@@ -231,9 +239,12 @@ async function doSearch() {
     return
   }
   loading.value = true
+  error.value = ''
   try {
     const res: any = await searchWithEvidence({ query: word, topK: 24 })
     items.value = res.data.code === 0 ? (res.data.data || []) : []
+  } catch {
+    error.value = '检索暂时不可用，请稍后重试。'
   } finally {
     loading.value = false
   }
@@ -261,7 +272,7 @@ onMounted(() => {
   color: var(--text-2);
   font-size: var(--font-1);
   cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
+  transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .chip:hover { border-color: var(--accent); color: var(--text-1); }
 .chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }

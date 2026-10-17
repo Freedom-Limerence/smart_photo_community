@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
 .wall-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: rgba(255,255,255,.14); z-index: 3; }
 .wall-progress i { display: block; height: 100%; background: var(--accent); }
 .wall-dots { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 3; display: flex; gap: 8px; }
-.wall-dots button { width: 8px; height: 8px; padding: 0; border: none; border-radius: 50%; background: rgba(255,255,255,.28); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
+.wall-dots button { width: 8px; height: 8px; padding: 0; border: none; border-radius: 50%; background: rgba(255,255,255,.28); cursor: pointer; transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .wall-dots button.active { background: #F2F2EF; transform: scale(1.35); }
 
 @media (max-width: 768px) {

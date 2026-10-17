@@ -304,7 +304,7 @@ watch(() => route.params.id, load)
 .quota { color: var(--text-2); font-size: var(--font-1); }
 .submit-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 20px; }
 .work-picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
-.pick { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
+.pick { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .pick.on { border-color: var(--accent); background: var(--accent-soft); }
 .pick img { width: 100%; height: 92px; object-fit: cover; border-radius: var(--radius-sm); }
 .pick input { position: absolute; top: 10px; left: 10px; }

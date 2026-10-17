@@ -440,7 +440,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .stage-meta em { font-style: normal; }
 .stage-meta .hint { opacity: .5; margin-left: 8px; }
 .filmstrip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
-.strip { flex: 0 0 auto; width: 74px; height: 58px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-2); cursor: pointer; opacity: .55; transition: all var(--dur-fast) var(--ease); }
+.strip { flex: 0 0 auto; width: 74px; height: 58px; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-2); cursor: pointer; opacity: .55; transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .strip.active { opacity: 1; border-color: var(--accent); }
 
@@ -458,7 +458,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .notes dd { margin: 0; font-size: var(--font-2); display: flex; align-items: center; gap: 6px; }
 .dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--border-strong); }
 .actions { display: flex; align-items: center; gap: var(--space-3); padding-bottom: var(--space-5); border-bottom: 1px solid var(--border); }
-.act { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: transparent; color: var(--text-2); font-size: var(--font-2); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
+.act { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: transparent; color: var(--text-2); font-size: var(--font-2); cursor: pointer; transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .act:hover { border-color: var(--accent); color: var(--text-1); }
 .act.on { background: var(--accent-soft); border-color: var(--accent); color: #4F5F53; }
 .download { margin-left: auto; }

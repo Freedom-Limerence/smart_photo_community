@@ -206,7 +206,7 @@ watch(() => store.messages.map((m) => m.content.length).join(','), async () => {
 .quick-item {
   padding: 10px 12px; text-align: left; font-size: var(--font-2);
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--text-2); cursor: pointer; transition: all var(--dur-fast) var(--ease);
+  color: var(--text-2); cursor: pointer; transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 .quick-item:hover { border-color: var(--accent); color: var(--text-1); box-shadow: var(--shadow-1); }
 
