@@ -77,9 +77,7 @@
           </dl>
 
           <div class="actions">
-            <button class="act" :class="{ on: liked }" type="button" @click="toggleLike">
-              <LikeFilled v-if="liked" /><LikeOutlined v-else /> {{ work.likeCount ?? 0 }}
-            </button>
+            <LikeButton class="act" :liked="liked" :count="work.likeCount ?? 0" @toggle="toggleLike" />
             <button class="act" :class="{ on: favorited }" type="button" @click="toggleFavorite">
               <StarFilled v-if="favorited" /><StarOutlined v-else /> {{ work.favoriteCount ?? 0 }}
             </button>
@@ -189,6 +187,7 @@ import {
   MoreOutlined, PictureOutlined, RightOutlined, StarFilled, StarOutlined,
 } from '@ant-design/icons-vue'
 import WorkCard from '@/components/common/WorkCard.vue'
+import LikeButton from '@/components/common/LikeButton.vue'
 import {
   authorizeDownload, commentWork, favoriteWork, followUser, getWorkDetail, likeComment, likeWork,
   listComments, listRelatedWorks, unfavoriteWork, unfollowUser, unlikeComment, unlikeWork,

@@ -6,11 +6,8 @@
 
       <!-- 悬浮快捷互动：列表页即可点赞/收藏，无需进入详情 -->
       <div class="quick-actions" @click.stop>
-        <button class="quick-btn" :class="{ on: st.liked }" type="button" :disabled="st.pending"
-                :aria-pressed="st.liked" :aria-label="st.liked ? '取消点赞' : '点赞'" @click="store.toggleLike(work)">
-          <LikeFilled v-if="st.liked" /><LikeOutlined v-else />
-          <span>{{ st.likeCount }}</span>
-        </button>
+        <LikeButton class="quick-btn" :liked="st.liked" :count="st.likeCount" :pending="st.pending"
+                    @toggle="store.toggleLike(work)" />
         <button class="quick-btn" :class="{ on: st.favorited }" type="button" :disabled="st.pending"
                 :aria-pressed="st.favorited" :aria-label="st.favorited ? '取消收藏' : '收藏'" @click="store.toggleFavorite(work)">
           <StarFilled v-if="st.favorited" /><StarOutlined v-else />
@@ -47,6 +44,7 @@ import {
   LikeFilled, LikeOutlined, MessageOutlined, StarFilled, StarOutlined,
 } from '@ant-design/icons-vue'
 import LazyImage from './LazyImage.vue'
+import LikeButton from './LikeButton.vue'
 import { useWorkInteractionStore } from '@/stores/useWorkInteractionStore'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import { followUser, unfollowUser } from '@/api/photoCommunity'
