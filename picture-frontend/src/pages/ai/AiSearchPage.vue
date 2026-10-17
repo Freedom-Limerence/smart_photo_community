@@ -96,7 +96,7 @@ async function doSearch() {
 <style scoped>
 .ai-page { max-width: var(--container); margin: 0 auto; padding-inline: var(--gutter); }
 .page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
-.eyebrow { margin: 0 0 8px; color: #668473; font-size: 12px; letter-spacing: .16em; }
+.eyebrow { margin: 0 0 8px; color: var(--accent-hover); font-size: 12px; letter-spacing: .16em; }
 h1 { margin: 0 0 6px; font-size: 26px; }
 .tips { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
 .sample { cursor: pointer; }
@@ -106,6 +106,6 @@ h1 { margin: 0 0 6px; font-size: 26px; }
 .thumb { width: 100%; height: 150px; object-fit: cover; border-radius: 6px; }
 .result-body { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
 .meta { font-size: 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.label { color: #8a9a90; }
+.label { color: var(--text-3); }
 .muted { color: #b6c2ba; }
 </style>

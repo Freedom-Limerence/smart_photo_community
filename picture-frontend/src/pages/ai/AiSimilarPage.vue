@@ -89,7 +89,7 @@ async function doGroup() {
 <style scoped>
 .ai-page { max-width: var(--container); margin: 0 auto; padding-inline: var(--gutter); }
 .page-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
-.eyebrow { margin: 0 0 8px; color: #668473; font-size: 12px; letter-spacing: .16em; }
+.eyebrow { margin: 0 0 8px; color: var(--accent-hover); font-size: 12px; letter-spacing: .16em; }
 h1 { margin: 0 0 6px; font-size: 26px; }
 .field-label { color: #6b7d73; font-size: 13px; }
 .mt12 { margin-top: 12px; }
@@ -98,5 +98,5 @@ h1 { margin: 0 0 6px; font-size: 26px; }
 .shot-card.recommended { border-color: #52a37a; box-shadow: 0 0 0 2px rgba(82, 163, 122, .15); }
 .thumb { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }
 .shot-body { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 12px; }
-.muted { color: #8a9a90; }
+.muted { color: var(--text-3); }
 </style>

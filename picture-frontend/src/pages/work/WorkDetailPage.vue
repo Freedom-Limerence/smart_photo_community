@@ -460,7 +460,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .actions { display: flex; align-items: center; gap: var(--space-3); padding-bottom: var(--space-5); border-bottom: 1px solid var(--border); }
 .act { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: transparent; color: var(--text-2); font-size: var(--font-2); cursor: pointer; transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
 .act:hover { border-color: var(--accent); color: var(--text-1); }
-.act.on { background: var(--accent-soft); border-color: var(--accent); color: #4F5F53; }
+.act.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
 .download { margin-left: auto; }
 
 .section-title { display: flex; align-items: baseline; gap: 10px; margin: var(--space-5) 0 var(--space-3); }

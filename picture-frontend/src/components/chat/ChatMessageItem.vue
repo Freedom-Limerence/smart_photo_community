@@ -64,7 +64,7 @@ function providerLabel(provider: string) {
 
 .avatar {
   display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 auto;
-  border-radius: 50%; background: var(--accent-soft); color: #4F5F53; font-size: 13px;
+  border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font-size: 13px;
 }
 
 .bubble-wrap { display: flex; flex-direction: column; gap: 6px; max-width: 82%; }

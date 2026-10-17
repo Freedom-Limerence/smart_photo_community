@@ -12,5 +12,5 @@ function onChange(p: any) { page.value = p.current; void load() }
 onMounted(load)
 </script>
 <style scoped>
-.page-title { display:flex; align-items:end; justify-content:space-between; margin-bottom:24px; }.page-title span { color:#8c9992; font-size:11px; letter-spacing:.14em; }.page-title h1 { margin:5px 0; font-size:26px; color:#25312a; }.page-title p { margin:0; color:#929d95; font-size:13px; }.table-panel { padding:18px; background:#fff; border:1px solid #e7ebe7; border-radius:8px; }.detail { display:block; max-width:440px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.page-title { display:flex; align-items:end; justify-content:space-between; margin-bottom:24px; }.page-title span { color:var(--text-3); font-size:11px; letter-spacing:.14em; }.page-title h1 { margin:5px 0; font-size:26px; color:var(--text-1); }.page-title p { margin:0; color:var(--text-3); font-size:13px; }.table-panel { padding:18px; background:#fff; border:1px solid #e7ebe7; border-radius:8px; }.detail { display:block; max-width:440px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 </style>

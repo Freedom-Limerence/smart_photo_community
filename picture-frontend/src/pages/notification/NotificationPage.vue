@@ -247,7 +247,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.section-head h2 small { font-size: var(--font-2); color: var(--accent-hover, #7C8B7F); font-weight: 400; margin-left: 8px; }
+.section-head h2 small { font-size: var(--font-2); color: var(--accent-hover, var(--accent)); font-weight: 400; margin-left: 8px; }
 .filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: var(--space-4) 0; }
 .filter-bar em { font-style: normal; margin-left: 4px; opacity: .65; }
 .batch-bar { display: flex; align-items: center; gap: 16px; padding: 10px 14px; margin-bottom: var(--space-3); border-radius: var(--radius); background: var(--accent-soft); }

@@ -96,9 +96,9 @@ function renderChart() {
       type: 'category',
       data: hourly.map((h: any) => String(h.bucketHour).slice(5, 16).replace('T', ' ')),
       axisLine: { lineStyle: { color: '#E6E6E1' } },
-      axisLabel: { color: '#8E8E88' },
+      axisLabel: { color: 'var(--text-3)' },
     },
-    yAxis: { type: 'value', splitLine: { lineStyle: { color: '#F1F1EE' } }, axisLabel: { color: '#8E8E88' } },
+    yAxis: { type: 'value', splitLine: { lineStyle: { color: '#F1F1EE' } }, axisLabel: { color: 'var(--text-3)' } },
     series: [
       {
         name: '调用次数',
@@ -106,7 +106,7 @@ function renderChart() {
         smooth: true,
         symbolSize: 6,
         data: hourly.map((h: any) => Number(h.requestCount || 0)),
-        itemStyle: { color: '#7C8B7F' },
+        itemStyle: { color: 'var(--accent)' },
         areaStyle: { color: 'rgba(124,139,127,.14)' },
       },
       {
@@ -165,7 +165,7 @@ watch(hours, () => void load())
 .panel { border-radius: var(--radius-lg); box-shadow: var(--shadow-1); margin-bottom: 16px; }
 .chart { height: 260px; }
 .method { display: inline-block; min-width: 46px; margin-right: 8px; padding: 1px 6px; border-radius: 4px; font-size: 12px; text-align: center; background: var(--surface-3); color: var(--text-2); }
-.method.post { background: #E9EFE9; color: #4F5F53; }
+.method.post { background: #E9EFE9; color: var(--accent-ink); }
 .method.get { background: #EFF1F4; color: #5A6472; }
 .bar-wrap { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
 .bar { height: 100%; background: var(--accent); border-radius: 3px; }

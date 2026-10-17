@@ -192,7 +192,7 @@ watch(() => store.messages.map((m) => m.content.length).join(','), async () => {
 .chat-title { display: flex; align-items: center; gap: 10px; }
 .chat-mark {
   display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px;
-  background: var(--accent-soft); color: #4F5F53; font-size: 12px; font-weight: 600;
+  background: var(--accent-soft); color: var(--accent-ink); font-size: 12px; font-weight: 600;
 }
 .chat-title strong { display: block; font-size: var(--font-3); }
 .chat-title em { color: var(--text-3); font-size: 12px; font-style: normal; }

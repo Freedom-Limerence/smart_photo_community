@@ -105,7 +105,7 @@ function timeText(value: string) {
 .dot.like { background: #B4746A; }
 .dot.favorite { background: #C2A878; }
 .dot.comment { background: #7E8AA0; }
-.dot.follow { background: #7C8B7F; }
+.dot.follow { background: var(--accent); }
 .bell-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .bell-body strong { font-size: var(--font-2); font-weight: 500; }
 .bell-body span { font-size: 12px; }
