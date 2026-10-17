@@ -4,6 +4,11 @@ import type { ThemeConfig } from 'ant-design-vue/es/config-provider/context'
  * Ant Design Vue 4.x 主题定制（等价于修改 less 变量，但无需 less 编译配置）
  * 目标：去掉默认的"后台蓝"，换成高级灰 + 莫兰迪鼠尾草绿
  *
+ * P0-1 主题键名矫正（2026-10-17）：按《前端视觉改造方案.md》附录 A 把失效键
+ * 换成 v4 真名 —— 修正前 105 个组件级键仅 15 个被读取（86% 静默失效），
+ * 菜单选中态/表头/行 hover/输入聚焦环等全部走了默认灰蓝。
+ * P0-2 补位：controlOutline / controlItemBgActive / controlItemBgHover 全局聚焦环与选中底。
+ *
  * 注意：4.2.x 的组件级 token 类型定义较窄（不少键未收录），运行时是支持的，
  * 因此 components 部分显式断言为 any，避免类型检查报错。
  */
@@ -27,6 +32,11 @@ export const antdTheme: ThemeConfig = {
     colorFillSecondary: '#F1F1EE',
     colorFillTertiary: '#F7F7F5',
     colorFillQuaternary: '#FAFAF8',
+    // P0-2：聚焦环 / 选中底 / 悬停底全局统一（输入框、Select、Segmented 等消费）
+    controlOutline: 'rgba(124, 139, 127, .12)',
+    controlOutlineWidth: 3,
+    controlItemBgActive: '#E9EFE9',
+    controlItemBgHover: '#F1F1EE',
     borderRadius: 10,
     borderRadiusLG: 16,
     borderRadiusSM: 6,
@@ -49,10 +59,77 @@ export const antdTheme: ThemeConfig = {
   },
   components: {
     Button: {
-      primaryShadow: 'none',
-      defaultShadow: 'none',
-      dangerShadow: 'none',
       fontWeight: 500,
+      // v4 无 primaryShadow/defaultShadow：按钮阴影由全局 controlOutline 决定
+    },
+    Menu: {
+      radiusItem: 8,                              // 原 itemBorderRadius（失效）
+      colorItemBgSelected: '#E9EFE9',             // 原 itemSelectedBg（失效）
+      colorItemTextSelected: '#4F5F53',           // 原 itemSelectedColor（失效）
+      colorItemBgHover: '#F1F1EE',                // 原 itemHoverBg（失效）
+      colorActiveBarBorderSize: 0,                // 原 activeBarBorderWidth（失效）
+      colorItemBg: 'transparent',
+      colorSubItemBg: 'transparent',
+      colorItemTextSelectedHorizontal: '#4F5F53', // 原 horizontalItemSelectedColor（失效）
+      menuItemHeight: 40,
+      itemMarginInline: 8,
+      darkItemBg: 'transparent',
+      darkSubMenuItemBg: 'transparent',
+      darkItemSelectedBg: 'rgba(124,139,127,.28)',
+    },
+    Layout: {
+      colorBgHeader: '#FFFFFF',
+      colorBgBody: '#F7F7F5',
+      colorBgContainer: '#FFFFFF',
+      colorBgLayout: '#F7F7F5',
+      colorBgTrigger: '#F1F1EE',
+    },
+    Table: {
+      tableHeaderBg: '#F7F7F5',                   // 原 headerBg（失效）
+      tableHeaderTextColor: '#5A5A56',            // 原 headerColor（失效）
+      tableRowHoverBg: '#FAFAF8',                 // 原 rowHoverBg（失效）
+      tableBorderColor: '#EFEFEA',                // 原 borderColor（失效）
+      tableHeaderCellSplitColor: 'transparent',
+      tablePaddingVertical: 12,                   // 原 cellPaddingBlock（失效）
+      tablePaddingHorizontal: 16,                 // 原 cellPaddingInline（失效）
+    },
+    Tabs: {
+      // 墨条颜色取自全局 colorPrimary（#7C8B7F 已设），无需 inkBarColor
+      tabsHoverColor: '#4F5F53',
+      tabsHorizontalGutter: 28,
+    },
+    Tag: { tagDefaultBg: '#F1F1EE', tagDefaultColor: '#5A5A56' },
+    Modal: {
+      modalHeaderTitleFontSize: 18,               // 原 titleFontSize（失效）
+      modalHeaderBg: 'transparent',
+      modalContentBg: '#FFFFFF',
+    },
+    Drawer: { drawerFooterPaddingVertical: 16, paddingLG: 20 },
+    Message: { contentBg: '#FFFFFF', borderRadiusLG: 12 },
+    Notification: { notificationBg: '#FFFFFF', borderRadiusLG: 12 },
+    Empty: { colorTextDescription: '#6F6F69' },
+    Skeleton: { color: '#F1F1EE', colorGradientEnd: '#E9E9E4', skeletonBlockRadius: 10 },
+    Alert: { alertPaddingHorizontal: 20, borderRadiusLG: 12 },
+    Descriptions: { descriptionItemPaddingBottom: 12 },
+    Radio: {
+      radioCheckedColor: '#7C8B7F',
+      radioButtonCheckedBg: '#4F5F53',            // 原 buttonSolidCheckedBg（失效）
+      radioSolidCheckedColor: '#FFFFFF',
+    },
+    Segmented: { segmentedContainerPadding: 2 },  // 选中底色走全局 controlItemBgActive
+    Pagination: { paginationItemBgActive: '#E9EFE9', borderRadius: 8 },
+    Breadcrumb: {
+      breadcrumbBaseColor: '#6F6F69',             // 原 itemColor（失效）
+      breadcrumbLastItemColor: '#1C1C1A',
+      breadcrumbSeparatorColor: '#C6C6BF',
+    },
+    Tooltip: { colorBgDefault: '#2A2A28' },       // 原 colorBgSpotlight（失效）
+    Divider: { colorSplit: '#EFEFEA' },
+    Progress: { progressRemainingColor: '#F1F1EE' }, // 主色走全局 colorPrimary
+    Collapse: {
+      collapseHeaderPadding: '10px 12px',         // 原 headerPadding（失效）
+      collapseContentPaddingHorizontal: 12,
+      collapsePanelBorderRadius: 10,
     },
     Card: {
       headerBg: 'transparent',
@@ -60,64 +137,6 @@ export const antdTheme: ThemeConfig = {
       colorBorderSecondary: '#EFEFEA',
       boxShadowTertiary: 'none',
     },
-    Menu: {
-      itemBorderRadius: 8,
-      itemHeight: 40,
-      itemMarginInline: 8,
-      itemSelectedBg: '#E9EFE9',
-      itemSelectedColor: '#4F5F53',
-      itemHoverBg: '#F1F1EE',
-      activeBarBorderWidth: 0,
-      horizontalItemSelectedColor: '#4F5F53',
-      darkItemBg: 'transparent',
-      darkSubMenuItemBg: 'transparent',
-      darkItemSelectedBg: 'rgba(124,139,127,.28)',
-    },
-    Layout: {
-      headerBg: '#FFFFFF',
-      headerHeight: 64,
-      headerPadding: '0 32px',
-      bodyBg: '#F7F7F5',
-      siderBg: '#FFFFFF',
-      footerBg: '#FFFFFF',
-      footerPadding: '20px 32px',
-    },
-    Tabs: {
-      inkBarColor: '#7C8B7F',
-      itemSelectedColor: '#1C1C1A',
-      itemHoverColor: '#4F5F53',
-      titleFontSize: 15,
-      horizontalItemGutter: 28,
-    },
-    Table: {
-      headerBg: '#F7F7F5',
-      headerColor: '#5A5A56',
-      headerSplitColor: 'transparent',
-      rowHoverBg: '#FAFAF8',
-      borderColor: '#EFEFEA',
-      cellPaddingBlock: 14,
-      cellPaddingInline: 16,
-    },
-    Input: { activeShadow: '0 0 0 3px rgba(124,139,127,.12)', paddingBlock: 7 },
-    InputNumber: { activeShadow: '0 0 0 3px rgba(124,139,127,.12)' },
-    Select: { optionSelectedBg: '#E9EFE9', optionPadding: '6px 12px' },
-    Tag: { defaultBg: '#F1F1EE', defaultColor: '#5A5A56', borderRadiusSM: 6 },
-    Modal: { borderRadiusLG: 16, titleFontSize: 18, headerBg: 'transparent' },
-    Drawer: { paddingLG: 20, footerPaddingBlock: 16 },
-    Message: { contentBg: '#FFFFFF', borderRadiusLG: 12 },
-    Notification: { borderRadiusLG: 12 },
-    Empty: { colorTextDescription: '#8E8E88' },
-    Skeleton: { blockRadius: 10, borderRadiusSM: 6, color: '#F1F1EE', colorGradientEnd: '#E9E9E4' },
-    Alert: { borderRadiusLG: 12, withDescriptionPadding: '16px 20px' },
-    Descriptions: { itemPaddingBottom: 12, labelBg: '#FAFAF8' },
-    Radio: { buttonSolidCheckedBg: '#4F5F53', buttonSolidCheckedHoverBg: '#3F4C43', buttonBg: '#FFFFFF' },
-    Segmented: { itemSelectedBg: '#E9EFE9', itemSelectedColor: '#4F5F53', trackBg: '#F1F1EE' },
-    Pagination: { itemActiveBg: '#E9EFE9', borderRadius: 8 },
-    Breadcrumb: { itemColor: '#8E8E88', lastItemColor: '#1C1C1A', separatorColor: '#C6C6BF' },
-    Tooltip: { borderRadius: 8, colorBgSpotlight: '#2A2A28' },
-    Divider: { colorSplit: '#EFEFEA' },
-    Progress: { defaultColor: '#7C8B7F', remainingColor: '#F1F1EE' },
-    Collapse: { headerPadding: '10px 12px', contentPadding: '0 12px 12px' },
-    Form: { labelColor: '#5A5A56', verticalLabelPadding: '0 0 6px' },
+    // Form：v4 无 labelColor 组件键，标签色走全局 colorTextSecondary
   } as any,
 }
