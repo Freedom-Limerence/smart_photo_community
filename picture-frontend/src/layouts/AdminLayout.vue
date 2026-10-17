@@ -1,5 +1,6 @@
 <template>
-  <div class="admin-layout">
+  <a-config-provider :theme="lightTheme">
+  <div class="admin-layout" data-theme="light">
     <!-- 桌面侧栏：≥1280 展开 / 1024–1279 折叠为图标栏（4.3 响应式三态） -->
     <aside v-if="!isMobile" class="admin-sider" :class="{ collapsed }">
       <div class="admin-brand">
@@ -56,6 +57,7 @@
       </section>
     </div>
   </div>
+  </a-config-provider>
 </template>
 
 <script setup lang="ts">
@@ -66,6 +68,22 @@ import {
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import { useAdminPermissionStore } from '@/stores/useAdminPermissionStore'
+import { theme as antdThemeApi } from 'ant-design-vue'
+
+/** 后台保持亮色：数据密集场景（4.3），与前台暗色画廊形成差异化 */
+const lightTheme = {
+  algorithm: antdThemeApi.defaultAlgorithm,
+  token: {
+    colorPrimary: '#7C8B7F',
+    colorBgBase: '#FFFFFF',
+    colorBgLayout: '#F7F7F5',
+    colorBgContainer: '#FFFFFF',
+    colorTextBase: '#1C1C1A',
+    colorBorder: '#E6E6E1',
+    colorBorderSecondary: '#EFEFEA',
+    borderRadius: 10,
+  },
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -149,7 +167,7 @@ function onMenuClick({ key }: { key: string }) {
 </script>
 
 <style scoped>
-.admin-layout { display: flex; min-height: 100vh; background: var(--bg); }
+.admin-layout { display: flex; min-height: 100vh; background: var(--bg); color: var(--text-1); }
 
 /* 侧栏：整屏吸附，自身可滚动；收起时只剩图标列 */
 .admin-sider {

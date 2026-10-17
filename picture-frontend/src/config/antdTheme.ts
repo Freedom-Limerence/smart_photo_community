@@ -1,4 +1,5 @@
 import type { ThemeConfig } from 'ant-design-vue/es/config-provider/context'
+import { theme as antdThemeApi } from 'ant-design-vue'
 
 /**
  * Ant Design Vue 4.x 主题定制（等价于修改 less 变量，但无需 less 编译配置）
@@ -13,30 +14,31 @@ import type { ThemeConfig } from 'ant-design-vue/es/config-provider/context'
  * 因此 components 部分显式断言为 any，避免类型检查报错。
  */
 export const antdTheme: ThemeConfig = {
+  // 暗色画廊（2026-10-17 晚）：全站 antd 组件跟随暗色算法，与 tokens.css 同源
+  algorithm: antdThemeApi.darkAlgorithm,
   token: {
-    colorPrimary: '#7C8B7F',
-    colorInfo: '#7C8B7F',
-    colorSuccess: '#7C8B7F',
+    colorPrimary: '#8FA394',
+    colorInfo: '#8FA394',
+    colorSuccess: '#8FA394',
     colorWarning: '#C2A878',
     colorError: '#B4746A',
-    colorLink: '#6B7A6E',
-    colorTextBase: '#1C1C1A',
-    colorBgBase: '#FFFFFF',
-    colorBgLayout: '#F7F7F5',
-    colorBgContainer: '#FFFFFF',
-    colorBorder: '#E6E6E1',
-    colorBorderSecondary: '#EFEFEA',
-    colorTextSecondary: '#5A5A56',
-    colorTextTertiary: '#8E8E88',
-    colorTextQuaternary: '#A9A9A3',
-    colorFillSecondary: '#F1F1EE',
-    colorFillTertiary: '#F7F7F5',
-    colorFillQuaternary: '#FAFAF8',
-    // P0-2：聚焦环 / 选中底 / 悬停底全局统一（输入框、Select、Segmented 等消费）
-    controlOutline: 'rgba(124, 139, 127, .12)',
+    colorLink: '#A3B6A8',
+    colorTextBase: '#EDEDEA',
+    colorBgBase: '#0B0B0C',
+    colorBgLayout: '#0B0B0C',
+    colorBgContainer: '#141416',
+    colorBorder: 'rgba(255, 255, 255, .12)',
+    colorBorderSecondary: 'rgba(255, 255, 255, .08)',
+    colorTextSecondary: '#A8A8A2',
+    colorTextTertiary: '#82827E',
+    colorTextQuaternary: '#6F6F69',
+    colorFillSecondary: 'rgba(255, 255, 255, .06)',
+    colorFillTertiary: 'rgba(255, 255, 255, .04)',
+    colorFillQuaternary: 'rgba(255, 255, 255, .03)',
+    controlOutline: 'rgba(143, 163, 148, .18)',
     controlOutlineWidth: 3,
-    controlItemBgActive: '#E9EFE9',
-    controlItemBgHover: '#F1F1EE',
+    controlItemBgActive: 'rgba(143, 163, 148, .16)',
+    controlItemBgHover: 'rgba(255, 255, 255, .06)',
     borderRadius: 10,
     borderRadiusLG: 16,
     borderRadiusSM: 6,
