@@ -32,7 +32,7 @@
         <CardSkeleton v-else-if="loading && !pictures.length" variant="masonry" :count="8" ratio="72%" />
         <MasonryGrid v-else-if="pictures.length" :items="pictures" key-field="id">
           <template #default="{ item }">
-            <article class="pic-card hover-lift" tabindex="0" @click="router.push('/picture/' + item.id)" @keydown.enter="router.push('/picture/' + item.id)">
+            <article class="pic-card media-card hover-lift" tabindex="0" @click="router.push('/picture/' + item.id)" @keydown.enter="router.push('/picture/' + item.id)">
               <LazyImage :src="item.thumbnailUrl || item.url" :ratio="ratioOf(item)" :alt="item.name" />
               <div class="pic-body">
                 <strong class="ellipsis">{{ item.name }}</strong>
@@ -173,7 +173,7 @@ watch(() => route.params.tag, reset)
 
 .tag-body { min-height: 40vh; }
 
-.pic-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; }
+.pic-card { cursor: pointer; }
 .pic-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .pic-body { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-4) var(--space-4); }
 .pic-body strong { font-size: var(--font-2); font-weight: 500; }

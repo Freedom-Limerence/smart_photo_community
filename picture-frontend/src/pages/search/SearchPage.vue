@@ -75,7 +75,7 @@
       <CardSkeleton v-else-if="loading && !filtered.length" variant="grid" :count="8" />
       <MasonryGrid v-else-if="filtered.length && viewMode === 'grid'" :items="filtered" key-field="pictureId">
         <template #default="{ item }">
-          <article class="hit-card hover-lift" tabindex="0" @click="openPicture(item)" @keydown.enter="openPicture(item)">
+          <article class="hit-card media-card hover-lift" tabindex="0" @click="openPicture(item)" @keydown.enter="openPicture(item)">
             <div class="hit-cover">
               <img :src="item.thumbnailUrl || item.url" alt="" loading="lazy" />
             </div>
@@ -312,7 +312,7 @@ onMounted(() => {
 .field-filter .eyebrow { margin: 0 var(--space-2) 0 0; }
 
 /* 图片结果卡：与作品卡同一套圆角 / 边框 / 阴影语言 */
-.hit-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; }
+.hit-card { cursor: pointer; }
 .hit-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .hit-cover { background: var(--surface-2); }
 .hit-cover img { display: block; width: 100%; height: auto; }

@@ -18,12 +18,12 @@
 
     <a-spin :spinning="loading">
       <div class="metrics">
-        <div class="metric"><span>总请求</span><strong>{{ data.totalRequests ?? 0 }}</strong><em>近 {{ hours }} 小时</em></div>
-        <div class="metric"><span>平均耗时</span><strong>{{ data.avgCostMs ?? 0 }}<i>ms</i></strong><em>全部接口</em></div>
-        <div class="metric"><span>最大耗时</span><strong>{{ data.maxCostMs ?? 0 }}<i>ms</i></strong><em>单次峰值</em></div>
-        <div class="metric"><span>错误率</span><strong>{{ data.errorRate ?? 0 }}<i>%</i></strong><em>4xx / 5xx</em></div>
-        <div class="metric"><span>覆盖接口</span><strong>{{ (data.summary || []).length }}</strong><em>Top 明细</em></div>
-        <div class="metric"><span>待落库</span><strong>{{ data.pendingKeys ?? 0 }}</strong><em>内存缓冲</em></div>
+        <div class="metric surface-card"><span>总请求</span><strong>{{ data.totalRequests ?? 0 }}</strong><em>近 {{ hours }} 小时</em></div>
+        <div class="metric surface-card"><span>平均耗时</span><strong>{{ data.avgCostMs ?? 0 }}<i>ms</i></strong><em>全部接口</em></div>
+        <div class="metric surface-card"><span>最大耗时</span><strong>{{ data.maxCostMs ?? 0 }}<i>ms</i></strong><em>单次峰值</em></div>
+        <div class="metric surface-card"><span>错误率</span><strong>{{ data.errorRate ?? 0 }}<i>%</i></strong><em>4xx / 5xx</em></div>
+        <div class="metric surface-card"><span>覆盖接口</span><strong>{{ (data.summary || []).length }}</strong><em>Top 明细</em></div>
+        <div class="metric surface-card"><span>待落库</span><strong>{{ data.pendingKeys ?? 0 }}</strong><em>内存缓冲</em></div>
       </div>
 
       <a-card :bordered="false" class="panel" title="调用量趋势">
@@ -157,7 +157,7 @@ watch(hours, () => void load())
 .page-title h1 { margin: 4px 0; font-size: var(--font-6); }
 .page-title p { margin: 0; color: var(--text-2); font-size: var(--font-2); }
 .metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
-.metric { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.metric { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; }
 .metric span { color: var(--text-3); font-size: var(--font-1); }
 .metric strong { font-size: var(--font-6); line-height: 1.2; }
 .metric strong i { font-size: var(--font-2); font-style: normal; color: var(--text-3); margin-left: 2px; }

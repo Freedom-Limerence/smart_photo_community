@@ -65,7 +65,7 @@
 
           <a-spin :spinning="loading">
             <div v-if="dataList.length" class="pic-grid">
-              <div v-for="item in dataList" :key="item.id" class="pic-card"
+              <div v-for="item in dataList" :key="item.id" class="pic-card hover-lift"
                    :class="{ picked: picked.includes(String(item.id)) }">
                 <label v-if="selectMode" class="pick-box">
                   <input type="checkbox" :checked="picked.includes(String(item.id))" @change="togglePick(String(item.id))" />
@@ -386,7 +386,7 @@ watch(sortBy, () => {
 .toolbar-right { margin-left: auto; }
 .batch-bar { display: flex; align-items: center; gap: 16px; padding: 10px 14px; margin-bottom: var(--space-3); border-radius: var(--radius); background: var(--accent-soft); }
 .pic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-4); }
-.pic-card { position: relative; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.pic-card { position: relative; overflow: hidden; cursor: pointer; }
 .pic-card:hover { border-color: var(--accent); transform: translateY(-2px); }
 .pic-card.picked { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pic-card img { width: 100%; height: 140px; object-fit: cover; display: block; cursor: pointer; }

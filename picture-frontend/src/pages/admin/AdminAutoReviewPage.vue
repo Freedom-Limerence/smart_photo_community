@@ -13,10 +13,10 @@
     </div>
 
     <div class="metrics">
-      <div class="metric"><span>待人工审核</span><strong>{{ stats.pending ?? 0 }}</strong></div>
-      <div class="metric"><span>已通过</span><strong>{{ stats.passed ?? 0 }}</strong></div>
-      <div class="metric"><span>机审通过累计</span><strong>{{ stats.autoPassed ?? 0 }}</strong></div>
-      <div class="metric"><span>已拒绝</span><strong>{{ stats.rejected ?? 0 }}</strong></div>
+      <div class="metric surface-card"><span>待人工审核</span><strong>{{ stats.pending ?? 0 }}</strong></div>
+      <div class="metric surface-card"><span>已通过</span><strong>{{ stats.passed ?? 0 }}</strong></div>
+      <div class="metric surface-card"><span>机审通过累计</span><strong>{{ stats.autoPassed ?? 0 }}</strong></div>
+      <div class="metric surface-card"><span>已拒绝</span><strong>{{ stats.rejected ?? 0 }}</strong></div>
     </div>
 
     <a-row :gutter="16">
@@ -179,7 +179,7 @@ onMounted(load)
 .page-title h1 { margin: 4px 0; font-size: var(--font-6); }
 .page-title p { margin: 0; color: var(--text-2); font-size: var(--font-2); }
 .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
-.metric { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.metric { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; }
 .metric span { color: var(--text-3); font-size: var(--font-1); }
 .metric strong { font-size: var(--font-6); }
 .panel { border-radius: var(--radius-lg); box-shadow: var(--shadow-1); }

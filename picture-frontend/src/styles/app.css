@@ -43,6 +43,26 @@ h1, h2, h3, h4 { color: var(--text-1); }
 /* 管理后台页面根节点：宽度交由 .admin-content 控制，不再套前台版心（P0-6 栅格收口） */
 .admin-page { width: 100%; }
 
+/* ------------------------------------------------------------
+   卡片体系（P1-1）：全站只允许两种物理质感
+   .surface-card 内容卡（白底 + 细边 + 轻环境影）
+   .media-card  图像卡（同质感 + overflow hidden 供封面裁切）
+   交互卡只挂 .is-interactive 一条悬停规则：边框变清晰 + 轻微上浮
+   ------------------------------------------------------------ */
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+.media-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+/* 交互悬停规则：全站只用 .hover-lift 一条（边框清晰 + 轻微上浮），不另造第二套 */
+
 /* 页面区块的垂直节奏（与版心配合使用） */
 .page { padding-top: var(--space-6); padding-bottom: var(--space-8); }
 .page-tight { padding-top: var(--space-5); padding-bottom: var(--space-6); }

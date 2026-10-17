@@ -40,7 +40,7 @@
 
     <a-spin :spinning="loading">
       <ul v-if="filtered.length" class="notify-list">
-        <li v-for="item in filtered" :key="item.id" :class="{ unread: !item.isRead }">
+        <li v-for="item in filtered" :key="item.id" :class="[{ unread: !item.isRead }, 'surface-card']">
           <a-checkbox v-if="selectMode" :checked="picked.includes(String(item.id))" @change="togglePick(String(item.id))" />
           <div class="type-tag" :class="String(item.type).toLowerCase()">{{ typeText(item.type) }}</div>
           <div class="notify-body" @click="openItem(item)">
@@ -252,7 +252,7 @@ onMounted(async () => {
 .filter-bar em { font-style: normal; margin-left: 4px; opacity: .65; }
 .batch-bar { display: flex; align-items: center; gap: 16px; padding: 10px 14px; margin-bottom: var(--space-3); border-radius: var(--radius); background: var(--accent-soft); }
 .notify-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.notify-list li { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
+.notify-list li { display: flex; align-items: center; gap: 14px; padding: 14px 16px; transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease); }
 .notify-list li:hover { border-color: var(--accent); }
 .notify-list li.unread { background: var(--accent-soft); }
 .type-tag { flex: 0 0 auto; padding: 3px 10px; border-radius: var(--radius-pill); background: var(--surface-2); font-size: 12px; color: var(--text-2); }
