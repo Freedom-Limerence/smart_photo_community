@@ -269,3 +269,9 @@ button:focus-visible,
 /* 表格与卡片内部横向滚动条更细 */
 .ant-table-body::-webkit-scrollbar,
 .ant-table-content::-webkit-scrollbar { height: 8px; }
+
+/* 专注模式（P2-7）：大屏专注看图时隐藏站级顶栏/公告/页脚与 AI 助手浮窗 */
+body.wall-focus .public-header,
+body.wall-focus .ann-bar,
+body.wall-focus .public-footer,
+body.wall-focus .ai-chat-dock { display: none; }

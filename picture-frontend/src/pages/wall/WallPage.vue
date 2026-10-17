@@ -1,7 +1,7 @@
 <template>
   <!-- 沉浸式主题闭合：深色大屏里的 antd 组件跟随暗色算法（P0-8） -->
   <a-config-provider :theme="immersiveTheme">
-  <div class="wall" data-theme="immersive">
+  <div class="wall" data-theme="immersive" :class="{ focus: focusMode }">
     <div class="wall-stage">
       <transition name="fade" mode="out-in">
         <!-- Ken Burns：每次切换重新挂载，动画随 key 重启；a/b 交替方向 -->
@@ -22,10 +22,19 @@
           <a-button type="text" class="wall-btn" @click="togglePlay">
             <PauseOutlined v-if="playing" /><PlayCircleOutlined v-else /> {{ playing ? '暂停' : '播放' }}
           </a-button>
+          <a-button type="text" class="wall-btn" @click="toggleFocus">
+            <CompressOutlined /> {{ focusMode ? '退出专注' : '专注' }}
+          </a-button>
           <a-button type="text" class="wall-btn" @click="toggleFullscreen"><FullscreenOutlined /> 全屏</a-button>
           <a-button type="text" class="wall-btn" @click="router.push('/works/' + current?.id)">查看作品 →</a-button>
         </a-space>
       </header>
+
+      <!-- 专注模式的浮动信息卡：只留标题与进度 -->
+      <div v-if="current" class="wall-chip" aria-hidden="true">
+        <span class="chip-index">{{ index + 1 }} / {{ list.length }}</span>
+        <span class="chip-title">{{ current.title || '未命名作品' }}</span>
+      </div>
 
       <div v-if="current" class="wall-caption">
         <p class="eyebrow">TODAY'S PICK</p>
@@ -71,7 +80,7 @@ const immersiveTheme = {
   token: { colorPrimary: '#8FA394', colorBgBase: '#0B0B0C', borderRadius: 10, fontSize: 14 },
 }
 import {
-  EyeOutlined, FullscreenOutlined, LeftOutlined, LikeOutlined, PauseOutlined,
+  CompressOutlined, EyeOutlined, FullscreenOutlined, LeftOutlined, LikeOutlined, PauseOutlined,
   PlayCircleOutlined, RightOutlined, StarOutlined,
 } from '@ant-design/icons-vue'
 import { listWorks } from '@/api/photoCommunity'
@@ -89,6 +98,19 @@ const reducedMotion =
   typeof window !== 'undefined' && typeof window.matchMedia === 'function'
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
     : false
+
+/** 专注模式（P2-7）：隐藏顶栏/页脚/AI 助手，仅留影像 + 进度环 + 浮动信息卡；偏好记忆 */
+const focusMode = ref(false)
+try { focusMode.value = localStorage.getItem('photo_wall_focus') === '1' } catch { /* ignore */ }
+
+function applyFocusBody() {
+  document.body.classList.toggle('wall-focus', focusMode.value)
+}
+function toggleFocus() {
+  focusMode.value = !focusMode.value
+  try { localStorage.setItem('photo_wall_focus', focusMode.value ? '1' : '0') } catch { /* ignore */ }
+  applyFocusBody()
+}
 let raf = 0
 let lastTick = 0
 
@@ -152,6 +174,7 @@ function onKey(e: KeyboardEvent) {
   if (e.key === 'ArrowLeft') step(-1)
   if (e.key === 'ArrowRight') step(1)
   if (e.key === ' ') { e.preventDefault(); togglePlay() }
+  if (e.key === 'Escape' && focusMode.value) toggleFocus()
 }
 
 onMounted(async () => {
@@ -165,6 +188,7 @@ onMounted(async () => {
   lastTick = performance.now()
   raf = requestAnimationFrame(loop)
   window.addEventListener('keydown', onKey)
+  applyFocusBody()
 })
 
 watch(index, preloadAround)
@@ -172,6 +196,7 @@ watch(index, preloadAround)
 onBeforeUnmount(() => {
   cancelAnimationFrame(raf)
   window.removeEventListener('keydown', onKey)
+  document.body.classList.remove('wall-focus')
 })
 </script>
 
@@ -222,8 +247,40 @@ onBeforeUnmount(() => {
 .ring-btn .core { fill: rgba(255,255,255,.4); }
 .ring-btn.active .core { fill: var(--text-2); }
 
+/* 专注模式（P2-7）：隐藏顶栏/页签 chrome，仅留影像 + 进度环 + 浮动信息卡 */
+.wall.focus { min-height: 100vh; }
+.wall.focus .wall-stage { min-height: 100vh; }
+.wall.focus .wall-top,
+.wall.focus .wall-caption { opacity: 0; pointer-events: none; }
+.wall-top, .wall-caption { transition: opacity var(--dur) var(--ease); }
+
+/* 浮动信息卡：仅专注模式可见 */
+.wall-chip {
+  position: absolute;
+  left: 34px;
+  bottom: 32px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 60%;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  background: rgba(12, 12, 14, .55);
+  backdrop-filter: blur(8px);
+  color: rgba(242, 242, 239, .92);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  pointer-events: none;
+}
+.wall.focus .wall-chip { opacity: 1; transform: none; }
+.wall-chip .chip-index { font-size: 12px; color: rgba(242,242,239,.62); font-variant-numeric: tabular-nums; }
+.wall-chip .chip-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 @media (prefers-reduced-motion: reduce) {
   .wall-img.kb-a, .wall-img.kb-b { animation: none; }
+  .wall-top, .wall-caption, .wall-chip { transition: none; }
 }
 @media (max-width: 768px) {
   .wall-top { padding: 16px; flex-wrap: wrap; }
