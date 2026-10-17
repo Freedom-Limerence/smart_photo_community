@@ -275,3 +275,22 @@ body.wall-focus .public-header,
 body.wall-focus .ann-bar,
 body.wall-focus .public-footer,
 body.wall-focus .ai-chat-dock { display: none; }
+
+/* 后台侧栏菜单分组（4.3）：组标题走眉标语言；抽屉与桌面侧栏共用 */
+.admin-menu .ant-menu-item-group-title {
+  color: var(--ink-text-dim);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  padding-top: 14px;
+}
+.admin-menu.ant-menu-root.inline { background: transparent; }
+/* 移动端抽屉态：深色体 */
+.admin-sider-drawer .ant-drawer-body {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--ink-2);
+}
+.admin-sider-drawer .admin-menu { flex: 1 1 auto; }
+.admin-sider-drawer .admin-sider-foot { padding: var(--space-4); border-top: 1px solid rgba(255, 255, 255, .08); }
