@@ -16,7 +16,7 @@
             <span><CloudOutlined /> {{ formatSize(space.totalSize) }} / {{ formatSize(space.maxSize) }}</span>
           </div>
           <a-progress class="quota" :percent="quotaPercent" :status="quotaPercent > 90 ? 'exception' : 'normal'"
-                      :stroke-color="quotaPercent > 90 ? '#c4564a' : undefined" />
+                      :stroke-color="quotaPercent > 90 ? 'var(--danger)' : undefined" />
         </div>
         <div class="head-actions">
           <a-button v-if="canUpload" type="primary" @click="router.push('/add_picture?spaceId=' + spaceId)">

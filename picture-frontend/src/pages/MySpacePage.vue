@@ -69,5 +69,5 @@ onMounted(() => {
 
 <style scoped>
 #mySpacePage { max-width: 720px; margin: 48px auto; }
-.redirect-card { min-height: 260px; display: grid; place-items: center; border-color: #e1e9e2; }
+.redirect-card { min-height: 260px; display: grid; place-items: center; border-color: var(--border); }
 </style>

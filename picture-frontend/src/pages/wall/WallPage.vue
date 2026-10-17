@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.wall { position: relative; min-height: calc(100vh - var(--header-h)); background: #08080a; color: #F2F2EF; overflow: hidden; }
+.wall { position: relative; min-height: calc(100vh - var(--header-h)); background: #08080a; color: var(--text-2); overflow: hidden; }
 .wall-stage { position: relative; min-height: calc(100vh - var(--header-h)); }
 .wall-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .wall-mask { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,8,10,.72) 0%, rgba(8,8,10,.18) 38%, rgba(8,8,10,.86) 100%); }
@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
 .wall-caption .stats { display: flex; gap: 18px; color: rgba(242,242,239,.72); font-size: 13px; }
 .wall-caption .stats span { display: inline-flex; align-items: center; gap: 6px; }
 
-.wall-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; background: rgba(12,12,14,.5); color: #F2F2EF; font-size: 16px; cursor: pointer; transition: background var(--dur-fast) var(--ease); }
+.wall-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; display: grid; place-items: center; width: 46px; height: 46px; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; background: rgba(12,12,14,.5); color: var(--text-2); font-size: 16px; cursor: pointer; transition: background var(--dur-fast) var(--ease); }
 .wall-nav:hover { background: rgba(12,12,14,.86); }
 .wall-nav.prev { left: 22px; }
 .wall-nav.next { right: 22px; }
@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
 .wall-progress i { display: block; height: 100%; background: var(--accent); }
 .wall-dots { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 3; display: flex; gap: 8px; }
 .wall-dots button { width: 8px; height: 8px; padding: 0; border: none; border-radius: 50%; background: rgba(255,255,255,.28); cursor: pointer; transition: color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease); }
-.wall-dots button.active { background: #F2F2EF; transform: scale(1.35); }
+.wall-dots button.active { background: var(--text-2); transform: scale(1.35); }
 
 @media (max-width: 768px) {
   .wall-top { padding: 16px; flex-wrap: wrap; }

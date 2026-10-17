@@ -348,5 +348,5 @@ onMounted(loadExhibitions)
 .work-cell img { width: 62px; height: 44px; object-fit: cover; border-radius: var(--radius-sm); }
 .work-cell strong { display: block; font-size: var(--font-2); }
 .work-cell span { font-size: 12px; }
-.expired { color: var(--danger, #c4564a); }
+.expired { color: var(--danger, var(--danger)); }
 </style>

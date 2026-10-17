@@ -143,7 +143,7 @@ onMounted(load)
 
 .result { display: flex; align-items: center; gap: 6px; padding: var(--space-2) var(--space-3); border-radius: var(--radius); font-size: var(--font-2); }
 .result.accepted { background: var(--accent-soft); color: var(--accent-ink); }
-.result.rejected { background: var(--danger-soft); color: #8C4F45; }
+.result.rejected { background: var(--danger-soft); color: var(--danger); }
 
 .pending-tip { display: flex; align-items: center; gap: var(--space-2); color: var(--text-3); font-size: var(--font-2); }
 

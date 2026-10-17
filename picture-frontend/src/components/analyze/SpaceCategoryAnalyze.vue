@@ -73,10 +73,10 @@ const options = computed(() => {
         type: 'value',
         name: '图片总大小 (MB)',
         position: 'right',
-        axisLine: { show: true, lineStyle: { color: '#91CC75' } }, // 右轴颜色
+        axisLine: { show: true, lineStyle: { color: 'var(--accent)' } }, // 右轴颜色
         splitLine: {
           lineStyle: {
-            color: '#91CC75', // 调整网格线颜色
+            color: 'var(--accent)', // 调整网格线颜色
             type: 'dashed', // 线条样式：可选 'solid', 'dashed', 'dotted'
           },
         },

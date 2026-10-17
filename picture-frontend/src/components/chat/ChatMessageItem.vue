@@ -77,7 +77,7 @@ function providerLabel(provider: string) {
 }
 
 .msg.user .bubble { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
-.bubble.is-error { background: var(--danger-soft); border-color: var(--danger); color: #8C4F45; }
+.bubble.is-error { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
 
 .cursor { animation: blink 1s steps(2, start) infinite; color: var(--accent); }
 @keyframes blink { to { visibility: hidden; } }

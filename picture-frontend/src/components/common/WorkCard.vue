@@ -154,7 +154,7 @@ async function doFollow() {
   border: 1px solid rgba(255, 255, 255, .22);
   border-radius: var(--radius-pill);
   background: rgba(20, 20, 22, .62);
-  color: #F2F2EF;
+  color: var(--surface-2);
   font-size: 12px;
   cursor: pointer;
   backdrop-filter: blur(6px);
