@@ -1,4 +1,6 @@
 <template>
+  <!-- 沉浸式主题闭合：深色大屏里的 antd 组件跟随暗色算法（P0-8） -->
+  <a-config-provider :theme="immersiveTheme">
   <div class="wall" data-theme="immersive">
     <div class="wall-stage">
       <transition name="fade" mode="out-in">
@@ -44,11 +46,19 @@
       </div>
     </div>
   </div>
+  </a-config-provider>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { theme as antdTheme } from 'ant-design-vue'
+
+/** 沉浸式暗色主题：与 data-theme="immersive" 的 CSS 变量同源（P0-8） */
+const immersiveTheme = {
+  algorithm: antdTheme.darkAlgorithm,
+  token: { colorPrimary: '#8FA394', colorBgBase: '#0B0B0C', borderRadius: 10, fontSize: 14 },
+}
 import {
   EyeOutlined, FullscreenOutlined, LeftOutlined, LikeOutlined, PauseOutlined,
   PlayCircleOutlined, RightOutlined, StarOutlined,

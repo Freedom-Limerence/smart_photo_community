@@ -1,4 +1,6 @@
 <template>
+  <!-- 沉浸式主题闭合：深色看图界面里的 antd 组件跟随暗色算法，不再出现白色裂开 -->
+  <a-config-provider :theme="immersiveTheme">
   <div class="work-page" data-theme="immersive">
     <a-spin :spinning="loading">
       <div v-if="work" class="work-layout">
@@ -175,12 +177,13 @@
       <a-textarea v-model:value="reportDetail" :rows="3" placeholder="补充说明（可选）" />
     </a-modal>
   </div>
+  </a-config-provider>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
+import { message, theme as antdTheme } from 'ant-design-vue'
 import {
   EyeOutlined, FullscreenOutlined, LeftOutlined, LikeFilled, LikeOutlined, MessageOutlined,
   MoreOutlined, PictureOutlined, RightOutlined, StarFilled, StarOutlined,
@@ -196,6 +199,12 @@ import { useLoginUserStore } from '@/stores/useLoginUserStore'
 const route = useRoute()
 const router = useRouter()
 const loginUserStore = useLoginUserStore()
+
+/** 沉浸式暗色主题：与 data-theme="immersive" 的 CSS 变量同源（P0-8） */
+const immersiveTheme = {
+  algorithm: antdTheme.darkAlgorithm,
+  token: { colorPrimary: '#8FA394', colorBgBase: '#0B0B0C', borderRadius: 10, fontSize: 14 },
+}
 
 const loading = ref(true)
 const work = ref<any>(null)
