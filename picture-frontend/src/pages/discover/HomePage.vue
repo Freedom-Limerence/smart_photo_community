@@ -3,10 +3,13 @@
     <ContactSheet v-if="mode === 'home'" :works="featuredWorks" :loading="loading && !works.length" @open="openWork" />
     <section id="works-feed" class="feed container">
       <header class="feed-heading">
-        <div>
-          <h1 v-if="mode === 'community'">每一种视角，都值得被看见。</h1>
-          <h2 v-else>在光影里，遇见彼此。</h2>
-          <p>{{ mode === 'community' ? '走进摄影师的作品，发现世界的另一面。' : '从城市漫游到自然光景，看看大家正在记录什么。' }}</p>
+        <div class="feed-intro">
+          <span class="feed-no" aria-hidden="true">N°01</span>
+          <div>
+            <h1 v-if="mode === 'community'">每一种<em>视角</em>，都值得被看见。</h1>
+            <h2 v-else>在光影里，<em>遇见</em>彼此。</h2>
+            <p>{{ mode === 'community' ? '走进摄影师的作品，发现世界的另一面。' : '从城市漫游到自然光景，看看大家正在记录什么。' }}</p>
+          </div>
         </div>
         <div class="feed-tabs" role="group" aria-label="作品排序与范围">
           <button v-for="item in tabs" :key="item.value" type="button" :aria-pressed="activeTab === item.value"
@@ -26,7 +29,7 @@
       <div v-else-if="works.length" class="feed-end"><span />每一次停留，都是新的发现<span /></div>
     </section>
     <section class="curation-link container">
-      <div><h2>让作品之间，发生对话。</h2><p>从一组影像出发，走进不同的摄影主题。</p></div>
+      <div><h2>让作品之间，<em>发生对话</em>。</h2><p>从一组影像出发，走进不同的摄影主题。</p></div>
       <router-link to="/exhibitions">走进专题展览 <ArrowRightOutlined /></router-link>
     </section>
   </div>
@@ -84,9 +87,19 @@ onMounted(() => fetchWorks())
 <style scoped>
 .discover-page { padding-bottom:var(--space-8); }
 .feed { padding-top:clamp(36px,5vw,80px); }
-.feed-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:32px; }
-.feed-heading h1,.feed-heading h2 { margin:0; font:400 clamp(28px,3vw,44px)/1.4 var(--font-display); letter-spacing:-.025em; text-wrap:balance; }
-.feed-heading p { color:var(--text-2); margin:12px 0 0; }
+.feed-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:36px; }
+/* 编辑式大字（视觉冲击力专项）：章节编号 + 超大衬线标题 + 强调字 */
+.feed-intro { display:flex; align-items:flex-start; gap:clamp(16px,2vw,32px); min-width:0; }
+.feed-no {
+  flex:0 0 auto; margin-top:clamp(8px,1vw,18px);
+  font:400 clamp(13px,1.2vw,16px)/1 var(--font-display);
+  letter-spacing:.22em; color:var(--text-3);
+  writing-mode:vertical-rl;
+  padding-left:10px; border-left:1px solid var(--border-strong);
+}
+.feed-heading h1,.feed-heading h2 { margin:0; font:400 clamp(38px,5.5vw,84px)/1.12 var(--font-display); letter-spacing:-.03em; text-wrap:balance; }
+.feed-heading em { font-style:normal; color:var(--accent-hover); }
+.feed-heading p { color:var(--text-2); margin:14px 0 0; max-width:38ch; }
 .feed-tabs { display:flex; flex-shrink:0; gap:22px; }
 .feed-tabs button { border:0; border-bottom:2px solid transparent; padding:12px 0; background:none; color:var(--text-2); cursor:pointer; font:inherit; white-space:nowrap; }
 .feed-tabs button.active { color:var(--accent-ink); border-color:var(--accent-ink); }
@@ -95,8 +108,9 @@ onMounted(() => fetchWorks())
 .feed-end { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:48px; color:var(--text-3); font-size:12px; }
 .feed-end span { width:32px; height:1px; background:var(--border-strong); }
 .curation-link { display:flex; justify-content:space-between; align-items:center; gap:24px; margin-top:64px; padding-top:40px; border-top:1px solid var(--border-strong); }
-.curation-link h2 { font:400 clamp(24px,2.5vw,36px)/1.5 var(--font-display); margin:0; }
+.curation-link h2 { font:400 clamp(30px,3.6vw,56px)/1.25 var(--font-display); letter-spacing:-.02em; margin:0; }
+.curation-link h2 em { font-style:normal; color:var(--accent-hover); }
 .curation-link p { color:var(--text-2); margin:10px 0 0; }
 .curation-link a { display:flex; gap:24px; align-items:center; padding:14px 0; border-bottom:1px solid var(--text-1); white-space:nowrap; }
-@media(max-width:768px) { .feed-heading { flex-direction:column; align-items:flex-start; gap:16px; }.feed-tabs { width:100%; gap:26px; border-bottom:1px solid var(--border); }.curation-link { align-items:flex-start; flex-direction:column; margin-top:40px; }.feed-heading p { font-size:13px; } }
+@media(max-width:768px) { .feed-heading { flex-direction:column; align-items:flex-start; gap:16px; }.feed-tabs { width:100%; gap:26px; border-bottom:1px solid var(--border); }.curation-link { align-items:flex-start; flex-direction:column; margin-top:40px; }.feed-heading p { font-size:13px; }.feed-no { display:none; } }
 </style>
