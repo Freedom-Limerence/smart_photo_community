@@ -2,7 +2,14 @@
   <div class="user-layout">
     <PublicHeader />
     <div class="personal-shell container">
-      <div class="personal-heading"><span>MY SPACE / PHOTOGRAPHER</span><h1>{{ loginUser.userName || '我的摄影空间' }}</h1><p>{{ loginUser.userProfile || '记录生活中值得记住的光。' }}</p></div>
+      <div class="personal-heading">
+        <a-avatar :src="loginUser.userAvatar" :size="88" class="personal-avatar">{{ (loginUser.userName || '摄').slice(0, 1) }}</a-avatar>
+        <div class="personal-id">
+          <span>MY SPACE / PHOTOGRAPHER</span>
+          <h1>{{ loginUser.userName || '我的摄影空间' }}</h1>
+          <p>{{ loginUser.userProfile || '记录生活中值得记住的光。' }}</p>
+        </div>
+      </div>
       <nav class="personal-nav" aria-label="个人中心导航">
         <router-link v-for="item in items" :key="item.path" :to="item.path" :class="{ active: selected(item.path) }">{{ item.label }}</router-link>
       </nav>
@@ -34,7 +41,9 @@ function selected(path: string) { return path === '/me' ? route.path === '/me' :
 .personal-shell { flex: 1; }
 
 /* 个人中心头部：衬线大标题 + 眉标，超宽屏下与版心同宽 */
-.personal-heading { padding: var(--space-8) 0 var(--space-6); }
+.personal-heading { display: flex; align-items: center; gap: var(--space-5); padding: var(--space-8) 0 var(--space-6); }
+.personal-avatar { flex: 0 0 auto; font-family: var(--font-display); font-size: 34px; }
+.personal-id { min-width: 0; }
 .personal-heading span { color: var(--text-3); font-size: var(--font-1); font-weight: 600; letter-spacing: .22em; }
 .personal-heading h1 {
   margin: var(--space-3) 0 var(--space-1);
@@ -88,7 +97,14 @@ function selected(path: string) { return path === '/me' ? route.path === '/me' :
 .personal-content { min-height: 62vh; padding: var(--space-6) 0 var(--space-8); }
 
 @media (max-width: 700px) {
-  .personal-heading { padding: var(--space-6) 0 var(--space-5); }
+  .personal-heading { padding: var(--space-6) 0 var(--space-5); gap: var(--space-4); }
+  .personal-avatar { font-size: 24px; }
+  :deep(.personal-avatar.ant-avatar-88) { width: 64px !important; height: 64px !important; line-height: 64px !important; }
   .personal-content { padding-top: var(--space-5); }
+  /* 窄屏导航横向滚动：左右渐隐提示可滚动（4.2 #2） */
+  .personal-nav {
+    mask-image: linear-gradient(90deg, transparent 0, #000 var(--space-4), #000 calc(100% - var(--space-4)), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--space-4), #000 calc(100% - var(--space-4)), transparent 100%);
+  }
 }
 </style>

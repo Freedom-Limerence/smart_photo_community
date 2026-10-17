@@ -7,11 +7,8 @@
     <PublicHeader v-if="!isWorkDetail" />
     <AnnouncementBar v-if="!isWorkDetail" />
     <main id="main-content" class="public-main">
-      <router-view v-slot="{ Component, route }">
-        <transition name="page" mode="out-in">
-          <component :is="Component" :key="route.path" />
-        </transition>
-      </router-view>
+      <!-- 过渡只挂一次（4.1 #8）：页面级过渡统一由 App.vue 承担，布局内不再叠加 -->
+      <router-view />
     </main>
     <PublicFooter v-if="!isWorkDetail" />
     <!-- 全局悬浮 AI 助手：仅前台挂载，管理端不挂 -->

@@ -32,11 +32,8 @@
         </div>
       </header>
       <section class="admin-content">
-        <router-view v-slot="{ Component, route }">
-          <transition name="page" mode="out-in">
-            <component :is="Component" :key="route.path" />
-          </transition>
-        </router-view>
+        <!-- 过渡只挂一次（4.1 #8）：页面级过渡统一由 App.vue 承担 -->
+        <router-view />
       </section>
     </div>
   </div>
