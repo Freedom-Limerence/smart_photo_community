@@ -106,7 +106,7 @@ onMounted(() => fetchWorks())
 
 .discover-page { position:relative; padding-bottom:var(--space-8); }
 /* 品牌宣言（Lusion 式开场）：大字陈述 + 星尘粒子在字后漂浮 */
-.manifesto { position:relative; padding-top:clamp(72px,10vw,150px); padding-bottom:clamp(40px,5vw,84px); }
+.manifesto { position:relative; padding-top:clamp(14px,3vh,40px); padding-bottom:clamp(10px,2.2vh,26px); }
 .manifesto-line {
   position:relative; z-index:1;
   margin:0; max-width:22ch;
