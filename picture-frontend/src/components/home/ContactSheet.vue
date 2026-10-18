@@ -157,18 +157,18 @@ onBeforeUnmount(stopTimer)
 .contact-sheet { background: var(--surface-print); padding: 0 0 4px; outline: none; }
 .sheet-stage { position: relative; overflow: hidden; background: var(--stage); }
 .sheet-stage.is-empty { min-height: min(46vh, 420px); }
-.sheet-hero { display: block; width: 100%; height: min(78vh, 760px); object-fit: cover; cursor: pointer; animation: hero-drift 8s var(--ease, ease) forwards; }
+.sheet-hero { display: block; width: 100%; height: 100vh; height: 100svh; object-fit: cover; cursor: pointer; animation: hero-drift 8s var(--ease, ease) forwards; }
 @keyframes hero-drift { from { transform: scale(1.04); } to { transform: scale(1); } }
 
 /* 显影占位：暗场 + 缓慢扫过的高光，与印样的「显影」动效同语言 */
-.sheet-develop { display: grid; place-content: center; justify-items: center; gap: 18px; width: 100%; height: min(78vh, 760px); }
+.sheet-develop { display: grid; place-content: center; justify-items: center; gap: 18px; width: 100%; height: 100vh; height: 100svh; }
 .sheet-stage.is-empty .sheet-develop { height: min(46vh, 420px); }
 .sheet-develop strong { color: rgba(255, 255, 255, .5); font-family: var(--font-display); font-size: 15px; letter-spacing: .3em; }
 .develop-line { width: clamp(120px, 16vw, 220px); height: 1px; background: linear-gradient(to right, transparent, rgba(233, 239, 233, .55), transparent); animation: develop-sweep 2.4s var(--ease, ease) infinite; }
 @keyframes develop-sweep { 0% { transform: translateX(-60%); opacity: .2; } 50% { opacity: 1; } 100% { transform: translateX(60%); opacity: .2; } }
 
 .sheet-overlay { position: absolute; left: clamp(20px, 4vw, 64px); bottom: clamp(18px, 3vw, 44px); right: clamp(20px, 4vw, 64px); pointer-events: none; }
-.sheet-title { margin: 0 0 6px; font-family: var(--font-display); font-weight: 400; font-size: clamp(24px, 3.4vw, 52px); line-height: 1.06; letter-spacing: -.02em; color: #FFFFFF; text-shadow: 0 2px 24px rgba(0, 0, 0, .45); max-width: 22ch; }
+.sheet-title { margin: 0 0 6px; font-family: var(--font-display); font-weight: 400; font-size: clamp(28px, 4.4vw, 68px); line-height: 1.04; letter-spacing: -.02em; color: var(--text-media); text-shadow: 0 2px 24px rgba(0, 0, 0, .45); max-width: 22ch; }
 /* 逐字升起：blur + 上浮 + 微旋转，28ms 级联（reduced-motion 由 .kt 全局兜底） */
 .sheet-title .kt { display: inline-block; white-space: pre; animation: kt-in .62s cubic-bezier(.16, 1, .3, 1) both; }
 @keyframes kt-in { from { opacity: 0; transform: translateY(16px) rotate(2.5deg); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
@@ -201,7 +201,7 @@ onBeforeUnmount(stopTimer)
 .contact-sheet ::selection { background: var(--accent); color: #fff; }
 
 @media (max-width: 768px) {
-  .sheet-hero, .sheet-develop { height: 62vh; }
+  .sheet-hero, .sheet-develop { height: 72vh; height: 72svh; }
   .sheet-stage.is-empty .sheet-develop { height: 42vh; }
   .sheet-title { font-size: 24px; }
   .sheet-nav { display: none; }

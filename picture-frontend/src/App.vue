@@ -9,6 +9,16 @@
     <CommandPalette />
     <!-- 鼠标跟随光晕（motionsites 式氛围）：rAF 缓动追随光标 -->
     <div ref="glowEl" class="cursor-glow" aria-hidden="true"></div>
+    <!-- 自定义光标：圆环跟随，可点元素上放大填充（触屏不启用） -->
+    <div ref="ringEl" class="cursor-ring" aria-hidden="true"></div>
+    <!-- 首次进站编排：三字显影 → 幕布拉开（sessionStorage 记忆，只播一次） -->
+    <Transition name="curtain">
+      <div v-if="introOn" class="intro-curtain" aria-hidden="true" @click="endIntro">
+        <div class="intro-chars">
+          <span v-for="(ch, i) in ['光', '影', '集']" :key="ch" :style="{ animationDelay: i * 300 + 'ms' }">{{ ch }}</span>
+        </div>
+      </div>
+    </Transition>
   </a-config-provider>
 </template>
 
@@ -25,13 +35,29 @@ dayjs.locale('zh-cn')
 
 /** 鼠标跟随光晕：rAF 缓动追随（0.08 lerp），触屏与 reduced-motion 不启用 */
 const glowEl = ref<HTMLElement | null>(null)
+const ringEl = ref<HTMLElement | null>(null)
 let glowRaf = 0
+
+/** 首次进站编排：三字显影 → 幕布拉开（reduced-motion / 同 session 二次进入不播） */
+const introOn = ref(false)
+let introTimer = 0
+function endIntro() {
+  introOn.value = false
+  clearTimeout(introTimer)
+  try { sessionStorage.setItem('photo_intro_done', '1') } catch { /* ignore */ }
+}
 
 /** Lenis 平滑滚动（motionsites 手感的核心）：wheel 归一化 + lerp 追随；reduced-motion 不启用 */
 let lenis: any = null
 let lenisRaf = 0
 onMounted(() => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  let played = false
+  try { played = !!sessionStorage.getItem('photo_intro_done') } catch { /* ignore */ }
+  if (!reduced && !played) {
+    introOn.value = true
+    introTimer = window.setTimeout(endIntro, 2300)
+  }
   if (!reduced) {
     lenis = new Lenis({ lerp: 0.11, smoothWheel: true })
     const lenisLoop = (t: number) => { lenis.raf(t); lenisRaf = requestAnimationFrame(lenisLoop) }
@@ -60,9 +86,32 @@ onMounted(() => {
     cancelAnimationFrame(glowRaf)
     document.body.classList.remove('cursor-glow-on')
   }
+
+  // 自定义光标环：位置快追随（0.22 lerp），悬停可点元素放大填充
+  const ring = ringEl.value
+  if (ring) {
+    let rx = tx, ry = ty
+    const ringLoop = () => {
+      rx += (tx - rx) * 0.22
+      ry += (ty - ry) * 0.22
+      ring.style.transform = `translate(${rx.toFixed(1)}px, ${ry.toFixed(1)}px)`
+      requestAnimationFrame(ringLoop)
+    }
+    requestAnimationFrame(ringLoop)
+    const HOVER_SEL = 'a, button, [role=button], input, textarea, select, .frame-image, .hit-card'
+    const onOver = (e: MouseEvent) => {
+      const t = e.target as HTMLElement | null
+      document.body.classList.toggle('cursor-hover', !!t?.closest?.(HOVER_SEL))
+    }
+    window.addEventListener('mouseover', onOver, { passive: true })
+    ;(window as any)._ringCleanup = () => {
+      window.removeEventListener('mouseover', onOver)
+    }
+  }
 })
 onBeforeUnmount(() => {
   ;(window as any)._glowCleanup?.()
+  ;(window as any)._ringCleanup?.()
   if (lenis) { lenis.destroy(); cancelAnimationFrame(lenisRaf) }
 })
 </script>

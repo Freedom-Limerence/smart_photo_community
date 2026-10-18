@@ -25,7 +25,7 @@ import GlobalSider from '@/components/GlobalSider.vue'
   height: var(--header-h);
   padding: 0 var(--gutter);
   line-height: var(--header-h);
-  background: rgba(255, 255, 255, .9);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
   backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--border);
 }

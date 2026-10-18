@@ -35,13 +35,25 @@ function imageOf(w:any) { return w.coverUrl || w.pictures?.[0]?.url || w.thumbna
   .frame-image img { animation: frame-parallax linear both; animation-timeline: view(); animation-range: entry 0% cover 55%; }
   @keyframes frame-parallax { from { transform: translateY(-4%) scale(1.06); } to { transform: translateY(0) scale(1.02); } }
 }
-.frame-image:hover img { transform:scale(1.035); filter:saturate(1.05); }
+.frame-image:hover img { transform:scale(1.035); filter:saturate(1.05) brightness(.55); }
 .frame-action { position:absolute; left:16px; bottom:16px; display:flex; align-items:center; gap:24px; padding:11px 15px; background:var(--surface); color:var(--text-1); font-size:12px; opacity:0; transform:translateY(6px); transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease); }
 .frame-image:hover .frame-action,.frame-image:focus-visible .frame-action { opacity:1; transform:none; }
 .frame-count { position:absolute; right:12px; top:12px; padding:4px 8px; background:rgba(15,20,17,.75); color:white; font-size:12px; }
-.frame-caption { display:flex; justify-content:space-between; gap:12px; margin-top:12px; }.frame-caption h3 { font-family:var(--font-display); font-size:17px; font-weight:400; margin:0 0 4px; overflow-wrap:anywhere; }.frame-caption span { font-size:12px; color:var(--text-3); }
+.frame-caption {
+  position:absolute; left:0; right:0; bottom:0; z-index:2;
+  display:flex; justify-content:space-between; align-items:end; gap:12px;
+  padding:44px 20px 18px; margin:0;
+  background:linear-gradient(to top, rgba(10,10,12,.88), transparent);
+  opacity:0; transform:translateY(14px);
+  transition:opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  pointer-events:none;
+}
+.frame:hover .frame-caption, .frame:focus-within .frame-caption { opacity:1; transform:none; }
+.frame-caption h3 { font-family:var(--font-display); font-size:clamp(18px,1.8vw,26px); font-weight:400; margin:0 0 4px; overflow-wrap:anywhere; color:var(--text-media); }
+.frame-caption span { font-size:12px; color:color-mix(in srgb, var(--text-media) 50%, transparent,.66); }
 /* 编辑感编号：衬线淡色大字，压在卡片右下 */
-.frame-no { font-family:var(--font-display); font-size:clamp(20px,2vw,30px); line-height:1; color:var(--border-strong); font-variant-numeric:tabular-nums; }
+.frame-no { font-family:var(--font-display); font-size:clamp(20px,2vw,30px); line-height:1; color:color-mix(in srgb, var(--text-media) 50%, transparent,.5); font-variant-numeric:tabular-nums; }
 @media(max-width:768px) { .contact-feed { grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px 14px; }.lead,.panorama { grid-column:span 2; }.portrait,.third { grid-column:span 1; }.lead .frame-image { height:auto; aspect-ratio:1.35; }.portrait .frame-image,.third .frame-image { height:auto; aspect-ratio:.8; }.panorama .frame-image { aspect-ratio:1.6; }.frame-caption h3 { font-size:14px; }.frame-no { display:none; } }
-@media(hover:none) { .frame-action { opacity:1; transform:none; padding:7px 10px; left:10px; bottom:10px; }.frame-action .anticon { display:none; } }
+@media(hover:none) { .frame-action { opacity:1; transform:none; padding:7px 10px; left:10px; bottom:10px; }.frame-action .anticon { display:none; }
+  .frame-caption { opacity:1; transform:none; } }
 </style>

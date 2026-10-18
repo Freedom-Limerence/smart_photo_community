@@ -171,7 +171,7 @@ async function doLogout() {
   top: 0;
   z-index: 50;
   height: var(--header-h);
-  background: rgba(255, 255, 255, .88);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
   backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--border);
 }

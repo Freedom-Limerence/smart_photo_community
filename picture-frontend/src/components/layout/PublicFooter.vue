@@ -34,6 +34,9 @@
         </div>
       </div>
     </div>
+
+    <!-- 巨型品牌字：描边签名式收尾（获奖站标配） -->
+    <div class="footer-giant" aria-hidden="true" v-reveal>光影集</div>
   </footer>
 </template>
 
@@ -110,4 +113,19 @@ const year = new Date().getFullYear()
   .footer-inner { grid-template-columns: 1fr; gap: var(--space-5); padding-top: var(--space-6); }
   .footer-brand { align-items: center; }
 }
+.footer-giant {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  font-family: var(--font-display);
+  font-size: clamp(88px, 17vw, 300px);
+  line-height: .82;
+  text-align: center;
+  letter-spacing: .04em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(237, 237, 234, .13);
+  user-select: none;
+  transition: color .6s var(--ease, ease), -webkit-text-stroke-color .6s var(--ease, ease);
+}
+.footer-giant:hover { color: rgba(237, 237, 234, .05); -webkit-text-stroke-color: rgba(143, 163, 148, .3); }
 </style>

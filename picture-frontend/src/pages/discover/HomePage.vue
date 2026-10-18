@@ -42,6 +42,7 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { ArrowDownOutlined, ArrowRightOutlined } from '@ant-design/icons-vue'
 import ContactFeed from '@/components/home/ContactFeed.vue'
+import HomeScrollytelling from '@/components/home/HomeScrollytelling.vue'
 import ContactSheet from '@/components/home/ContactSheet.vue'
 import CardSkeleton from '@/components/common/CardSkeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -59,6 +60,7 @@ const error = ref('')
 const activeTab = ref('latest')
 const tabs = [{value:'latest',label:'最新发现'}, {value:'hot',label:'热门作品'}, {value:'following',label:'我的关注'}]
 const featuredWorks = computed(() => works.value.filter(w => w.coverUrl || w.pictures?.[0]?.url).slice(0,6))
+const marqueeWords = ['人像', '街拍', '长曝光', '山与海', '人文纪事', '夜景', '胶片', '晨光', '几何', '自然光']
 let fetchVersion = 0
 function openWork(work: any) { if(work?.id) router.push('/works/' + work.id) }
 function selectTab(value: string) {
@@ -138,4 +140,26 @@ onMounted(() => fetchWorks())
 .curation-link p { color:var(--text-2); margin:10px 0 0; }
 .curation-link a { display:flex; gap:24px; align-items:center; padding:14px 0; border-bottom:1px solid var(--text-1); white-space:nowrap; }
 @media(max-width:768px) { .feed-heading { flex-direction:column; align-items:flex-start; gap:16px; }.feed-tabs { width:100%; gap:26px; border-bottom:1px solid var(--border); }.curation-link { align-items:flex-start; flex-direction:column; margin-top:40px; }.feed-heading p { font-size:13px; }.feed-no { display:none; } }
+/* 无限跑马灯带（motionsites 式氛围件）：悬停减速 */
+.marquee {
+  margin-top: clamp(56px, 7vw, 110px);
+  overflow: hidden;
+  border-block: 1px solid var(--border);
+  padding: clamp(14px, 1.6vw, 24px) 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, 1) 8%, rgba(0, 0, 0, 1) 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, rgba(0, 0, 0, 1) 8%, rgba(0, 0, 0, 1) 92%, transparent);
+}
+.marquee-track { display: flex; width: max-content; animation: marquee-roll 30s linear infinite; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.marquee-seq { display: flex; align-items: center; flex: 0 0 auto; }
+.marquee-seq em {
+  font: 400 clamp(20px, 2.6vw, 38px)/1 var(--font-display);
+  font-style: normal;
+  color: var(--text-3);
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.marquee-seq i { font-style: normal; color: var(--accent); font-size: .5em; margin: 0 clamp(18px, 2.4vw, 40px); transform: translateY(-4px); }
+@keyframes marquee-roll { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
 </style>
