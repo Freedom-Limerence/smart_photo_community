@@ -51,18 +51,19 @@ withDefaults(
 .page-head-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--font-7);
+  /* 画廊级大字（2026-10-18）：内页标题与首页编辑排版同语言 */
+  font-size: clamp(34px, 3.8vw, 58px);
   font-weight: 400;
   letter-spacing: -.02em;
-  line-height: 1.25;
+  line-height: 1.18;
 }
 
-.page-head-desc { margin: var(--space-2) 0 0; color: var(--text-2); font-size: var(--font-3); }
+.page-head-desc { margin: var(--space-3) 0 0; color: var(--text-2); font-size: var(--font-3); max-width: 52ch; }
 .page-head-body { margin-top: var(--space-4); }
 .page-head-actions { display: flex; align-items: center; gap: var(--space-3); flex: 0 0 auto; padding-bottom: 2px; }
 
 .size-lg { padding-bottom: var(--space-6); }
-.size-lg .page-head-title { font-size: var(--font-8); }
+.size-lg .page-head-title { font-size: clamp(44px, 5.5vw, 84px); line-height: 1.1; }
 
 .align-center { flex-direction: column; align-items: center; text-align: center; }
 .align-center .page-head-main { display: flex; flex-direction: column; align-items: center; }
