@@ -53,6 +53,8 @@ if (!existsSync(baselinePath)) {
 }
 
 const baseline = JSON.parse(readFileSync(baselinePath, 'utf8'))
+const targetsPath = join(root, 'scripts', 'design-gate-targets.json')
+const targets = existsSync(targetsPath) ? JSON.parse(readFileSync(targetsPath, 'utf8')) : null
 const regressions = []
 if (current.hex > baseline.hex) regressions.push(`hex: ${baseline.hex} -> ${current.hex}（+${current.hex - baseline.hex}）`)
 if (current.smallFont > baseline.smallFont) regressions.push(`smallFont: ${baseline.smallFont} -> ${current.smallFont}（+${current.smallFont - baseline.smallFont}）`)
@@ -67,6 +69,12 @@ if (regressions.length) {
 // 通过：棘轮下降——基线永远等于历史最好成绩
 writeFileSync(baselinePath, JSON.stringify(current, null, 2) + '\n')
 const improved = []
+if (targets) {
+  const gap = (k) => Math.max(0, (baseline[k] || 0) - (targets[k] || 0))
+  console.log('[design-gate] 目标进度（不阻塞提交，仅提示）:')
+  console.log('  hex      ' + current.hex + ' / 目标 ' + targets.hex + (current.hex <= targets.hex ? '  ✅ 已达标' : '  （还需 -' + gap('hex') + '）'))
+  console.log('  smallFont ' + current.smallFont + ' / 目标 ' + targets.smallFont + (current.smallFont <= targets.smallFont ? '  ✅ 已达标' : '  （还需 -' + gap('smallFont') + '）'))
+}
 if (current.hex < baseline.hex - 0) improved.push(`hex ${baseline.hex}→${current.hex}`)
 if (current.smallFont < baseline.smallFont) improved.push(`smallFont ${baseline.smallFont}→${current.smallFont}`)
 console.log(`[design-gate] ✓ 通过：hex=${current.hex}, smallFont=${current.smallFont}${improved.length ? '（改善：' + improved.join(', ') + '）' : ''}`)
