@@ -19,16 +19,27 @@ import 'dayjs/locale/zh-cn'
 import { antdTheme } from '@/config/antdTheme'
 import CommandPalette from '@/components/layout/CommandPalette.vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import Lenis from 'lenis'
 
 dayjs.locale('zh-cn')
 
 /** 鼠标跟随光晕：rAF 缓动追随（0.08 lerp），触屏与 reduced-motion 不启用 */
 const glowEl = ref<HTMLElement | null>(null)
 let glowRaf = 0
+
+/** Lenis 平滑滚动（motionsites 手感的核心）：wheel 归一化 + lerp 追随；reduced-motion 不启用 */
+let lenis: any = null
+let lenisRaf = 0
 onMounted(() => {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!reduced) {
+    lenis = new Lenis({ lerp: 0.11, smoothWheel: true })
+    const lenisLoop = (t: number) => { lenis.raf(t); lenisRaf = requestAnimationFrame(lenisLoop) }
+    lenisRaf = requestAnimationFrame(lenisLoop)
+  }
   const el = glowEl.value
   if (!el) return
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (reduced) return
   if (!window.matchMedia('(hover: hover)').matches) return
   let tx = window.innerWidth / 2, ty = window.innerHeight / 3
   let x = tx, y = ty, started = false
@@ -50,7 +61,10 @@ onMounted(() => {
     document.body.classList.remove('cursor-glow-on')
   }
 })
-onBeforeUnmount(() => (window as any)._glowCleanup?.())
+onBeforeUnmount(() => {
+  ;(window as any)._glowCleanup?.()
+  if (lenis) { lenis.destroy(); cancelAnimationFrame(lenisRaf) }
+})
 </script>
 
 <style>

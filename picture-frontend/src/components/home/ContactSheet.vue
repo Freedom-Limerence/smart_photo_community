@@ -17,7 +17,9 @@
 
       <!-- 悬浮在画面边缘的标题 / 作者 / 收藏 -->
       <div class="sheet-overlay">
-        <h1 class="sheet-title">{{ active?.title || (loading ? '正在显影' : '等待第一组作品') }}</h1>
+        <h1 class="sheet-title" :key="active?.id || 'empty'" aria-label="active?.title || (loading ? '正在显影' : '等待第一组作品')">
+          <span v-for="(ch, i) in titleChars" :key="i" class="kt" :style="{ animationDelay: i * 28 + 'ms' }" aria-hidden="true">{{ ch }}</span>
+        </h1>
         <p class="sheet-by">{{ active?.author?.userName || (loading ? '' : '摄影师') }}</p>
       </div>
 
@@ -68,6 +70,11 @@ const favorited = ref(false)
 const sheetRef = ref<HTMLElement | null>(null)
 
 const active = computed(() => props.works[index.value] || null)
+
+/** 标题逐字拆分（motionsites 式 kinetic type）：换片即重放 */
+const titleChars = computed(() =>
+  String(active.value?.title || (props.loading ? '正在显影' : '等待第一组作品')).split(''),
+)
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 function heroOf(work: any) {
@@ -162,6 +169,9 @@ onBeforeUnmount(stopTimer)
 
 .sheet-overlay { position: absolute; left: clamp(20px, 4vw, 64px); bottom: clamp(18px, 3vw, 44px); right: clamp(20px, 4vw, 64px); pointer-events: none; }
 .sheet-title { margin: 0 0 6px; font-family: var(--font-display); font-weight: 400; font-size: clamp(24px, 3.4vw, 52px); line-height: 1.06; letter-spacing: -.02em; color: #FFFFFF; text-shadow: 0 2px 24px rgba(0, 0, 0, .45); max-width: 22ch; }
+/* 逐字升起：blur + 上浮 + 微旋转，28ms 级联（reduced-motion 由 .kt 全局兜底） */
+.sheet-title .kt { display: inline-block; white-space: pre; animation: kt-in .62s cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes kt-in { from { opacity: 0; transform: translateY(16px) rotate(2.5deg); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
 .sheet-by { margin: 0; color: rgba(255, 255, 255, .82); font-size: 13px; letter-spacing: .04em; }
 .sheet-fav { position: absolute; top: 20px; right: 20px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid rgba(255, 255, 255, .28); border-radius: 999px; background: rgba(32, 38, 33, .42); backdrop-filter: blur(10px); color: #fff; font-size: 13px; cursor: pointer; transition: background .22s cubic-bezier(.16, 1, .3, 1), border-color .22s; }
 .sheet-fav:hover { background: rgba(32, 38, 33, .68); border-color: var(--accent); }
@@ -200,5 +210,6 @@ onBeforeUnmount(stopTimer)
 @media (prefers-reduced-motion: reduce) {
   .develop-line { animation: none; }
   .sheet-hero { animation: none; }
+  .sheet-title .kt { animation: none; }
 }
 </style>

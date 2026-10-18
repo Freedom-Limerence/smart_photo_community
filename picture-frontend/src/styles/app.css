@@ -228,9 +228,10 @@ h1, h2, h3, h4 { color: var(--text-1); }
 /* ------------------------------------------------------------
    页面切换过渡
    ------------------------------------------------------------ */
-.page-enter-active, .page-leave-active { transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
-.page-enter-from { opacity: 0; transform: translateY(10px); }
-.page-leave-to { opacity: 0; transform: translateY(-6px); }
+#app { perspective: 1400px; }
+.page-enter-active, .page-leave-active { transition: opacity .5s var(--ease, ease), transform .5s var(--ease, ease), filter .5s var(--ease, ease); }
+.page-enter-from { opacity: 0; transform: perspective(1400px) rotateX(2.5deg) translateY(22px) scale(.985); filter: blur(8px); }
+.page-leave-to { opacity: 0; transform: perspective(1400px) rotateX(-1.5deg) translateY(-12px) scale(.995); filter: blur(4px); }
 
 /* ------------------------------------------------------------
    可达性：键盘焦点环 + 减弱动效偏好
@@ -307,9 +308,18 @@ body.wall-focus .ai-chat-dock { display: none; }
   transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
   transition-delay: var(--reveal-delay, 0ms);
 }
+.will-reveal-clip { clip-path: inset(8% 5% 92% 5% round 10px); opacity: .001; }
+.is-revealed.will-reveal-clip {
+  clip-path: inset(0 0 0 0 round 10px);
+  opacity: 1;
+  transform: none;
+  transition: clip-path .9s var(--ease, ease), opacity .5s ease;
+  transition-delay: var(--reveal-delay, 0ms);
+}
 @media (prefers-reduced-motion: reduce) {
   .will-reveal { opacity: 1; transform: none; }
   .is-revealed { transition: none; }
+  .will-reveal-clip { clip-path: none; opacity: 1; }
 }
 
 /* —— 胶片颗粒（暗色画廊氛围层）：极低透明度覆盖全站，指针穿透 —— */

@@ -1,6 +1,6 @@
 <template>
   <div class="contact-feed">
-    <article v-for="(item, i) in works" :key="item.id" v-reveal="(i % 6) * 60" v-tilt="5" class="frame" :class="frameClass(i)">
+    <article v-for="(item, i) in works" :key="item.id" v-reveal:clip="(i % 6) * 60" v-tilt="5" class="frame" :class="frameClass(i)">
       <button type="button" class="frame-image" :aria-label="'欣赏作品：' + (item.title || '未命名作品')" @click="emit('open',item)">
         <img :src="imageOf(item)" :alt="item.title || '摄影作品'" loading="lazy" decoding="async" />
         <span class="frame-action">欣赏作品 <ArrowRightOutlined /></span>

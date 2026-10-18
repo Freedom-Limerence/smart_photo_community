@@ -22,6 +22,13 @@ test.describe('首页', () => {
 
   test('点作品卡可进入详情', async ({ page }) => {
     await page.goto('/')
+    const firstFrame = page.locator('.contact-feed .frame').first()
+    // Lenis 平滑滚动接管原生 scrollIntoView，用真实滚轮滚动触发揭示
+    await page.mouse.wheel(0, 900)
+    await page.waitForTimeout(300)
+    await page.mouse.wheel(0, 600)
+    // clip-path 揭示完成后中心点才可命中
+    await expect(firstFrame).toHaveClass(/is-revealed/, { timeout: 15_000 })
     await page.locator('.contact-feed .frame .frame-image').first().click()
     await expect(page).toHaveURL(/\/works\/\d+/)
     await expect(page.locator('.stage-img')).toBeVisible()
