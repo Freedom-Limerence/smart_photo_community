@@ -150,7 +150,8 @@ onBeforeUnmount(stopTimer)
 .contact-sheet { background: var(--surface-print); padding: 0 0 4px; outline: none; }
 .sheet-stage { position: relative; overflow: hidden; background: var(--stage); }
 .sheet-stage.is-empty { min-height: min(46vh, 420px); }
-.sheet-hero { display: block; width: 100%; height: min(78vh, 760px); object-fit: cover; cursor: pointer; }
+.sheet-hero { display: block; width: 100%; height: min(78vh, 760px); object-fit: cover; cursor: pointer; animation: hero-drift 8s var(--ease, ease) forwards; }
+@keyframes hero-drift { from { transform: scale(1.04); } to { transform: scale(1); } }
 
 /* 显影占位：暗场 + 缓慢扫过的高光，与印样的「显影」动效同语言 */
 .sheet-develop { display: grid; place-content: center; justify-items: center; gap: 18px; width: 100%; height: min(78vh, 760px); }
@@ -198,5 +199,6 @@ onBeforeUnmount(stopTimer)
 
 @media (prefers-reduced-motion: reduce) {
   .develop-line { animation: none; }
+  .sheet-hero { animation: none; }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div class="tag-page">
-    <header class="tag-hero">
+    <header v-reveal class="tag-hero">
       <div class="container">
         <PageHeader eyebrow="TAG" :title="'# ' + tag"
                     :description="mode === 'work' ? '含该标签的作品（组图与文案）' : `共 ${total} 张带有该标签的公开图片`">

@@ -1,6 +1,6 @@
 <template>
   <div class="photographer-page">
-    <header class="profile-band">
+    <header v-reveal class="profile-band">
       <div class="container profile-block">
         <a-avatar :src="user.userAvatar" :size="104" class="profile-avatar">{{ avatarText }}</a-avatar>
 
