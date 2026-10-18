@@ -32,6 +32,13 @@
         <b>{{ pad(index + 1) }}</b><i>/</i>{{ pad(works.length) }}
       </div>
 
+      <!-- SCROLL TO EXPLORE 引导 + 四角十字（Lusion 式） -->
+      <div class="sheet-explore" aria-hidden="true">
+        <i class="cross tl">+</i><i class="cross tr">+</i>
+        <span class="explore-text">SCROLL TO EXPLORE<i class="explore-arrow">↓</i></span>
+        <i class="cross bl">+</i><i class="cross br">+</i>
+      </div>
+
       <div v-if="works.length > 1" class="sheet-nav">
         <button type="button" aria-label="上一张" @click="step(-1)"><LeftOutlined /></button>
         <button type="button" :aria-label="playing ? '暂停轮播' : '播放轮播'" :aria-pressed="!playing" @click="playing = !playing">
@@ -154,14 +161,23 @@ onBeforeUnmount(stopTimer)
 </script>
 
 <style scoped>
-.contact-sheet { background: var(--surface-print); padding: 0 0 4px; outline: none; }
-.sheet-stage { position: relative; overflow: hidden; background: var(--stage); }
+.contact-sheet {
+  background: transparent;
+  padding: 0 clamp(12px, 2vw, 28px) 4px;
+  outline: none;
+}
+.sheet-stage {
+  position: relative;
+  overflow: hidden;
+  background: var(--stage);
+  border-radius: clamp(14px, 2vw, 26px);
+}
 .sheet-stage.is-empty { min-height: min(46vh, 420px); }
-.sheet-hero { display: block; width: 100%; height: 100vh; height: 100svh; object-fit: cover; cursor: pointer; animation: hero-drift 8s var(--ease, ease) forwards; }
+.sheet-hero { display: block; width: 100%; height: calc(100svh - clamp(24px, 4vw, 56px)); object-fit: cover; cursor: pointer; animation: hero-drift 8s var(--ease, ease) forwards; }
 @keyframes hero-drift { from { transform: scale(1.04); } to { transform: scale(1); } }
 
 /* 显影占位：暗场 + 缓慢扫过的高光，与印样的「显影」动效同语言 */
-.sheet-develop { display: grid; place-content: center; justify-items: center; gap: 18px; width: 100%; height: 100vh; height: 100svh; }
+.sheet-develop { display: grid; place-content: center; justify-items: center; gap: 18px; width: 100%; height: calc(100svh - clamp(24px, 4vw, 56px)); }
 .sheet-stage.is-empty .sheet-develop { height: min(46vh, 420px); }
 .sheet-develop strong { color: rgba(255, 255, 255, .5); font-family: var(--font-display); font-size: 15px; letter-spacing: .3em; }
 .develop-line { width: clamp(120px, 16vw, 220px); height: 1px; background: linear-gradient(to right, transparent, rgba(233, 239, 233, .55), transparent); animation: develop-sweep 2.4s var(--ease, ease) infinite; }
@@ -191,6 +207,23 @@ onBeforeUnmount(stopTimer)
 .sheet-strip img { display: block; width: clamp(84px, 11vw, 148px); height: clamp(56px, 7vw, 96px); object-fit: cover; }
 .sheet-strip em { position: absolute; left: 6px; bottom: 4px; font-style: normal; font-size: 10px; color: #fff; letter-spacing: .06em; text-shadow: 0 1px 6px rgba(0, 0, 0, .6); }
 .sheet-strip li.on em { color: var(--accent-soft); }
+
+.sheet-explore { position: absolute; inset: 18px; pointer-events: none; }
+.sheet-explore .cross { position: absolute; font-style: normal; color: rgba(255, 255, 255, .5); font-size: 15px; font-weight: 300; }
+.sheet-explore .cross.tl { top: 6px; left: 10px; }
+.sheet-explore .cross.tr { top: 6px; right: 10px; }
+.sheet-explore .cross.bl { bottom: 6px; left: 10px; }
+.sheet-explore .cross.br { bottom: 6px; right: 10px; }
+.explore-text {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 10px;
+  color: rgba(255, 255, 255, .62);
+  font-size: 12px; letter-spacing: .32em; text-indent: .32em;
+  white-space: nowrap;
+}
+.explore-arrow { font-style: normal; animation: explore-nudge 2s ease-in-out infinite; }
+@keyframes explore-nudge { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(4px); opacity: 1; } }
+@media (max-width: 768px) { .sheet-explore .cross { display: none; } }
 
 .reveal-enter-active { transition: clip-path .72s cubic-bezier(.16, 1, .3, 1), filter .72s cubic-bezier(.16, 1, .3, 1); }
 .reveal-leave-active { transition: opacity .28s ease; position: absolute; inset: 0; }

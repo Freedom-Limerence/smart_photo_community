@@ -2,6 +2,15 @@
   <div class="discover-page">
     <!-- 顶部极光光雾：暗色画廊的"动态背景"层（缓慢漂移，纯氛围） -->
     <div class="aurora" aria-hidden="true"></div>
+
+    <!-- 品牌宣言开场（Lusion 式）：三行大字陈述 + 粒子星尘 -->
+    <section class="manifesto container">
+      <HomeParticles />
+      <p class="manifesto-line" v-reveal>
+        我们为热爱摄影的人，
+        <em>建造一间永不打烊的画廊</em>。
+      </p>
+    </section>
     <ContactSheet v-if="mode === 'home'" :works="featuredWorks" :loading="loading && !works.length" @open="openWork" />
     <section id="works-feed" class="feed container" style="position:relative; z-index:1;">
       <header v-reveal class="feed-heading">
@@ -43,6 +52,7 @@ import { message } from 'ant-design-vue'
 import { ArrowDownOutlined, ArrowRightOutlined } from '@ant-design/icons-vue'
 import ContactFeed from '@/components/home/ContactFeed.vue'
 import HomeScrollytelling from '@/components/home/HomeScrollytelling.vue'
+import HomeParticles from '@/components/home/HomeParticles.vue'
 import ContactSheet from '@/components/home/ContactSheet.vue'
 import CardSkeleton from '@/components/common/CardSkeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
@@ -90,6 +100,17 @@ onMounted(() => fetchWorks())
 </script>
 <style scoped>
 .discover-page { position:relative; padding-bottom:var(--space-8); }
+/* 品牌宣言（Lusion 式开场）：大字陈述 + 星尘粒子在字后漂浮 */
+.manifesto { position:relative; padding-top:clamp(72px,10vw,150px); padding-bottom:clamp(40px,5vw,84px); }
+.manifesto-line {
+  position:relative; z-index:1;
+  margin:0; max-width:22ch;
+  font:400 clamp(30px,4.2vw,66px)/1.28 var(--font-display);
+  letter-spacing:-.02em;
+  color:var(--text-1);
+  text-wrap:balance;
+}
+.manifesto-line em { font-style:normal; color:var(--accent-hover); }
 /* 极光光雾：两只柔光缓慢呼吸漂移（motionsites 式动态背景，subtle 不抢戏） */
 .aurora {
   position:absolute; top:-140px; left:0; right:0; height:560px;
