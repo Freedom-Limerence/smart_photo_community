@@ -1,10 +1,11 @@
 <template>
-  <div class="discover-page">
+  <div class="discover-page" :class="'mode-' + mode">
     <!-- 顶部极光光雾：暗色画廊的"动态背景"层（缓慢漂移，纯氛围） -->
     <div class="aurora" aria-hidden="true"></div>
 
     <!-- 品牌宣言开场（Lusion 式）：三行大字陈述 + 粒子星尘 -->
-    <section class="manifesto container">
+    <!-- 品牌宣言只属于首页；社区页以内容开场，避免两个入口看到同一画面 -->
+    <section v-if="mode === 'home'" class="manifesto container">
       <HomeParticles />
       <p class="manifesto-line" v-reveal>
         我们为热爱摄影的人，
@@ -19,7 +20,7 @@
           <div>
             <h1 v-if="mode === 'community'">每一种<em>视角</em>，都值得被看见。</h1>
             <h2 v-else>在光影里，<em>遇见</em>彼此。</h2>
-            <p>{{ mode === 'community' ? '走进摄影师的作品，发现世界的另一面。' : '从城市漫游到自然光景，看看大家正在记录什么。' }}</p>
+            <p>{{ mode === 'community' ? (total ? total + ' 件公开作品 · ' : '') + '走进摄影师的世界，发现另一面。' : '从城市漫游到自然光景，看看大家正在记录什么。' }}</p>
           </div>
         </div>
         <div class="feed-tabs" role="group" aria-label="作品排序与范围">
@@ -99,6 +100,10 @@ async function fetchWorks(page = 1) {
 onMounted(() => fetchWorks())
 </script>
 <style scoped>
+/* 社区页：没有大宣言，内容提前进场 */
+.mode-community .feed { padding-top: clamp(24px, 4vw, 48px); }
+.mode-community .aurora { opacity: .55; }
+
 .discover-page { position:relative; padding-bottom:var(--space-8); }
 /* 品牌宣言（Lusion 式开场）：大字陈述 + 星尘粒子在字后漂浮 */
 .manifesto { position:relative; padding-top:clamp(72px,10vw,150px); padding-bottom:clamp(40px,5vw,84px); }
