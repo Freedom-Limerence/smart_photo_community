@@ -8,8 +8,8 @@
     <section v-if="mode === 'home'" class="manifesto container">
       <HomeParticles />
       <p class="manifesto-line" v-reveal>
-        我们为热爱摄影的人，
-        <em>建造一间永不打烊的画廊</em>。
+        我们为热爱摄影的人，<br />
+        <em><span class="nb">建造</span>一间永不打烊的画廊</em>。
       </p>
     </section>
     <ContactSheet v-if="mode === 'home'" :works="featuredWorks" :loading="loading && !works.length" @open="openWork" />
@@ -115,6 +115,8 @@ onMounted(() => fetchWorks())
   color:var(--text-1);
   text-wrap:balance;
 }
+.manifesto-line { text-wrap: balance; }
+.manifesto-line .nb { white-space: nowrap; }
 .manifesto-line em { font-style:normal; color:var(--accent-hover); }
 /* 极光光雾：两只柔光缓慢呼吸漂移（motionsites 式动态背景，subtle 不抢戏） */
 .aurora {
@@ -140,6 +142,7 @@ onMounted(() => fetchWorks())
 @keyframes aurora-b { from { transform:translate(0,0) scale(1.1); } to { transform:translate(-100px,40px) scale(.95); } }
 @media (prefers-reduced-motion: reduce) { .aurora::before, .aurora::after { animation:none; } }
 .feed { padding-top:clamp(36px,5vw,80px); }
+.feed-intro h1, .feed-intro h2 { text-wrap: balance; }
 .feed-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:36px; }
 /* 编辑式大字（视觉冲击力专项）：章节编号 + 超大衬线标题 + 强调字 */
 .feed-intro { display:flex; align-items:flex-start; gap:clamp(16px,2vw,32px); min-width:0; }

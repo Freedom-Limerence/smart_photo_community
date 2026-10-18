@@ -28,3 +28,7 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Playwright 运行残留
+test-results/
+playwright-report/
