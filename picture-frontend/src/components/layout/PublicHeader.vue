@@ -1,7 +1,7 @@
 <template>
   <header class="public-header">
     <div class="header-inner">
-      <router-link to="/" class="brand">
+      <router-link to="/discover" class="brand">
         <span class="brand-mark">光</span>
         <span class="brand-text">
           <strong>光影集</strong>

@@ -11,9 +11,21 @@ import { expect, test } from '@playwright/test'
  * 选择器优先用语义角色/文本，避免依赖实现细节。
  */
 
+test.describe('入口页', () => {
+  test('首页是电影感入口页（无公共导航壳），可进入社区', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.locator('.landing')).toBeVisible()
+    await expect(page.locator('.landing-manifesto')).toContainText(/画廊/)
+    await expect(page.locator('.public-header')).toHaveCount(0)
+    await page.getByRole('button', { name: /进入社区/ }).first().click()
+    await expect(page).toHaveURL(/\/discover$/)
+    await expect(page.locator('.public-header')).toBeVisible()
+  })
+})
+
 test.describe('首页', () => {
   test('hero 印样与作品 feed 均渲染', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/discover')
     await expect(page.locator('.contact-sheet')).toBeVisible()
     await expect(page.locator('.sheet-title')).toBeVisible()
     await expect(page.locator('.feed-heading h2, .feed-heading h1')).toContainText(/光影|视角/)
@@ -21,7 +33,7 @@ test.describe('首页', () => {
   })
 
   test('点作品卡可进入详情', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/discover')
     const firstFrame = page.locator('.contact-feed .frame').first()
     // Lenis 平滑滚动接管原生 scrollIntoView，用真实滚轮滚动触发揭示
     await page.mouse.wheel(0, 900)

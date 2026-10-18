@@ -11,6 +11,7 @@ const AdminLayout = () => import('@/layouts/AdminLayout.vue')
 
 // ---- 发现与社区（公共布局）----
 import DiscoverHomePage from '@/pages/discover/HomePage.vue'
+const LandingPage = () => import('@/pages/LandingPage.vue')
 const PhotoCommunityPage = () => import('@/pages/PhotoCommunityPage.vue')
 const WorkDetailPage = () => import('@/pages/work/WorkDetailPage.vue')
 const PhotographerPage = () => import('@/pages/photographer/PhotographerPage.vue')
@@ -81,7 +82,8 @@ const router = createRouter({
       path: '/',
       component: PublicLayout,
       children: [
-        { path: '', name: 'discover', component: DiscoverHomePage, meta: { title: '发现' } },
+        { path: '', name: 'landing', component: LandingPage, meta: { title: '光影集 · 摄影创作社区', bare: true } },
+    { path: 'discover', name: 'discover', component: DiscoverHomePage, meta: { title: '发现' } },
         { path: 'community', name: 'community', component: PhotoCommunityPage, meta: { title: '作品社区' } },
         { path: 'works/:id', name: 'work-detail', component: WorkDetailPage, props: true, meta: { title: '作品详情' } },
         { path: 'photographers/:id', name: 'photographer', component: PhotographerPage, props: true, meta: { title: '摄影师主页' } },

@@ -4,15 +4,15 @@
     <a class="skip-link" href="#main-content">跳到主要内容</a>
     <!-- 摄影演示模式提示条：仅开发环境 ?demo=photography 时显示 -->
     <PhotographyPreviewBar />
-    <PublicHeader v-if="!isWorkDetail" />
-    <AnnouncementBar v-if="!isWorkDetail" />
+    <PublicHeader v-if="!isWorkDetail && !isBare" />
+    <AnnouncementBar v-if="!isWorkDetail && !isBare" />
     <main id="main-content" class="public-main">
       <!-- 过渡只挂一次（4.1 #8）：页面级过渡统一由 App.vue 承担，布局内不再叠加 -->
       <router-view />
     </main>
-    <PublicFooter v-if="!isWorkDetail" />
+    <PublicFooter v-if="!isWorkDetail && !isBare" />
     <!-- 全局悬浮 AI 助手：仅前台挂载，管理端不挂 -->
-    <AiChatDock v-if="!isWorkDetail" />
+    <AiChatDock v-if="!isWorkDetail && !isBare" />
   </div>
 </template>
 
@@ -26,6 +26,7 @@ import PhotographyPreviewBar from '@/components/layout/PhotographyPreviewBar.vue
 import AiChatDock from '@/components/chat/AiChatDock.vue'
 const route = useRoute()
 const isWorkDetail = computed(() => route.name === 'work-detail')
+const isBare = computed(() => !!route.meta.bare)
 </script>
 
 <style scoped>
