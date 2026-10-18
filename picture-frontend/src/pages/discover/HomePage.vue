@@ -1,7 +1,9 @@
 <template>
   <div class="discover-page">
+    <!-- 顶部极光光雾：暗色画廊的"动态背景"层（缓慢漂移，纯氛围） -->
+    <div class="aurora" aria-hidden="true"></div>
     <ContactSheet v-if="mode === 'home'" :works="featuredWorks" :loading="loading && !works.length" @open="openWork" />
-    <section id="works-feed" class="feed container">
+    <section id="works-feed" class="feed container" style="position:relative; z-index:1;">
       <header v-reveal class="feed-heading">
         <div class="feed-intro">
           <span class="feed-no" aria-hidden="true">N°01</span>
@@ -85,7 +87,30 @@ async function fetchWorks(page = 1) {
 onMounted(() => fetchWorks())
 </script>
 <style scoped>
-.discover-page { padding-bottom:var(--space-8); }
+.discover-page { position:relative; padding-bottom:var(--space-8); }
+/* 极光光雾：两只柔光缓慢呼吸漂移（motionsites 式动态背景，subtle 不抢戏） */
+.aurora {
+  position:absolute; top:-140px; left:0; right:0; height:560px;
+  pointer-events:none; z-index:0; overflow:hidden;
+  opacity:.85;
+}
+.aurora::before, .aurora::after {
+  content:''; position:absolute; width:640px; height:640px; border-radius:50%;
+  filter:blur(90px); will-change:transform;
+}
+.aurora::before {
+  left:8%; top:-120px;
+  background:radial-gradient(circle, rgba(143,163,148,.16), transparent 65%);
+  animation: aurora-a 26s ease-in-out infinite alternate;
+}
+.aurora::after {
+  right:6%; top:-180px;
+  background:radial-gradient(circle, rgba(194,168,120,.10), transparent 65%);
+  animation: aurora-b 32s ease-in-out infinite alternate;
+}
+@keyframes aurora-a { from { transform:translate(0,0) scale(1); } to { transform:translate(120px,60px) scale(1.15); } }
+@keyframes aurora-b { from { transform:translate(0,0) scale(1.1); } to { transform:translate(-100px,40px) scale(.95); } }
+@media (prefers-reduced-motion: reduce) { .aurora::before, .aurora::after { animation:none; } }
 .feed { padding-top:clamp(36px,5vw,80px); }
 .feed-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:36px; }
 /* 编辑式大字（视觉冲击力专项）：章节编号 + 超大衬线标题 + 强调字 */

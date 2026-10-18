@@ -325,3 +325,20 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   body::after { opacity: .025; }
 }
+
+
+/* —— 鼠标跟随光晕（motionsites 式 spotlight）：暗底上的柔和手电筒 —— */
+.cursor-glow {
+  position: fixed;
+  top: 0; left: 0;
+  width: 560px; height: 560px;
+  margin: -280px 0 0 -280px;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .6s var(--ease, ease);
+  background: radial-gradient(circle, rgba(143, 163, 148, .075), transparent 62%);
+  mix-blend-mode: screen;
+}
+body.cursor-glow-on .cursor-glow { opacity: 1; }
+@media (hover: none) { .cursor-glow { display: none; } }

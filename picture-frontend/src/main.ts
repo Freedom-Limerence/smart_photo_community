@@ -9,6 +9,7 @@ import 'vue-cropper/dist/index.css'
 import 'ant-design-vue/dist/reset.css'
 import '@/access.ts'
 import { vReveal } from './directives/reveal'
+import { vTilt } from './directives/tilt'
 
 const app = createApp(App)
 
@@ -17,5 +18,6 @@ app.use(router)
 app.use(Antd)
 app.use(VueCropper)
 app.directive('reveal', vReveal)
+app.directive('tilt', vTilt)
 
 app.mount('#app')
