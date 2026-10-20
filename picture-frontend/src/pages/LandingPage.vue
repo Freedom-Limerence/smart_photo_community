@@ -274,7 +274,7 @@ onBeforeUnmount(() => {
 .hero-index .live { display: inline-flex; align-items: center; gap: 6px; color: var(--accent-hover); }
 .hero-index .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-hover); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1) } 50% { opacity: .35; transform: scale(.7) } }
-.scroll-cue { position: absolute; left: clamp(20px, 6vw, 96px); bottom: 26px; font-size: 11px; letter-spacing: .18em; color: var(--text-3); }
+.scroll-cue { position: absolute; left: clamp(20px, 6vw, 96px); bottom: 26px; font-size: 12px; letter-spacing: .18em; color: var(--text-3); }
 .scroll-cue::after { content: ''; display: block; width: 1px; height: 30px; margin-top: 8px;
   background: linear-gradient(to bottom, var(--border-strong), transparent); animation: drip 2.4s ease-in-out infinite; }
 @keyframes drip { 0%,100% { opacity: .3; transform: scaleY(.6) } 50% { opacity: 1; transform: scaleY(1) } }
@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
   transition: opacity .3s var(--ease), transform .3s var(--ease); }
 .feat:hover .feat-cap, .feat.wide .feat-cap { opacity: 1; transform: none; }
 .feat-cap strong { font-size: 14px; font-weight: 500; }
-.feat-cap span { font-size: 11px; color: var(--text-3); }
+.feat-cap span { font-size: 12px; color: var(--text-3); }
 .cap-list { list-style: none; margin: 32px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cap-list li { display: flex; gap: 18px; padding: 26px 0; border-top: 1px solid var(--border); }
 .cap-no { color: var(--accent-hover); font-size: 12px; letter-spacing: .12em; padding-top: 4px; }
@@ -310,7 +310,7 @@ onBeforeUnmount(() => {
 .cap-list p { margin: 0; color: var(--text-2); font-size: 13.5px; line-height: 1.85; max-width: 40ch; }
 .landing-end { text-align: center; padding-bottom: 64px; }
 .landing-end .landing-cta { justify-content: center; margin-top: 26px; }
-.landing-foot { margin: 56px 0 0; color: var(--text-3); font-size: 11px; letter-spacing: .16em; }
+.landing-foot { margin: 56px 0 0; color: var(--text-3); font-size: 12px; letter-spacing: .16em; }
 
 @media (prefers-reduced-motion: reduce) {
   .tilefade-enter-active, .tilefade-leave-active { transition: none; }
