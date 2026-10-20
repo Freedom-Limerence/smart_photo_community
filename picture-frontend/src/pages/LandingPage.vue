@@ -26,7 +26,7 @@
 
     <!-- ④ 动态首屏：逐行动力学宣言 + 滚动视差 -->
     <section class="landing-hero" :style="parallax">
-      <p class="landing-manifesto">
+      <p class="landing-manifesto" data-scrub-words>
         <span class="kline" style="--d: .05s"><span>我们为热爱摄影的人，</span></span>
         <span class="kline" style="--d: .28s"><span><em>建造</em>一间永不打烊的画廊。</span></span>
       </p>
@@ -34,7 +34,7 @@
         保存原图与拍摄信息，把一组影像发布成作品，<br />让它被看见、被讨论、被策展。
       </p>
       <div class="landing-cta" v-reveal="520">
-        <a-button type="primary" size="large" class="enter-btn" @click="enterGuest">
+        <a-button type="primary" size="large" class="enter-btn" data-magnetic @click="enterGuest">
           进入社区 <ArrowRightOutlined />
         </a-button>
         <a-button size="large" class="ghost-btn" @click="goLogin">登录后发布作品</a-button>

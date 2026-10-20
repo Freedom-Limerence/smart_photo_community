@@ -36,7 +36,7 @@
     </div>
 
     <!-- 巨型品牌字：描边签名式收尾（获奖站标配） -->
-    <div class="footer-giant" aria-hidden="true" v-reveal>光影集</div>
+    <div class="footer-giant" aria-hidden="true" data-scrub-fade>光影集</div>
   </footer>
 </template>
 

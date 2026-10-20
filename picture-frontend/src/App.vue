@@ -29,7 +29,7 @@ import 'dayjs/locale/zh-cn'
 import { antdTheme } from '@/config/antdTheme'
 import CommandPalette from '@/components/layout/CommandPalette.vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import Lenis from 'lenis'
+import { initMotion, getLenis } from './motion'
 
 dayjs.locale('zh-cn')
 
@@ -47,9 +47,7 @@ function endIntro() {
   try { sessionStorage.setItem('photo_intro_done', '1') } catch { /* ignore */ }
 }
 
-/** Lenis 平滑滚动（motionsites 手感的核心）：wheel 归一化 + lerp 追随；reduced-motion 不启用 */
-let lenis: any = null
-let lenisRaf = 0
+
 onMounted(() => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   let played = false
@@ -58,10 +56,10 @@ onMounted(() => {
     introOn.value = true
     introTimer = window.setTimeout(endIntro, 2300)
   }
+  // 电影级动效系统（gsap ticker 驱动 Lenis，与 ScrollTrigger 帧同步）
+  initMotion()
   if (!reduced) {
-    lenis = new Lenis({ lerp: 0.11, smoothWheel: true })
-    const lenisLoop = (t: number) => { lenis.raf(t); lenisRaf = requestAnimationFrame(lenisLoop) }
-    lenisRaf = requestAnimationFrame(lenisLoop)
+    // Lenis 由 motion/index.ts 的 gsap ticker 驱动
   }
   const el = glowEl.value
   if (!el) return
@@ -112,7 +110,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   ;(window as any)._glowCleanup?.()
   ;(window as any)._ringCleanup?.()
-  if (lenis) { lenis.destroy(); cancelAnimationFrame(lenisRaf) }
 })
 </script>
 

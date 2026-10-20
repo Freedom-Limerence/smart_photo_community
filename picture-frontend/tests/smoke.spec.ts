@@ -60,6 +60,8 @@ test.describe('作品详情', () => {
 test.describe('登录与后台', () => {
   test('e2e-admin 登录成功并进入后台看板', async ({ page }) => {
     await page.goto('/user/login')
+    // 进站幕布（每会话一次）会短暂覆盖全屏，等它退场再交互
+    await page.waitForSelector('.intro-curtain', { state: 'detached', timeout: 8_000 }).catch(() => {})
     const inputs = page.locator('.ant-input')
     await inputs.nth(0).fill('e2e-admin')
     await inputs.nth(1).fill('e2e123456')
@@ -75,6 +77,8 @@ test.describe('登录与后台', () => {
 
   test('后台菜单分组渲染', async ({ page }) => {
     await page.goto('/user/login')
+    // 进站幕布（每会话一次）会短暂覆盖全屏，等它退场再交互
+    await page.waitForSelector('.intro-curtain', { state: 'detached', timeout: 8_000 }).catch(() => {})
     const inputs = page.locator('.ant-input')
     await inputs.nth(0).fill('e2e-admin')
     await inputs.nth(1).fill('e2e123456')

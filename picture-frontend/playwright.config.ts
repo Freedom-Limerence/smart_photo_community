@@ -7,6 +7,7 @@ import { defineConfig } from '@playwright/test'
  */
 export default defineConfig({
   testDir: './tests',
+  outputDir: 'C:/Users/无妄生欢/AppData/Local/Temp/pw-results',
   timeout: 45_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
