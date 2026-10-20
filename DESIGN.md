@@ -1,7 +1,62 @@
+# 视觉基调定稿（2026-10-19 · 与 17 确认）
+
+> 本章为视觉方向唯一权威；下方旧章节如与本章冲突，以本章为准。
+> 审美锚点：motionsites.ai / lusion.co / activetheory.net —— 动效沉浸风，非安静编辑风。
+
+## 影调
+- **前台 = 暗色画廊**：`#0B0B0C` 底，照片主导，chrome 隐形（黑盒子画廊逻辑，同 Lightroom/VSCO）。
+- **后台管理 = 亮色**（AdminLayout `data-theme="light"`）：数据密集场景保持功能性，**刻意与前台差异化**。
+
+## 适用范围（重要）
+**精致感全套（暗色影调 + 大字排版 + 全套动效）只作用于门面页：**
+- ✅ 首页（`/` 电影级着陆页 + `/discover` 发现页）
+- ✅ 作品画廊页（社区/作品流）
+- ✅ 作品详情页（沉浸舞台已就位）
+- ✅ 关于页
+
+**❌ 完全豁免：后台管理员管理页（/admin/**）**——不暗色、不动效、只做功能性优化（表格、表单、效率优先）。个人中心/设置等工具页取中间态：跟随暗色令牌但不加电影动效。
+
+## 动效 token（来自 cinematic-gsap-lenis-motion-system skill，已实现于 src/motion/index.ts）
+- 缓动：仅 `power3.out` / `power4.out` / `expo.out`；禁 bounce/elastic/spring
+- 滚动联动：`scrub: 1`；揭示触发：`start: "top 82%"`
+- 文字 stagger：词 0.035-0.07s，行 0.08-0.14s；卡片 0.06-0.1s
+- Lenis：lerp 0.09，由 `gsap.ticker` 驱动（src/motion/index.ts）
+- 挂载方式：声明式 data 属性——`data-magnetic`（磁吸 CTA）、`data-scrub-fade`（区块入场）、`data-scrub-words`（大字滚动显影）、`v-reveal`/`v-reveal:clip`（滚动显现）、`v-tilt`（3D 倾斜）
+- 降级铁律：所有动效门控 `hover: hover` + `prefers-reduced-motion`
+
+## 五条铁律
+1. 一页一个标志性瞬间，其余全部克制
+2. 排版尺度差要极端（84px 大字 × 12px 眉标）
+3. 动效只动 transform / opacity / filter（合成层，60fps）
+4. 缓动只用 power3 / power4 / expo.out
+5. 每个动效都有降级
+
+## 四技能工作流（每次开发页面按此循环）
+1. **frontend-design** 定方向（情绪/字体/色彩 60-30-10/骨架）
+2. **cinematic-scroll-storytelling** 定结构（页面分幕，每幕一个瞬间）
+3. **cinematic-gsap-lenis-motion-system** 做动效（token 统一 + data 属性）
+4. **impeccable** 终审（对比度/网格/降级/空态）→ `npm run verify` + `npm run test:smoke`
+
+---
+
 ---
 name: 光影集
 description: 兼顾摄影创作、作品发现与策展的影像工作室视觉系统
 colors:
+  # —— 暗色画廊定稿（2026-10-19）：前台默认即此套 ——
+  gallery-bg: "#0B0B0C"
+  gallery-surface: "#141416"
+  gallery-surface-2: "#1A1A1C"
+  gallery-text: "#EDEDEA"
+  gallery-text-2: "#A8A8A2"
+  gallery-text-3: "#82827E"
+  gallery-accent: "#8FA394"
+  gallery-accent-hover: "#A3B6A8"
+  gallery-accent-ink: "#C9D3CB"
+  gallery-text-media: "#F2F4F1"
+  gallery-border: "rgba(255, 255, 255, .08)"
+  gallery-border-strong: "rgba(255, 255, 255, .16)"
+  # —— 亮色套：仅后台管理页使用（AdminLayout data-theme=light）——
   primary-misty-grey-green: "#7C8B7F"
   primary-hover: "#6B7A6E"
   primary-ink: "#4F5F53"
