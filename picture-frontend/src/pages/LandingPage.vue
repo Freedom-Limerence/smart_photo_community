@@ -1,9 +1,14 @@
 <template>
   <div class="landing">
-    <!-- ① 动态背景层：真实作品 Ken Burns 交叉轮播 + 色调遮罩 -->
+    <!-- ① 动态背景层：真实作品马赛克墙——12 块瓦片随机交叉换图，画面永远在流动 -->
     <div class="hero-media" aria-hidden="true">
-      <div v-for="(w, i) in heroSlides" :key="w.id" class="hero-slide"
-           :style="{ backgroundImage: 'url(' + thumbOf(w) + ')', animationDuration: (5.4 * heroSlides.length) + 's', animationDelay: (5.4 * i) + 's' }" />
+      <div class="mosaic">
+        <div v-for="(t, i) in tiles" :key="i" class="tile">
+          <transition name="tilefade">
+            <img :key="t.src + t.pos" :src="t.src" :style="{ objectPosition: t.pos }" alt="" />
+          </transition>
+        </div>
+      </div>
       <div class="hero-veil" />
     </div>
 
@@ -116,6 +121,37 @@ const scrollY = ref(0)
 let raf = 0
 
 const heroSlides = computed(() => (allWorks.value.length ? allWorks.value : featured.value).slice(0, 5))
+
+/** 动态图片墙：12 块瓦片承接全部真实作品，随机两块定时交叉淡入换图 */
+const tiles = ref<{ src: string; pos: string }[]>([])
+const TILE_POS = ['50% 30%', '30% 60%', '62% 38%', '50% 55%', '26% 26%', '74% 72%', '40% 45%', '58% 28%']
+let swapTimer = 0
+
+function buildTiles() {
+  const srcs = heroSlides.value.map(thumbOf).filter(Boolean)
+  if (!srcs.length) return
+  tiles.value = Array.from({ length: 12 }, (_, i) => ({
+    src: srcs[i % srcs.length],
+    pos: TILE_POS[i % TILE_POS.length],
+  }))
+}
+
+function startSwaps() {
+  if (reduced || swapTimer || !tiles.value.length) return
+  swapTimer = window.setInterval(() => {
+    if (document.hidden) return
+    const srcs = heroSlides.value.map(thumbOf).filter(Boolean)
+    if (srcs.length < 2) return
+    for (let k = 0; k < 2; k++) {
+      const i = Math.floor(Math.random() * tiles.value.length)
+      const cur = tiles.value[i].src
+      let next = srcs[Math.floor(Math.random() * srcs.length)]
+      let guard = 0
+      while (next === cur && guard++ < 6) next = srcs[Math.floor(Math.random() * srcs.length)]
+      if (next !== cur) tiles.value[i] = { ...tiles.value[i], src: next }
+    }
+  }, 2600)
+}
 const parallax = computed(() => (reduced ? {} : {
   transform: 'translate3d(0,' + Math.min(scrollY.value * 0.12, 120) + 'px,0)',
   opacity: String(Math.max(0, 1 - scrollY.value / 720)),
@@ -153,6 +189,8 @@ onMounted(async () => {
       allWorks.value = recs
       featured.value = recs.slice(0, 5)
       total.value = Number(res.data.data?.total || recs.length)
+      buildTiles()
+      startSwaps()
     }
   } catch { /* 保持空态 */ }
   if (!reduced) {
@@ -164,6 +202,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onMove)
   window.removeEventListener('scroll', onScroll)
   if (raf) cancelAnimationFrame(raf)
+  if (swapTimer) clearInterval(swapTimer)
 })
 </script>
 
@@ -172,6 +211,13 @@ onBeforeUnmount(() => {
 
 /* ① 背景轮播 */
 .hero-media { position: absolute; inset: 0 0 auto 0; height: 100svh; overflow: hidden; }
+.mosaic { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 2px; }
+.tile { position: relative; overflow: hidden; background: var(--surface-2); }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: opacity, transform; }
+.tilefade-enter-active { transition: opacity 1.1s var(--ease), transform 7s linear; }
+.tilefade-enter-from { opacity: 0; transform: scale(1.09); }
+.tilefade-leave-active { transition: opacity 1.1s var(--ease); position: absolute; inset: 0; }
+.tilefade-leave-to { opacity: 0; }
 .hero-slide { position: absolute; inset: 0; background-size: cover; background-position: center;
   opacity: 0; transform: scale(1.04); animation-name: heroCycle; animation-timing-function: ease-in-out; animation-iteration-count: infinite; will-change: opacity, transform; }
 @keyframes heroCycle {
@@ -267,6 +313,7 @@ onBeforeUnmount(() => {
 .landing-foot { margin: 56px 0 0; color: var(--text-3); font-size: 11px; letter-spacing: .16em; }
 
 @media (prefers-reduced-motion: reduce) {
+  .tilefade-enter-active, .tilefade-leave-active { transition: none; }
   .hero-slide { animation: none; opacity: 1; }
   .hero-slide + .hero-slide { display: none; }
   .landing-aurora, .marquee-track, .scroll-cue::after, .hero-index .live i { animation: none; }
@@ -274,6 +321,7 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 900px) {
   .landing-nav .ghost { display: none; }
+  .mosaic { grid-template-columns: repeat(3, 1fr); }
   .featured-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .feat, .feat.wide { grid-column: span 1; }
   .cap-list { grid-template-columns: 1fr; }
