@@ -27,6 +27,10 @@
 
       <div class="footer-col footer-legal">
         <p class="col-title">说明与合规</p>
+        <router-link to="/showcase">关于 · 设计系统</router-link>
+        <router-link to="/wall">今日影像大屏</router-link>
+        <router-link to="/showcase">关于 · 设计系统</router-link>
+        <router-link to="/wall">今日影像大屏</router-link>
         <p class="legal-line">本站为学习与毕业设计演示，作品版权归原作者所有。</p>
         <div class="footer-meta">
           <span>© {{ year }} 光影集</span>

@@ -176,7 +176,8 @@ const router = createRouter({
     { path: '/admin/pictureManage', redirect: '/admin/pictures' },
     { path: '/admin/spaceManage', redirect: '/admin/spaces' },
     { path: '/spaceUserManage/:id', redirect: (to) => '/admin/spaceUser/' + to.params.id },
-    { path: '/about', redirect: '/' },
+    { path: '/about', redirect: '/showcase' },
+    { path: '/showcase', name: 'showcase', component: () => import('@/pages/showcase/ShowcasePage.vue'), meta: { title: '关于 · 设计系统' } },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

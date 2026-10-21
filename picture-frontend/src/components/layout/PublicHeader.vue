@@ -105,7 +105,7 @@ const loginUser = computed(() => loginUserStore.loginUser || ({} as any))
 const avatarText = computed(() => (loginUser.value.userName || '光').slice(0, 1))
 
 const navItems: any[] = [
-  { label: '发现', path: '/' },
+  { label: '发现', path: '/discover' },
   { label: '作品社区', path: '/community' },
   { label: '专题展览', path: '/exhibitions' },
   {
