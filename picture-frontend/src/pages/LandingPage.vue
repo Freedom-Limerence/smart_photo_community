@@ -77,6 +77,19 @@
       </div>
     </section>
 
+    <!-- ⑤.5 三维照片星环：12 幅真实作品漂浮成 3D 星环（懒加载 three chunk） -->
+    <section class="cosmos-section">
+      <div class="cosmos-head" v-reveal>
+        <span class="eyebrow">3D GALLERY / 三维展厅</span>
+        <h2>走进<em>立体</em>的作品星环</h2>
+        <p>12 幅作品漂浮在三维空间里，移动鼠标环视它们——这就是本站全部影像的形状。</p>
+      </div>
+      <div ref="cosmosHost" class="cosmos-host">
+        <canvas ref="cosmosCanvas" class="cosmos-canvas" aria-label="三维照片星环交互展示" />
+        <p v-if="cosmosFallback" class="cosmos-fallback">三维展厅需要 WebGL 支持——你看到的是静态回退。</p>
+      </div>
+    </section>
+
     <!-- ⑦ 能力列表 + 收尾 CTA -->
     <section class="landing-capabilities">
       <h2>这里能做的<em>四件事</em></h2>
@@ -181,6 +194,27 @@ function onMove(e: MouseEvent) {
 }
 function onScroll() { scrollY.value = window.scrollY || document.documentElement.scrollTop || 0 }
 
+const cosmosHost = ref<HTMLElement | null>(null)
+const cosmosCanvas = ref<HTMLCanvasElement | null>(null)
+const cosmosFallback = ref(false)
+let cosmosDispose: (() => void) | null = null
+let cosmosStarted = false
+let cosmosIo: IntersectionObserver | null = null
+
+async function startCosmos() {
+  if (cosmosStarted || !cosmosCanvas.value) return
+  cosmosStarted = true
+  try {
+    const { createPhotoCosmos } = await import('@/three/photoCosmos')
+    const urls = (featured.value.length ? featured.value : allWorks.value).map(thumbOf).filter(Boolean)
+    if (urls.length < 2) { cosmosFallback.value = true; return }
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    cosmosDispose = createPhotoCosmos(cosmosCanvas.value, urls, { reduced }).dispose
+  } catch {
+    cosmosFallback.value = true
+  }
+}
+
 onMounted(async () => {
   try {
     const res: any = await listWorks({ current: 1, size: 8, sort: 'hot' })
@@ -197,8 +231,17 @@ onMounted(async () => {
     window.addEventListener('mousemove', onMove, { passive: true })
     window.addEventListener('scroll', onScroll, { passive: true })
   }
+  cosmosIo = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) {
+      cosmosIo?.disconnect()
+      void startCosmos()
+    }
+  }, { rootMargin: '200px' })
+  if (cosmosHost.value) cosmosIo.observe(cosmosHost.value)
 })
 onBeforeUnmount(() => {
+  cosmosIo?.disconnect()
+  cosmosDispose?.()
   window.removeEventListener('mousemove', onMove)
   window.removeEventListener('scroll', onScroll)
   if (raf) cancelAnimationFrame(raf)
@@ -328,4 +371,20 @@ onBeforeUnmount(() => {
   .scroll-cue { display: none; }
   .landing-hero { min-height: auto; padding-top: 40px; }
 }
+
+/* 三维照片星环 */
+.cosmos-section { position: relative; z-index: 3; padding: clamp(56px, 8vw, 120px) 0 0; }
+.cosmos-head { padding: 0 clamp(20px, 6vw, 96px); }
+.cosmos-head h2 { margin: 0 0 10px; font-family: var(--font-display); font-weight: 400;
+  font-size: clamp(26px, 3.4vw, 52px); letter-spacing: -.02em; }
+.cosmos-head h2 em { font-style: normal; color: var(--accent-hover); }
+.cosmos-head p { margin: 0; color: var(--text-2); max-width: 56ch; }
+.cosmos-host {
+  position: relative; margin-top: clamp(20px, 2.6vw, 36px);
+  height: clamp(380px, 62vh, 640px);
+  border-block: 1px solid var(--border);
+  background: radial-gradient(80% 90% at 50% 40%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 70%);
+}
+.cosmos-canvas { display: block; width: 100%; height: 100%; }
+.cosmos-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-3); font-size: 13px; margin: 0; }
 </style>
