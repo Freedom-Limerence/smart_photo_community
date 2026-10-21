@@ -58,8 +58,8 @@
           </div>
 
           <MasonryGrid v-if="works.length" :items="works">
-            <template #default="{ item }">
-              <div class="piece">
+            <template #default="{ item, index }">
+              <div class="piece" v-reveal:clip="(index % 3) * 80">
                 <WorkCard :work="item" :ratio="ratioOf(item)" @open="openWork" />
                 <p v-if="captions[String(item.id)]" class="caption">
                   <span class="quote">“</span>{{ captions[String(item.id)] }}
@@ -317,6 +317,11 @@ watch(() => route.params.id, load)
   .cover, .cover-inner { min-height: 300px; }
   .cover-inner h1 { font-size: var(--font-7); }
 }
+
+/* 展签侧滑：展品揭示后，策展语从右侧滑入（铁律 4 缓动） */
+.piece .caption { transition: transform .7s cubic-bezier(.16, 1, .3, 1) .15s, opacity .5s ease .15s; }
+.piece:not(.is-revealed) .caption { opacity: 0; transform: translateX(26px); }
+@media (prefers-reduced-motion: reduce) { .piece .caption { transition: none; } .piece:not(.is-revealed) .caption { opacity: 1; transform: none; } }
 </style>
 
 onBeforeUnmount(() => { if (clock !== null) window.clearInterval(clock) })
