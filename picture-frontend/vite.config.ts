@@ -20,4 +20,8 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  build: {
+    // WorkBuddy 沙箱内回收站二进制清 dist 会 ETIMEDOUT；hash 文件名无覆盖风险
+    emptyOutDir: false,
+  },
 })

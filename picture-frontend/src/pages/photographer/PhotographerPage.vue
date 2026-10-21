@@ -17,7 +17,7 @@
         </div>
 
         <div class="profile-actions">
-          <a-button v-if="!isSelf" :type="followed ? 'default' : 'primary'" size="large" @click="toggleFollow">
+          <a-button v-if="!isSelf" data-magnetic :type="followed ? 'default' : 'primary'" size="large" @click="toggleFollow">
             {{ followed ? '已关注' : '+ 关注' }}
           </a-button>
           <a-button v-else size="large" @click="router.push('/me/profile')">编辑资料</a-button>
@@ -206,14 +206,16 @@ watch(() => route.params.id, load)
   padding-bottom: var(--space-7);
   flex-wrap: wrap;
 }
-.profile-avatar { flex: 0 0 auto; box-shadow: 0 0 0 4px var(--surface-2); }
+.profile-avatar { flex: 0 0 auto; box-shadow: 0 0 0 3px var(--bg), 0 0 0 4px var(--accent); }
 .profile-main { flex: 1 1 320px; min-width: 0; }
-.profile-eyebrow { color: var(--text-3); font-size: 10px; font-weight: 600; letter-spacing: .2em; }
+.profile-eyebrow { color: var(--text-3); font-size: 12px; font-weight: 600; letter-spacing: .2em; }
 .profile-main h1 {
   margin: var(--space-2) 0 var(--space-2);
   font-family: var(--font-display);
-  font-size: var(--font-8);
+  font-size: clamp(40px, 5vw, 76px);
   font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -.02em;
   letter-spacing: -.02em;
   line-height: 1.2;
 }
@@ -221,7 +223,7 @@ watch(() => route.params.id, load)
 
 .stats { display: flex; flex-wrap: wrap; gap: var(--space-6); color: var(--text-2); font-size: var(--font-2); }
 .stats > * { display: inline-flex; align-items: baseline; gap: 6px; }
-.stats strong { color: var(--text-1); font-size: var(--font-5); font-weight: 500; }
+.stats strong { color: var(--text-1); font: 400 clamp(20px, 2vw, 28px)/1 var(--font-display); font-variant-numeric: tabular-nums; }
 .stats a:hover strong { color: var(--accent-ink); }
 
 .profile-actions { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
