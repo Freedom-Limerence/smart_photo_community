@@ -26,7 +26,7 @@
                    :description="lastTask.errorMessage || ('provider: ' + lastTask.provider)" />
         </a-card>
 
-        <a-card class="mt16" title="② 摄影元数据（人工复核）" size="small">
+        <a-card class="mt16" title="② 摄影元数据（人工复核）" size="small" v-reveal:clip>
           <a-spin :spinning="loadingMeta">
             <template v-if="meta">
               <a-descriptions bordered :column="1" size="small">
@@ -53,7 +53,7 @@
       </a-col>
 
       <a-col :xs="24" :lg="15">
-        <a-card title="③ 我的编目任务" size="small">
+        <a-card title="③ 我的编目任务" size="small" v-reveal>
           <template #extra>
             <a-select v-model:value="statusFilter" style="width: 130px" :options="statusOptions" @change="loadTasks" />
             <a-button type="link" @click="loadTasks">刷新</a-button>

@@ -19,7 +19,7 @@
           <span v-for="n in 24" :key="n" class="skeleton tag-skeleton" />
         </section>
         <section v-else-if="filteredTags.length" class="tag-cloud">
-          <router-link v-for="tag in filteredTags" :key="tag" class="tag-item" :to="'/tags/' + encodeURIComponent(tag)">
+          <router-link v-for="(tag, i) in filteredTags" :key="tag" v-reveal="(i % 8) * 40" class="tag-item" :to="'/tags/' + encodeURIComponent(tag)">
             # {{ tag }}
           </router-link>
         </section>

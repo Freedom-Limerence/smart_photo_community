@@ -31,7 +31,8 @@
         <ErrorState v-if="error" :description="error" @retry="load()" />
         <CardSkeleton v-else-if="loading && !pictures.length" variant="masonry" :count="8" ratio="72%" />
         <MasonryGrid v-else-if="pictures.length" :items="pictures" key-field="id">
-          <template #default="{ item }">
+          <template #default="{ item, index }">
+            <div v-reveal:clip="(index % 3) * 80">
             <article class="pic-card media-card hover-lift" tabindex="0" @click="router.push('/picture/' + item.id)" @keydown.enter="router.push('/picture/' + item.id)">
               <LazyImage :src="item.thumbnailUrl || item.url" :ratio="ratioOf(item)" :alt="item.name" />
               <div class="pic-body">
@@ -41,6 +42,7 @@
                 </div>
               </div>
             </article>
+            </div>
           </template>
         </MasonryGrid>
         <EmptyState v-else-if="!error" title="还没有该标签下的公开图片" description="去社区逛逛，发现更多同主题创作。">

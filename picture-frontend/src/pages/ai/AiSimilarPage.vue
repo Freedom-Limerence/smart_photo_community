@@ -29,7 +29,7 @@
     <a-spin :spinning="loading">
       <a-card v-for="group in groups" :key="group.groupId" class="mt16" size="small" :title="group.groupId + ' · ' + group.reason">
         <a-row :gutter="16">
-          <a-col v-for="pic in group.pictures" :key="pic.id" :xs="24" :sm="12" :lg="6">
+          <a-col v-for="(pic, i) in group.pictures" :key="pic.id" v-reveal="(i % 4) * 70" :xs="24" :sm="12" :lg="6">
             <a-card class="shot-card" size="small" :class="{ recommended: String(pic.id) === String(group.recommendPictureId) }">
               <img v-if="pic.thumbnailUrl || pic.url" :src="pic.thumbnailUrl || pic.url" class="thumb" alt="" />
               <div class="shot-body">
@@ -99,4 +99,7 @@ h1 { margin: 0 0 6px; font-size: 26px; }
 .thumb { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; }
 .shot-body { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; font-size: 12px; }
 .muted { color: var(--text-3); }
+
+/* 相似组收束：卡片从微缩态聚拢到位（v-reveal 驱动） */
+a-col { will-change: transform, opacity; }
 </style>

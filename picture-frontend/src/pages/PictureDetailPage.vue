@@ -18,7 +18,7 @@
             </a-space>
           </template>
 
-          <div class="preview-wrap">
+          <div class="preview-wrap" v-reveal:clip>
             <a-image :src="picture.url" :fallback="picture.thumbnailUrl" class="preview-img" />
           </div>
 

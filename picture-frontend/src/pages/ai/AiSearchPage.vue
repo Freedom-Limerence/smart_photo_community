@@ -24,8 +24,8 @@
 
     <a-spin :spinning="loading">
       <a-row v-if="results.length" :gutter="16" class="mt16">
-        <a-col v-for="item in results" :key="item.pictureId" :xs="24" :sm="12" :lg="8">
-          <a-card class="result-card" size="small" hoverable>
+        <a-col v-for="(item, i) in results" :key="item.pictureId" v-reveal:clip="(i % 3) * 80" :xs="24" :sm="12" :lg="8">
+          <a-card class="result-card ai-scan" :style="{ '--scan-delay': (i * 0.12) + 's' }" size="small" hoverable>
             <img v-if="item.thumbnailUrl || item.url" :src="item.thumbnailUrl || item.url" alt="" class="thumb" />
             <div class="result-body">
               <strong>{{ item.name || ('图片 #' + item.pictureId) }}</strong>
@@ -108,4 +108,15 @@ h1 { margin: 0 0 6px; font-size: 26px; }
 .meta { font-size: 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .label { color: var(--text-3); }
 .muted { color: #b6c2ba; }
+
+/* AI 命中扫光：结果卡揭示后一道高亮扫过（每卡错峰，一次即止） */
+.ai-scan { position: relative; overflow: hidden; }
+.ai-scan::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 42%, color-mix(in srgb, var(--accent) 22%, transparent) 50%, transparent 58%);
+  transform: translateX(-120%);
+  animation: ai-sweep 1.3s var(--ease) forwards; animation-delay: var(--scan-delay, 0s);
+}
+@keyframes ai-sweep { to { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) { .ai-scan::after { animation: none; } }
 </style>
