@@ -7,7 +7,7 @@
           v-if="selectedWork"
           :key="selectedWork.id"
           class="hero-backdrop"
-          :src="thumbOf(selectedWork)"
+          :src="backdropSrc"
           :alt="selectedWork.title || '作品背景'"
         />
       </transition>
@@ -159,6 +159,14 @@ function toggleGallery() {
   galleryHidden.value = !galleryHidden.value
   watchGalleryHidden()
 }
+/** 全屏背景必须用原图（1600px），缩略图 256px 拉满屏会糊 */
+const backdropSrc = computed(() => {
+  const w = selectedWork.value
+  if (!w) return ''
+  const p = w.pictures?.[0]
+  return p?.url || p?.thumbnailUrl || w?.coverUrl || ''
+})
+
 function handlePick(i: number) {
   if (i < 0 || i >= ringWorks.value.length) return
   activeIdx.value = i
@@ -253,14 +261,15 @@ onBeforeUnmount(() => {
 .hero-media { position: absolute; inset: 0 0 auto 0; height: 100svh; overflow: hidden; }
 
 /* 被选作品 Ken Burns 大背景（点击星环卡片切换） */
-.hero-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: backdropDrift 26s var(--ease, ease) infinite alternate; will-change: transform, opacity; }
-@keyframes backdropDrift { from { transform: scale(1.02) translate3d(0, 0, 0); } to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); } }
+.hero-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: backdropDrift 26s var(--ease, ease) infinite alternate; will-change: transform, opacity; image-rendering: -webkit-optimize-contrast; image-rendering: high-quality; }
+@keyframes backdropDrift { from { transform: scale(1.02) translate3d(0, 0, 0); } to { transform: scale(1.08) translate3d(-1.2%, -0.8%, 0); } }
 .backdropfade-enter-active { transition: opacity 1.1s cubic-bezier(.16, 1, .3, 1), transform 26s linear; }
 .backdropfade-enter-from { opacity: 0; }
 .backdropfade-leave-active { transition: opacity 1.1s cubic-bezier(.16, 1, .3, 1); position: absolute; inset: 0; }
 .backdropfade-leave-to { opacity: 0; }
 .hero-veil-deep { background: rgba(0, 0, 0, .5); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); transition: background .8s var(--ease), backdrop-filter .8s var(--ease), opacity .8s var(--ease); }
-.gallery-hidden .hero-veil-deep { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.gallery-hidden .hero-veil-deep { background: rgba(0, 0, 0, .08); backdrop-filter: none !important; -webkit-backdrop-filter: none !important; filter: none; }
+.gallery-hidden .hero-backdrop { filter: none !important; }
 .gallery-hidden .hero-backdrop { animation-play-state: paused; }
 
 /* 3D 星环画布铺满首屏（在背景之上、宣言之下） */
