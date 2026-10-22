@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { toProxyUrl } from '@/utils'
 
 /**
  * 三维照片星环（着陆页标志性 3D 场景）
@@ -12,25 +13,6 @@ export interface CosmosHandle {
   dispose: () => void
 }
 
-const VERT = `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`
-
-const FRAG = `
-  varying vec2 vUv;
-  uniform sampler2D map;
-  uniform float uOpacity;
-  void main() {
-    vec4 tex = texture2D(map, vUv);
-    if (tex.a < 0.05) discard;
-    gl_FragColor = vec4(tex.rgb, uOpacity);
-  }
-`
-
 export function createPhotoCosmos(
   canvas: HTMLCanvasElement,
   imageUrls: string[],
@@ -41,7 +23,7 @@ export function createPhotoCosmos(
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1))
 
   const scene = new THREE.Scene()
-  scene.fog = new THREE.FogExp2(0x0b0b0c, 0.055)
+  scene.fog = new THREE.FogExp2(0x0b0b0c, 0.05)
 
   const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100)
   camera.position.set(0, 0.4, 10.5)
@@ -49,17 +31,35 @@ export function createPhotoCosmos(
   const group = new THREE.Group()
   scene.add(group)
 
-  const loader = new THREE.TextureLoader()
-  loader.setCrossOrigin('anonymous')
   const disposables: Array<{ dispose: () => void }> = []
 
   const cardGeo = new THREE.PlaneGeometry(2.5, 1.66)
-  disposables.push(cardGeo)
   const frameGeo = new THREE.PlaneGeometry(2.62, 1.78)
-  disposables.push(frameGeo)
+  disposables.push(cardGeo, frameGeo)
 
   const urls = imageUrls.slice(0, 12)
   const perRing = Math.ceil(urls.length / 2)
+
+  // 通用材质（MeshBasicMaterial：headless/软件渲染下最稳；失败卡自动隐藏）
+  function makeMaterials() {
+    const frameMat = new THREE.MeshBasicMaterial({
+      color: 0x2a2e2a,
+      transparent: true,
+      opacity: 0.92,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      fog: true,
+    })
+    const cardMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.96,
+      side: THREE.DoubleSide,
+      fog: true,
+    })
+    disposables.push(frameMat, cardMat)
+    return { frameMat, cardMat }
+  }
 
   urls.forEach((url, i) => {
     const ring = i < perRing ? 0 : 1
@@ -67,57 +67,46 @@ export function createPhotoCosmos(
     const radius = ring === 0 ? 4.6 : 7.4
     const count = ring === 0 ? perRing : urls.length - perRing
     const angle = (idx / count) * Math.PI * 2
-    const y = (ring === 0 ? 0.3 : -0.6) + (Math.sin(i * 12.9898) * 0.55)
+    const y = (ring === 0 ? 0.3 : -0.6) + Math.sin(i * 12.9898) * 0.55
+    const x = Math.cos(angle) * radius
+    const z = Math.sin(angle) * radius
 
-    const matRef = { uOpacity: 0.96 }
-    const tex = loader.load(
-      url,
-      (t) => {
-        t.colorSpace = THREE.SRGBColorSpace
-        t.minFilter = THREE.LinearFilter
-      },
-      undefined,
-      () => {
-        // 加载失败（如防盗链 451）：隐藏该卡，避免黑块
-        matRef.uOpacity = 0
-        frameMat.uniforms.uOpacity.value = 0
-      },
-    )
-    disposables.push(tex)
+    const { frameMat, cardMat } = makeMaterials()
 
-    // 背板（暗框 + 轻微外发光描边感）
-    const frameMat = new THREE.ShaderMaterial({
-      vertexShader: VERT,
-      fragmentShader: FRAG,
-      uniforms: { map: { value: null }, uOpacity: { value: 0.9 } },
-      transparent: true,
-      depthWrite: false,
-    })
-    frameMat.fragmentShader = FRAG.replace('vec4 tex = texture2D(map, vUv);', 'vec4 tex = vec4(0.24, 0.27, 0.24, 1.0);')
-    frameMat.needsUpdate = true
+    const nx = Math.cos(angle)
+    const nz = Math.sin(angle)
+
     const frame = new THREE.Mesh(frameGeo, frameMat)
-    frame.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius)
+    frame.position.set(x, y, z)
     frame.lookAt(0, y, 0)
     group.add(frame)
-    disposables.push(frameMat)
 
-    // 照片
-    const mat = new THREE.ShaderMaterial({
-      vertexShader: VERT,
-      fragmentShader: FRAG,
-      uniforms: { map: { value: tex }, uOpacity: { value: 0.96 } },
-      onBeforeCompile: (sh) => { /* keep ref for failure fade */ },
-      transparent: true,
-      depthWrite: false,
-    })
-    disposables.push(mat)
-    const card = new THREE.Mesh(cardGeo, mat)
-    card.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius)
+    const card = new THREE.Mesh(cardGeo, cardMat)
+    card.position.set(x + nx * 0.03, y, z + nz * 0.03)
     card.lookAt(0, y, 0)
     group.add(card)
+
+    // 纹理异步贴上：原生 Image（与 <img> 同路径，不受 CORS/crossOrigin 影响）
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.decoding = 'async'
+    img.onload = () => {
+      const t = new THREE.Texture(img)
+      t.colorSpace = THREE.SRGBColorSpace
+      t.minFilter = THREE.LinearFilter
+      t.generateMipmaps = false
+      t.needsUpdate = true
+      cardMat.map = t
+      cardMat.needsUpdate = true
+    }
+    img.onerror = () => {
+      cardMat.color.set(0x1c1f1c)
+      cardMat.opacity = 0.6
+    }
+    img.src = toProxyUrl(url) || url
   })
 
-  // 中央微光星点
+  // 星尘
   const starGeo = new THREE.BufferGeometry()
   const starCount = 140
   const positions = new Float32Array(starCount * 3)
@@ -138,7 +127,6 @@ export function createPhotoCosmos(
   scene.add(stars)
   disposables.push(starGeo, starMat)
 
-  // 尺寸
   const host = canvas.parentElement as HTMLElement
   function resize() {
     const w = host.clientWidth || 1
@@ -150,7 +138,6 @@ export function createPhotoCosmos(
   resize()
   window.addEventListener('resize', resize)
 
-  // 鼠标视差（lerp 追随）
   let mx = 0
   let my = 0
   function onMove(e: MouseEvent) {
@@ -160,32 +147,29 @@ export function createPhotoCosmos(
   }
   window.addEventListener('mousemove', onMove, { passive: true })
 
-  // 主循环
   let raf = 0
   let running = true
   const clock = new THREE.Clock()
 
   function frame() {
-    const dt = clock.getDelta()
+    const dt = Math.min(0.1, clock.getDelta())
     group.rotation.y += dt * 0.045
     stars.rotation.y -= dt * 0.012
-    const targetX = my * 0.9
-    const targetY = 0.4 + mx * 0.6
-    camera.position.y += (targetX * 0.4 - camera.position.y + 0.4) * 0.04
-    camera.position.x += (targetY * 1.6 - camera.position.x) * 0.04
+    const camX = 0.4 + mx * 0.9
+    const camY = 0.4 - my * 0.5
+    camera.position.x += (camX - camera.position.x) * 0.04
+    camera.position.y += (camY - camera.position.y) * 0.04
     camera.lookAt(0, 0, 0)
     renderer.render(scene, camera)
     if (running && !reduced) raf = requestAnimationFrame(frame)
   }
 
   if (reduced) {
-    // 单帧静态（星环正面）
     renderer.render(scene, camera)
   } else {
     raf = requestAnimationFrame(frame)
   }
 
-  // 离屏暂停 / 恢复
   let visible = true
   const io = new IntersectionObserver((entries) => {
     visible = entries[0]?.isIntersecting ?? true

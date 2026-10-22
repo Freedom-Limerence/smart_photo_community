@@ -51,3 +51,9 @@ export function parseId(value: unknown): string | undefined {
   const str = typeof value === 'string' ? value.trim() : String(value)
   return /^\d+$/.test(str) ? str : undefined
 }
+
+/** COS 图片同源代理：WebGL 纹理 / 高频图片加载走同源，消除跨域与 COS 风控 referer 差异 */
+export function toProxyUrl(url?: string | null): string | undefined {
+  if (!url) return url ?? undefined
+  return url.replace('https://wzx-1428719669.cos.ap-beijing.myqcloud.com', '/cos')
+}
