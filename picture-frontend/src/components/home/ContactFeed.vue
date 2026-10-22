@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { ArrowRightOutlined } from '@ant-design/icons-vue'
 defineProps<{works:any[]}>()
-const emit = defineEmits<{open:[work:any]}>()
+const emit = defineEmits<{open:[work:any]; preview:[work:any]}>()
 function frameClass(i:number) { return ['third','third','third','lead','portrait','panorama'][i%6] }
 function imageOf(w:any) { return w.coverUrl || w.pictures?.[0]?.url || w.thumbnailUrl || w.pictures?.[0]?.thumbnailUrl || '' }
 </script>

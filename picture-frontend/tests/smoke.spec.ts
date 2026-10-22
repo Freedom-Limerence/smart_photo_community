@@ -32,7 +32,7 @@ test.describe('首页', () => {
     await expect(page.locator('.contact-feed .frame').first()).toBeVisible({ timeout: 15_000 })
   })
 
-  test('点作品卡可进入详情', async ({ page }) => {
+  test('点作品卡打开灯箱并可跳详情', async ({ page }) => {
     await page.goto('/discover')
     const firstFrame = page.locator('.contact-feed .frame').first()
     // Lenis 平滑滚动接管原生 scrollIntoView，用真实滚轮滚动触发揭示
@@ -41,7 +41,13 @@ test.describe('首页', () => {
     await page.mouse.wheel(0, 600)
     // clip-path 揭示完成后中心点才可命中
     await expect(firstFrame).toHaveClass(/is-revealed/, { timeout: 15_000 })
+    // 点卡片 -> 灯箱打开（新交互：沉浸看图 + 键盘切换）
     await page.locator('.contact-feed .frame .frame-image').first().click()
+    const lb = page.locator('.lightbox')
+    await expect(lb).toBeVisible()
+    await expect(lb.locator('.lb-img')).toBeVisible()
+    // 灯箱内"查看作品详情" -> 详情页
+    await lb.locator('.lb-detail').click()
     await expect(page).toHaveURL(/\/works\/\d+/)
     await expect(page.locator('.stage-img')).toBeVisible()
   })

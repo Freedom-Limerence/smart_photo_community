@@ -15,6 +15,10 @@ export interface CosmosHandle {
   setHighlight: (index: number) => void
   /** 沉浸模式：卡片/背板平滑淡出（星尘保留），false=隐藏 */
   setCardsVisible: (visible: boolean) => void
+  /** 键盘旋转星环（弧度增量） */
+  rotateBy: (delta: number) => void
+  /** 键盘缩放视角（1 = 拉近一档） */
+  zoomBy: (dir: number) => void
 }
 
 export function createPhotoCosmos(
@@ -198,6 +202,7 @@ export function createPhotoCosmos(
   const AUTO_SPEED = 0.12
   let cardsTargetOpacity = 1
   let cardsOpacity = 1
+  let zoomLevel = 10.5
 
   // 星尘
   const starGeo = new THREE.BufferGeometry()
@@ -287,6 +292,7 @@ export function createPhotoCosmos(
     const camY = 0.4 - my * 0.5
     camera.position.x += (camX - camera.position.x) * 0.04
     camera.position.y += (camY - camera.position.y) * 0.04
+    camera.position.z += (zoomLevel - camera.position.z) * Math.min(1, dt * 6)
     camera.lookAt(0, 0, 0)
     renderer.render(scene, camera)
     if (running && !reduced) raf = requestAnimationFrame(frame)
@@ -321,6 +327,12 @@ export function createPhotoCosmos(
     },
     setCardsVisible(visible: boolean) {
       cardsTargetOpacity = visible ? 1 : 0
+    },
+    rotateBy(delta: number) {
+      group.rotation.y += delta
+    },
+    zoomBy(dir: number) {
+      zoomLevel = Math.max(6.5, Math.min(16, zoomLevel - dir * 1.2))
     },
     dispose() {
       running = false

@@ -64,7 +64,7 @@
         <span><b>{{ total }}</b> 件作品</span>
         <span class="now-viewing" v-if="selectedWork">
           正在看<b>{{ selectedWork.title || '未命名作品' }}</b>
-          <em>点击星环卡片换背景</em>
+          <em>点击卡片换背景 · ←→ 旋转 · ↑↓ 缩放</em>
         </span>
         <span class="live"><i />LIVE</span>
       </div>
@@ -229,7 +229,19 @@ async function startCosmos() {
     })
     cosmosHandle.value = handle
     handle.setHighlight(0)
-    cosmosDispose = handle.dispose
+      cosmosDispose = handle.dispose
+    // 键盘控制星环：←→ 旋转 / ↑↓ 缩放（输入框聚焦时忽略）
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if (e.key === 'ArrowLeft') handle.rotateBy(-0.4)
+      else if (e.key === 'ArrowRight') handle.rotateBy(0.4)
+      else if (e.key === 'ArrowUp') { e.preventDefault(); handle.zoomBy(-1) }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); handle.zoomBy(1) }
+    }
+    window.addEventListener('keydown', onKey)
+    const prevDispose = cosmosDispose
+    cosmosDispose = () => { prevDispose?.(); window.removeEventListener('keydown', onKey) }
   } catch {
     cosmosFallback.value = true
   }

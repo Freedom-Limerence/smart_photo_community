@@ -40,6 +40,7 @@
       </div>
       <div v-else-if="works.length" class="feed-end"><span />每一次停留，都是新的发现<span /></div>
     </section>
+    <Lightbox :works="works" v-model:open="lightboxOpen" v-model:index="lightboxIndex" @detail="openDetail" />
     <section v-reveal class="curation-link container">
       <div><h2>让作品之间，<em>发生对话</em>。</h2><p>从一组影像出发，走进不同的摄影主题。</p></div>
       <router-link to="/exhibitions">走进专题展览 <ArrowRightOutlined /></router-link>
@@ -57,6 +58,7 @@ import HomeParticles from '@/components/home/HomeParticles.vue'
 import ContactSheet from '@/components/home/ContactSheet.vue'
 import CardSkeleton from '@/components/common/CardSkeleton.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import Lightbox from '@/components/common/Lightbox.vue'
 import { listWorks } from '@/api/photoCommunity'
 import { useLoginUserStore } from '@/stores/useLoginUserStore'
 import { loadPhotographyPreview } from '@/utils/photographyPreview'
@@ -73,7 +75,15 @@ const tabs = [{value:'latest',label:'最新发现'}, {value:'hot',label:'热门�
 const featuredWorks = computed(() => works.value.filter(w => w.coverUrl || w.pictures?.[0]?.url).slice(0,6))
 const marqueeWords = ['人像', '街拍', '长曝光', '山与海', '人文纪事', '夜景', '胶片', '晨光', '几何', '自然光']
 let fetchVersion = 0
-function openWork(work: any) { if(work?.id) router.push('/works/' + work.id) }
+/** 点卡片开灯箱（沉浸看图 + 键盘切换）；详情从灯箱进入 */
+const lightboxOpen = ref(false)
+const lightboxIndex = ref(0)
+function openWork(work: any) {
+  const i = works.value.findIndex((w) => w.id === work?.id)
+  if (i >= 0) { lightboxIndex.value = i; lightboxOpen.value = true; return }
+  if (work?.id) router.push('/works/' + work.id)
+}
+function openDetail(w: any) { lightboxOpen.value = false; if (w?.id) router.push('/works/' + w.id) }
 function selectTab(value: string) {
   if(value === 'following' && !login.loginUser?.id) { message.info('登录后可以查看关注的摄影师'); router.push({path:'/user/login',query:{redirect:'/community'}}); return }
   if(activeTab.value === value) return
