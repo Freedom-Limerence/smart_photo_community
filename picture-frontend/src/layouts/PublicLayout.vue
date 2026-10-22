@@ -1,5 +1,7 @@
 <template>
   <div class="public-layout" :class="{ 'is-immersive': isWorkDetail }">
+    <!-- 全局深空星空：三层星 + 流星 + 星云（fixed 底层） -->
+    <GlobalStarfield />
     <!-- 键盘跳转：Tab 第一站直达内容区（P0-7） -->
     <a class="skip-link" href="#main-content">跳到主要内容</a>
     <!-- 摄影演示模式提示条：仅开发环境 ?demo=photography 时显示 -->
@@ -23,6 +25,7 @@ import PublicHeader from '@/components/layout/PublicHeader.vue'
 import PublicFooter from '@/components/layout/PublicFooter.vue'
 import AnnouncementBar from '@/components/layout/AnnouncementBar.vue'
 import PhotographyPreviewBar from '@/components/layout/PhotographyPreviewBar.vue'
+import GlobalStarfield from '@/components/layout/GlobalStarfield.vue'
 import AiChatDock from '@/components/chat/AiChatDock.vue'
 const route = useRoute()
 const isWorkDetail = computed(() => route.name === 'work-detail')
@@ -35,7 +38,7 @@ const isBare = computed(() => !!route.meta.bare)
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--bg);
+  background: transparent;
 }
 
 /* 顶部极淡的环境光晕：超大屏下首屏不再是一条空白带 */

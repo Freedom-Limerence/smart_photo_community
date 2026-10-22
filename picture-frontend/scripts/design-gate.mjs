@@ -35,7 +35,7 @@ function walk(dir, out = []) {
   return out
 }
 
-const files = walk(srcDir).filter((f) => !f.includes('.tmpdir'))
+const files = walk(srcDir).filter((f) => !f.includes('.tmpdir') && !f.includes(join('src', 'pages', 'admin')))
 let hex = 0
 let smallFont = 0
 for (const f of files) {

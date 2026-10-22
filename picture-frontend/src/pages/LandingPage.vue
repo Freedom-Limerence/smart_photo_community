@@ -1,7 +1,7 @@
 <template>
   <div class="landing" :class="{ 'gallery-hidden': galleryHidden }">
     <!-- ① 首屏主体：被选作品 Ken Burns 大背景 + 12 幅作品 3D 星环（点击卡片切换背景） -->
-    <div class="hero-media" aria-hidden="false">
+    <div class="hero-media" aria-hidden="false" :style="{ opacity: heroFade }">
       <transition name="backdropfade">
         <img
           v-if="selectedWork"
@@ -173,9 +173,15 @@ function handlePick(i: number) {
   selectedIdx.value = i
   cosmosHandle.value?.setHighlight(i)
 }
+/** 首屏谢幕：滚动超过 80% 视口后，摄影大图整体淡出，背景交还星空（1.25vh 完全消失） */
+const heroFade = computed(() => {
+  const vh = window.innerHeight || 900
+  const start = vh * 0.8
+  const end = vh * 1.25
+  return Math.max(0, Math.min(1, 1 - (scrollY.value - start) / (end - start)))
+})
 const parallax = computed(() => (reduced ? {} : {
   transform: 'translate3d(0,' + Math.min(scrollY.value * 0.12, 120) + 'px,0)',
-  opacity: String(Math.max(0, 1 - scrollY.value / 720)),
 }))
 
 const capabilities = [
@@ -255,7 +261,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.landing { position: relative; min-height: 100vh; background: var(--bg); color: var(--text-1); overflow-x: hidden; }
+.landing { position: relative; min-height: 100vh; background: transparent; color: var(--text-1); overflow-x: hidden; }
 
 /* ① 背景轮播 */
 .hero-media { position: absolute; inset: 0 0 auto 0; height: 100svh; overflow: hidden; }
