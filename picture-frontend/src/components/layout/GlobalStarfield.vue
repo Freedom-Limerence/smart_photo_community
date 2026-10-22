@@ -95,7 +95,7 @@ function init(canvas: HTMLCanvasElement) {
         x,
         y,
         r: layer === 1 ? 0.5 + Math.random() * 0.6 : layer === 2 ? 0.9 + Math.random() * 0.8 : 1.5 + Math.random() * 1.1,
-        base: layer === 1 ? 0.45 + Math.random() * 0.35 : layer === 2 ? 0.55 + Math.random() * 0.45 : 0.8 + Math.random() * 0.2,
+        base: layer === 1 ? 0.6 + Math.random() * 0.4 : layer === 2 ? 0.7 + Math.random() * 0.3 : 0.9 + Math.random() * 0.1,
         phase: Math.random() * Math.PI * 2,
         speed: layer === 2 ? 1.2 + Math.random() * 2.2 : layer === 3 ? 0.5 + Math.random() * 0.8 : 0.1 + Math.random() * 0.2,
         vx: layer === 3 ? (Math.random() - 0.5) * 0.06 : (Math.random() - 0.5) * 0.01,
@@ -129,7 +129,7 @@ function init(canvas: HTMLCanvasElement) {
       vy: speed * 0.57,
       len: 220 + Math.random() * 140,
     })
-    nextMeteor = performance.now() + 2500 + Math.random() * 2000
+    nextMeteor = performance.now() + 2000 + Math.random() * 1500
   }
 
   let last = performance.now()
@@ -156,13 +156,13 @@ function init(canvas: HTMLCanvasElement) {
     const bw = Math.hypot(band.x1 - band.x0, band.y1 - band.y0) * 0.75
     const mg = ctx!.createLinearGradient(0, -bandWidth, 0, bandWidth)
     mg.addColorStop(0, 'rgba(150, 175, 235, 0)')
-    mg.addColorStop(0.5, 'rgba(150, 175, 235, 0.14)')
+    mg.addColorStop(0.5, 'rgba(150, 175, 235, 0.19)')
     mg.addColorStop(1, 'rgba(150, 175, 235, 0)')
     ctx!.fillStyle = mg
     ctx!.fillRect(-bw / 2, -bandWidth, bw, bandWidth * 2)
     const mg2 = ctx!.createLinearGradient(0, -bandWidth * 0.3, 0, bandWidth * 0.3)
     mg2.addColorStop(0, 'rgba(205, 220, 250, 0)')
-    mg2.addColorStop(0.5, 'rgba(205, 220, 250, 0.11)')
+    mg2.addColorStop(0.5, 'rgba(205, 220, 250, 0.15)')
     mg2.addColorStop(1, 'rgba(205, 220, 250, 0)')
     ctx!.fillStyle = mg2
     ctx!.fillRect(-bw / 2, -bandWidth * 0.3, bw, bandWidth * 0.6)
@@ -178,7 +178,7 @@ function init(canvas: HTMLCanvasElement) {
       if (bl.y + bl.r < 0 || bl.y - bl.r > h) continue
       const ng = ctx!.createRadialGradient(bl.x, bl.y, 0, bl.x, bl.y, bl.r)
       ng.addColorStop(0, `rgba(${bl.c}, 0.34)`)
-      ng.addColorStop(0.5, `rgba(${bl.c}, 0.15)`)
+      ng.addColorStop(0.5, `rgba(${bl.c}, 0.22)`)
       ng.addColorStop(1, `rgba(${bl.c}, 0)`)
       ctx!.fillStyle = ng
       ctx!.fillRect(bl.x - bl.r, bl.y - bl.r, bl.r * 2, bl.r * 2)
