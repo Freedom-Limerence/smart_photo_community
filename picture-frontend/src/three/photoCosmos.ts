@@ -11,6 +11,8 @@ import { toProxyUrl } from '@/utils'
 
 export interface CosmosHandle {
   dispose: () => void
+  /** 设置当前高亮（选中）的卡片索引；-1 表示无 */
+  setHighlight: (index: number) => void
 }
 
 export function createPhotoCosmos(
@@ -144,6 +146,24 @@ export function createPhotoCosmos(
   canvas.addEventListener('pointerup', onUp)
   canvas.addEventListener('mousemove', onHoverMove, { passive: true })
 
+  // 选中光晕：单张 additive 光晕面，跟随选中卡（外发光效果）
+  const glowGeo = new THREE.PlaneGeometry(3.3, 2.25)
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0xa3b6a8,
+    transparent: true,
+    opacity: 0.22,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  })
+  const glow = new THREE.Mesh(glowGeo, glowMat)
+  glow.visible = false
+  scene.add(glow)
+  disposables.push(glowGeo, glowMat)
+
+  let highlightIndex = -1
+  const cardScales = urls.map(() => 1)
+
   // 星尘
   const starGeo = new THREE.BufferGeometry()
   const starCount = 140
@@ -193,6 +213,30 @@ export function createPhotoCosmos(
     const dt = Math.min(0.1, clock.getDelta())
     group.rotation.y += dt * 0.045
     stars.rotation.y -= dt * 0.012
+    for (let i = 0; i < group.children.length; i++) {
+      const obj = group.children[i] as THREE.Mesh
+      const idx = obj.userData?.index
+      if (idx == null) continue
+      const target = idx === highlightIndex ? 1.08 : 1
+      const cur = cardScales[idx] || 1
+      const next = cur + (target - cur) * Math.min(1, dt * 8)
+      cardScales[idx] = next
+      obj.scale.setScalar(next)
+    }
+    if (highlightIndex >= 0 && highlightIndex < urls.length) {
+      const card = group.children.find(
+        (o) => (o as THREE.Mesh).userData?.index === highlightIndex && (o as THREE.Mesh).geometry === cardGeo,
+      ) as THREE.Mesh | undefined
+      if (card) {
+        glow.visible = true
+        const wp = card.getWorldPosition(new THREE.Vector3())
+        glow.position.copy(wp)
+        glow.quaternion.copy(card.quaternion)
+        glow.position.multiplyScalar(1.012)
+      }
+    } else {
+      glow.visible = false
+    }
     const camX = 0.4 + mx * 0.9
     const camY = 0.4 - my * 0.5
     camera.position.x += (camX - camera.position.x) * 0.04
@@ -226,6 +270,9 @@ export function createPhotoCosmos(
   document.addEventListener('visibilitychange', onVis)
 
   return {
+    setHighlight(index: number) {
+      highlightIndex = index
+    },
     dispose() {
       running = false
       if (raf) cancelAnimationFrame(raf)

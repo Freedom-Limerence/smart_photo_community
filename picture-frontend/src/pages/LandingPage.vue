@@ -14,6 +14,19 @@
       <div class="hero-veil hero-veil-deep" />
       <canvas ref="cosmosCanvas" class="cosmos-canvas hero-canvas" aria-label="三维作品星环，点击卡片切换背景" />
       <p v-if="cosmosFallback" class="cosmos-fallback">三维展厅需要 WebGL 支持——已回退为静态背景。</p>
+
+      <!-- 背景切换开关：ON=点击卡片换背景 OFF=锁定当前背景（仅高亮） -->
+      <button
+        type="button"
+        class="bg-toggle"
+        :class="{ on: switchOn }"
+        role="switch"
+        :aria-checked="switchOn"
+        @click="switchOn = !switchOn"
+      >
+        <span class="bt-label">点击卡片切换背景</span>
+        <span class="bt-track"><i class="bt-thumb" /></span>
+      </button>
     </div>
 
     <!-- ② 呼吸光晕 + 星尘 + 鼠标光斑 -->
@@ -135,8 +148,15 @@ const heroSlides = computed(() => (allWorks.value.length ? allWorks.value : feat
 const ringWorks = computed(() => (allWorks.value.length ? allWorks.value : featured.value).slice(0, 12))
 const selectedIdx = ref(0)
 const selectedWork = computed(() => ringWorks.value[selectedIdx.value] || null)
-function selectWork(i: number) {
-  if (i >= 0 && i < ringWorks.value.length) selectedIdx.value = i
+
+/** 背景切换开关：ON=点击卡片同步换背景；OFF=锁定背景，点击仅高亮卡片 */
+const switchOn = ref(true)
+const activeIdx = ref(0)
+function handlePick(i: number) {
+  if (i < 0 || i >= ringWorks.value.length) return
+  activeIdx.value = i
+  if (switchOn.value) selectedIdx.value = i
+  cosmosHandle.value?.setHighlight(i)
 }
 const parallax = computed(() => (reduced ? {} : {
   transform: 'translate3d(0,' + Math.min(scrollY.value * 0.12, 120) + 'px,0)',
@@ -170,6 +190,7 @@ function onScroll() { scrollY.value = window.scrollY || document.documentElement
 const cosmosCanvas = ref<HTMLCanvasElement | null>(null)
 const cosmosFallback = ref(false)
 let cosmosDispose: (() => void) | null = null
+const cosmosHandle = ref<{ setHighlight: (i: number) => void; dispose: () => void } | null>(null)
 let cosmosStarted = false
 
 async function startCosmos() {
@@ -181,10 +202,13 @@ async function startCosmos() {
     const urls = ringWorks.value.map(thumbOf).filter(Boolean)
     if (urls.length < 2) { cosmosFallback.value = true; return }
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    cosmosDispose = createPhotoCosmos(cosmosCanvas.value, urls, {
+    const handle = createPhotoCosmos(cosmosCanvas.value, urls, {
       reduced,
-      onPick: (i) => selectWork(i),
-    }).dispose
+      onPick: (i) => handlePick(i),
+    })
+    cosmosHandle.value = handle
+    handle.setHighlight(0)
+    cosmosDispose = handle.dispose
   } catch {
     cosmosFallback.value = true
   }
@@ -229,15 +253,35 @@ onBeforeUnmount(() => {
 .backdropfade-leave-active { transition: opacity 1.1s cubic-bezier(.16, 1, .3, 1); position: absolute; inset: 0; }
 .backdropfade-leave-to { opacity: 0; }
 .hero-veil-deep { background:
-  linear-gradient(105deg, rgba(11,11,12,.92) 0%, rgba(11,11,12,.66) 38%, rgba(11,11,12,.28) 100%),
-  linear-gradient(to top, rgba(11,11,12,.95), transparent 55%); }
+  radial-gradient(110% 85% at 16% 80%, rgba(11,11,12,.66) 0%, rgba(11,11,12,.22) 46%, rgba(11,11,12,.06) 100%),
+  linear-gradient(to top, rgba(11,11,12,.5), transparent 30%); }
 
 /* 3D 星环画布铺满首屏（在背景之上、宣言之下） */
 .hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
 .cosmos-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-3); font-size: 13px; margin: 0; }
 
+/* 背景切换开关：毛玻璃质感 + 极简线条（高级画廊调性） */
+.bg-toggle {
+  position: absolute; right: clamp(16px, 2.4vw, 36px); bottom: clamp(16px, 2.4vw, 36px);
+  z-index: 5; display: inline-flex; align-items: center; gap: 12px;
+  padding: 10px 16px; border-radius: 999px;
+  background: rgba(20, 22, 20, .55);
+  border: 1px solid rgba(255, 255, 255, .14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-2); cursor: pointer;
+  transition: border-color .25s var(--ease), background .25s var(--ease);
+}
+.bg-toggle:hover { border-color: rgba(163, 182, 168, .5); color: var(--text-1); }
+.bt-label { font-size: 12px; letter-spacing: .06em; }
+.bt-track { position: relative; width: 34px; height: 19px; border-radius: 999px; background: rgba(255, 255, 255, .16); transition: background .25s var(--ease); }
+.bt-thumb { position: absolute; top: 2.5px; left: 2.5px; width: 14px; height: 14px; border-radius: 50%; background: var(--text-2); transition: transform .25s var(--ease), background .25s var(--ease); }
+.bg-toggle.on .bt-track { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+.bg-toggle.on .bt-thumb { transform: translateX(15px); background: var(--accent-ink); }
+
 /* 选中标注 */
-.now-viewing { display: inline-flex; align-items: baseline; gap: 8px; color: var(--text-2); }
+.landing-manifesto, .landing-sub { text-shadow: 0 2px 28px rgba(11,11,12,.85), 0 1px 6px rgba(11,11,12,.9); }
+.now-viewing { display: inline-flex; align-items: baseline; gap: 8px; color: var(--text-1); text-shadow: 0 1px 12px rgba(11,11,12,.9), 0 1px 3px rgba(11,11,12,.95); }
 .now-viewing b { color: var(--accent-hover); font-family: var(--font-display); font-size: 15px; font-weight: 400; }
 .now-viewing em { font-style: normal; color: var(--text-3); font-size: 12px; letter-spacing: .04em; }
 .hero-veil { position: absolute; inset: 0;
