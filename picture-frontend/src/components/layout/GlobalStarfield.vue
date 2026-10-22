@@ -1,5 +1,5 @@
 <template>
-  <!-- 全局深空背景层：底色渐变 + 三层星 + 流星 + 星云光晕（fixed，全站生效） -->
+  <!-- 全局深空背景层：底色渐变 + 银河带 + 三层星 + 流星 + 星云光晕（fixed，全站生效） -->
   <div class="global-starfield" aria-hidden="true">
     <canvas ref="canvasRef" class="sf-canvas" />
   </div>
@@ -33,7 +33,6 @@ interface Meteor {
   vx: number
   vy: number
   len: number
-  life: number
 }
 
 function init(canvas: HTMLCanvasElement) {
@@ -56,48 +55,81 @@ function init(canvas: HTMLCanvasElement) {
   resize()
   window.addEventListener('resize', resize)
 
-  // 三层星：远(静止极暗) / 中(闪烁) / 近(发光漂浮)
+  // 银河带参数：斜跨屏幕的对角线带（星密 + 乳白光雾）
+  const band = {
+    x0: w * 0.85,
+    y0: -h * 0.1,
+    x1: w * 0.1,
+    y1: h * 1.15,
+  }
+  const bandDist = (x: number, y: number) => {
+    // 点到线段距离
+    const dx = band.x1 - band.x0
+    const dy = band.y1 - band.y0
+    const l2 = dx * dx + dy * dy
+    let t = ((x - band.x0) * dx + (y - band.y0) * dy) / l2
+    t = Math.max(0, Math.min(1, t))
+    const px = band.x0 + t * dx
+    const py = band.y0 + t * dy
+    return Math.hypot(x - px, y - py)
+  }
+  const bandWidth = Math.min(w, h) * 0.34
+
   const stars: Star[] = []
-  const spawn = (n: number, layer: Star['layer']) => {
+  const spawn = (n: number, layer: Star['layer'], inBand = false) => {
     for (let i = 0; i < n; i++) {
+      let x = Math.random() * w
+      let y = Math.random() * h
+      if (inBand) {
+        // 60% 的带内星：沿线段随机 + 法向高斯散布
+        const t = Math.random()
+        const px = band.x0 + (band.x1 - band.x0) * t
+        const py = band.y0 + (band.y1 - band.y0) * t
+        const spread = (Math.random() + Math.random() + Math.random() - 1.5) * bandWidth * 0.55
+        const nx = -(band.y1 - band.y0) / Math.hypot(band.x1 - band.x0, band.y1 - band.y0)
+        const ny = (band.x1 - band.x0) / Math.hypot(band.x1 - band.x0, band.y1 - band.y0)
+        x = px + nx * spread
+        y = py + ny * spread
+      }
       stars.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: layer === 1 ? 0.4 + Math.random() * 0.5 : layer === 2 ? 0.8 + Math.random() * 0.6 : 1.4 + Math.random() * 0.9,
-        base: layer === 1 ? 0.25 + Math.random() * 0.3 : layer === 2 ? 0.4 + Math.random() * 0.4 : 0.7 + Math.random() * 0.3,
+        x,
+        y,
+        r: layer === 1 ? 0.5 + Math.random() * 0.6 : layer === 2 ? 0.9 + Math.random() * 0.8 : 1.5 + Math.random() * 1.1,
+        base: layer === 1 ? 0.45 + Math.random() * 0.35 : layer === 2 ? 0.55 + Math.random() * 0.45 : 0.8 + Math.random() * 0.2,
         phase: Math.random() * Math.PI * 2,
-        speed: layer === 2 ? 0.8 + Math.random() * 1.6 : layer === 3 ? 0.4 + Math.random() * 0.6 : 0.05 + Math.random() * 0.15,
-        vx: layer === 3 ? (Math.random() - 0.5) * 0.05 : (Math.random() - 0.5) * 0.008,
-        vy: layer === 3 ? (Math.random() - 0.5) * 0.04 : 0,
-        glow: layer === 3 ? 6 + Math.random() * 10 : 0,
+        speed: layer === 2 ? 1.2 + Math.random() * 2.2 : layer === 3 ? 0.5 + Math.random() * 0.8 : 0.1 + Math.random() * 0.2,
+        vx: layer === 3 ? (Math.random() - 0.5) * 0.06 : (Math.random() - 0.5) * 0.01,
+        vy: layer === 3 ? (Math.random() - 0.5) * 0.05 : 0,
+        glow: layer === 3 ? 12 + Math.random() * 16 : layer === 2 ? 4 + Math.random() * 5 : 0,
         layer,
       })
     }
   }
-  spawn(140, 1)
-  spawn(60, 2)
-  spawn(22, 3)
+  // 总 340 颗：远 150（40% 银河带内）/ 中 110（50% 带内）/ 近 60（30% 带内）
+  spawn(90, 1)
+  spawn(60, 1, true)
+  spawn(55, 2)
+  spawn(55, 2, true)
+  spawn(42, 3)
+  spawn(18, 3, true)
 
-  // 流星：5-8s 随机一颗，左上/右上斜下
-  const neb1 = document.querySelector('.nebula-1') as HTMLElement | null
-  const neb2 = document.querySelector('.nebula-2') as HTMLElement | null
+  // 流星：3-5s 一颗
   const meteors: Meteor[] = []
-  let nextMeteor = performance.now() + 2500
+  let nextMeteor = performance.now() + 1800
   function spawnMeteor() {
     const fromLeft = Math.random() > 0.5
-    const sx = fromLeft ? Math.random() * w * 0.35 : w * (0.65 + Math.random() * 0.35)
-    const sy = Math.random() * h * 0.25
+    const sx = fromLeft ? Math.random() * w * 0.35 : w * (0.62 + Math.random() * 0.38)
+    const sy = Math.random() * h * 0.3
     const dir = fromLeft ? 1 : -1
-    const speed = 9 + Math.random() * 7
+    const speed = 11 + Math.random() * 8
     meteors.push({
       x: sx,
       y: sy,
       vx: dir * speed * 0.82,
       vy: speed * 0.57,
-      len: 130 + Math.random() * 110,
-      life: 1,
+      len: 180 + Math.random() * 120,
     })
-    nextMeteor = performance.now() + 5000 + Math.random() * 3000
+    nextMeteor = performance.now() + 3000 + Math.random() * 2000
   }
 
   let last = performance.now()
@@ -106,28 +138,50 @@ function init(canvas: HTMLCanvasElement) {
     last = now
     const t = now / 1000
 
-    // 深空底色（上深蓝 → 下更暗）
+    // 深空蓝底色（比纯黑亮一档，可感知的蓝）
     const g = ctx!.createLinearGradient(0, 0, 0, h)
-    g.addColorStop(0, 'rgb(5, 8, 20)')
-    g.addColorStop(0.55, 'rgb(7, 10, 26)')
-    g.addColorStop(1, 'rgb(6, 9, 19)')
+    g.addColorStop(0, 'rgb(8, 13, 36)')
+    g.addColorStop(0.5, 'rgb(10, 16, 44)')
+    g.addColorStop(1, 'rgb(7, 10, 28)')
     ctx!.fillStyle = g
     ctx!.fillRect(0, 0, w, h)
+
+    // 银河带光雾（多层淡白蓝，沿对角线）
+    ctx!.save()
+    const bx = (band.x0 + band.x1) / 2
+    const by = (band.y0 + band.y1) / 2
+    const angle = Math.atan2(band.y1 - band.y0, band.x1 - band.x0)
+    ctx!.translate(bx, by)
+    ctx!.rotate(angle)
+    const bw = Math.hypot(band.x1 - band.x0, band.y1 - band.y0) * 0.75
+    const mg = ctx!.createLinearGradient(0, -bandWidth, 0, bandWidth)
+    mg.addColorStop(0, 'rgba(150, 175, 235, 0)')
+    mg.addColorStop(0.5, 'rgba(150, 175, 235, 0.14)')
+    mg.addColorStop(1, 'rgba(150, 175, 235, 0)')
+    ctx!.fillStyle = mg
+    ctx!.fillRect(-bw / 2, -bandWidth, bw, bandWidth * 2)
+    const mg2 = ctx!.createLinearGradient(0, -bandWidth * 0.3, 0, bandWidth * 0.3)
+    mg2.addColorStop(0, 'rgba(205, 220, 250, 0)')
+    mg2.addColorStop(0.5, 'rgba(205, 220, 250, 0.11)')
+    mg2.addColorStop(1, 'rgba(205, 220, 250, 0)')
+    ctx!.fillStyle = mg2
+    ctx!.fillRect(-bw / 2, -bandWidth * 0.3, bw, bandWidth * 0.6)
+    ctx!.restore()
 
     // 星云光晕：随滚动上移，覆盖第二/三屏
     const sy = window.scrollY || window.pageYOffset || 0
     const blobs = [
-      { x: w * 0.26, y: h * 1.45 - sy * 0.35, r: Math.max(w, h) * 0.36, c: '64, 100, 210' },
-      { x: w * 0.76, y: h * 2.3 - sy * 0.3, r: Math.max(w, h) * 0.32, c: '124, 66, 208' },
+      { x: w * 0.24, y: h * 1.5 - sy * 0.35, r: Math.max(w, h) * 0.4, c: '70, 110, 235' },
+      { x: w * 0.78, y: h * 2.35 - sy * 0.3, r: Math.max(w, h) * 0.36, c: '140, 80, 235' },
     ]
-    for (const b of blobs) {
-      if (b.y + b.r < 0 || b.y - b.r > h) continue
-      const ng = ctx!.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r)
-      ng.addColorStop(0, `rgba(${b.c}, 0.8)`)
-      ng.addColorStop(0.55, `rgba(${b.c}, 0.32)`)
-      ng.addColorStop(1, `rgba(${b.c}, 0)`)
+    for (const bl of blobs) {
+      if (bl.y + bl.r < 0 || bl.y - bl.r > h) continue
+      const ng = ctx!.createRadialGradient(bl.x, bl.y, 0, bl.x, bl.y, bl.r)
+      ng.addColorStop(0, `rgba(${bl.c}, 0.34)`)
+      ng.addColorStop(0.5, `rgba(${bl.c}, 0.15)`)
+      ng.addColorStop(1, `rgba(${bl.c}, 0)`)
       ctx!.fillStyle = ng
-      ctx!.fillRect(b.x - b.r, b.y - b.r, b.r * 2, b.r * 2)
+      ctx!.fillRect(bl.x - bl.r, bl.y - bl.r, bl.r * 2, bl.r * 2)
     }
 
     // 星
@@ -143,13 +197,13 @@ function init(canvas: HTMLCanvasElement) {
         s.y += s.speed * dt
         if (s.y > h + 3) s.y = -3
       }
-      const tw = s.layer >= 2 ? s.base * (0.62 + 0.38 * Math.sin(t * s.speed + s.phase)) : s.base
+      const tw = s.layer >= 2 ? s.base * (0.55 + 0.45 * Math.sin(t * s.speed + s.phase)) : s.base
       ctx!.beginPath()
       if (s.glow > 0) {
         ctx!.shadowBlur = s.glow
-        ctx!.shadowColor = 'rgba(190, 210, 255, 0.9)'
+        ctx!.shadowColor = 'rgba(200, 218, 255, 0.95)'
       }
-      ctx!.fillStyle = `rgba(214, 226, 244, ${tw.toFixed(3)})`
+      ctx!.fillStyle = `rgba(222, 232, 250, ${tw.toFixed(3)})`
       ctx!.arc(s.x, s.y, s.r, 0, Math.PI * 2)
       ctx!.fill()
       ctx!.shadowBlur = 0
@@ -161,29 +215,28 @@ function init(canvas: HTMLCanvasElement) {
       const m = meteors[i]
       m.x += m.vx
       m.y += m.vy
-      if (m.y > h + 60 || m.x < -260 || m.x > w + 260) {
+      if (m.y > h + 80 || m.x < -300 || m.x > w + 300) {
         meteors.splice(i, 1)
         continue
       }
       const tailX = m.x - m.vx * (m.len / 12)
       const tailY = m.y - m.vy * (m.len / 12)
       const grad = ctx!.createLinearGradient(m.x, m.y, tailX, tailY)
-      grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)')
-      grad.addColorStop(0.35, 'rgba(178, 208, 255, 0.55)')
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0.98)')
+      grad.addColorStop(0.3, 'rgba(190, 214, 255, 0.6)')
       grad.addColorStop(1, 'rgba(140, 170, 255, 0)')
       ctx!.strokeStyle = grad
-      ctx!.lineWidth = 1.6
+      ctx!.lineWidth = 2.1
       ctx!.lineCap = 'round'
       ctx!.beginPath()
       ctx!.moveTo(m.x, m.y)
       ctx!.lineTo(tailX, tailY)
       ctx!.stroke()
-      // 头部亮点
       ctx!.beginPath()
-      ctx!.shadowBlur = 12
-      ctx!.shadowColor = 'rgba(255, 255, 255, 0.9)'
-      ctx!.fillStyle = 'rgba(255, 255, 255, 0.9)'
-      ctx!.arc(m.x, m.y, 1.4, 0, Math.PI * 2)
+      ctx!.shadowBlur = 14
+      ctx!.shadowColor = 'rgba(255, 255, 255, 0.95)'
+      ctx!.fillStyle = 'rgba(255, 255, 255, 0.95)'
+      ctx!.arc(m.x, m.y, 1.6, 0, Math.PI * 2)
       ctx!.fill()
       ctx!.shadowBlur = 0
     }
@@ -209,17 +262,19 @@ onMounted(() => {
   if (canvasRef.value && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     init(canvasRef.value)
   } else if (canvasRef.value) {
-    // reduced-motion：静态星空单帧
     const ctx = canvasRef.value.getContext('2d')
     if (ctx) {
       canvasRef.value.width = window.innerWidth
       canvasRef.value.height = window.innerHeight
-      ctx.fillStyle = 'rgb(5, 8, 20)'
+      const g = ctx.createLinearGradient(0, 0, 0, canvasRef.value.height)
+      g.addColorStop(0, 'rgb(8, 13, 36)')
+      g.addColorStop(1, 'rgb(7, 10, 28)')
+      ctx.fillStyle = g
       ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height)
-      for (let i = 0; i < 200; i++) {
-        ctx.fillStyle = `rgba(214,226,244,${0.2 + Math.random() * 0.5})`
+      for (let i = 0; i < 320; i++) {
+        ctx.fillStyle = `rgba(222,232,250,${0.3 + Math.random() * 0.6})`
         ctx.beginPath()
-        ctx.arc(Math.random() * canvasRef.value.width, Math.random() * canvasRef.value.height, Math.random() * 1.4, 0, Math.PI * 2)
+        ctx.arc(Math.random() * canvasRef.value.width, Math.random() * canvasRef.value.height, Math.random() * 1.5, 0, Math.PI * 2)
         ctx.fill()
       }
     }
@@ -236,9 +291,6 @@ onBeforeUnmount(() => cleanup?.())
 /* 顶层暗角包裹：聚焦视线 */
 .global-vignette {
   position: fixed; inset: 0; z-index: 999; pointer-events: none;
-  background: radial-gradient(ellipse 120% 105% at 50% 45%, transparent 58%, rgba(0, 0, 0, .38) 100%);
-}
-@media (prefers-reduced-motion: reduce) {
-  .nebula { filter: blur(60px); }
+  background: radial-gradient(ellipse 125% 108% at 50% 45%, transparent 60%, rgba(0, 0, 0, .42) 100%);
 }
 </style>
