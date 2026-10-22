@@ -142,6 +142,7 @@ const router = createRouter({
       children: [
         { path: '', redirect: '/admin/dashboard' },
         { path: 'dashboard', component: AdminDashboardPage, meta: { title: '数据看板' } },
+        { path: 'cosmos', name: 'admin-cosmos', component: () => import('@/pages/admin/AdminCosmosPage.vue'), meta: { title: '星环画廊管理', requiresAuth: true } },
         { path: 'review', component: AdminReviewPage, meta: { title: '内容审核' } },
         { path: 'users', component: UserManagePage, meta: { title: '用户与权限' } },
         { path: 'pictures', component: PictureManagePage, meta: { title: '图片管理' } },

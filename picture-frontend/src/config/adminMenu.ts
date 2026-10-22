@@ -23,6 +23,7 @@ export interface AdminMenuItem {
 export const ADMIN_MENU: AdminMenuItem[] = [
   { key: '/admin/dashboard', label: '数据看板', icon: DashboardOutlined, permission: 'stats:view', description: '平台总量、今日新增与增长趋势', group: 'overview' },
   { key: '/admin/review', label: '内容审核', icon: AuditOutlined, permission: 'content:review', description: '待审图片与作品队列', group: 'content' },
+  { key: '/admin/cosmos', label: '星环画廊', icon: PictureOutlined, permission: 'content:review', description: '着陆页 3D 星环展示内容管理', group: 'content' },
   { key: '/admin/users', label: '用户与权限', icon: TeamOutlined, permission: 'user:manage', description: '用户资料维护与封禁', group: 'userspace' },
   { key: '/admin/pictures', label: '图片管理', icon: PictureOutlined, permission: 'picture:manage', description: '站内图片资产管理', group: 'userspace' },
   { key: '/admin/spaces', label: '空间管理', icon: UserOutlined, permission: 'space:manage', description: '团队与私有空间治理', group: 'userspace' },
