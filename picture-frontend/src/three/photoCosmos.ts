@@ -16,7 +16,7 @@ export interface CosmosHandle {
 export function createPhotoCosmos(
   canvas: HTMLCanvasElement,
   imageUrls: string[],
-  opts?: { reduced?: boolean },
+  opts?: { reduced?: boolean; onPick?: (index: number) => void },
 ): CosmosHandle {
   const reduced = !!opts?.reduced
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
@@ -79,11 +79,13 @@ export function createPhotoCosmos(
     const frame = new THREE.Mesh(frameGeo, frameMat)
     frame.position.set(x, y, z)
     frame.lookAt(0, y, 0)
+    frame.userData.index = i
     group.add(frame)
 
     const card = new THREE.Mesh(cardGeo, cardMat)
     card.position.set(x + nx * 0.03, y, z + nz * 0.03)
     card.lookAt(0, y, 0)
+    card.userData.index = i
     group.add(card)
 
     // 纹理异步贴上：原生 Image（与 <img> 同路径，不受 CORS/crossOrigin 影响）
@@ -105,6 +107,42 @@ export function createPhotoCosmos(
     }
     img.src = toProxyUrl(url) || url
   })
+
+  // 点击拾取：Raycaster 命中卡片回调 onPick；悬停变 pointer 光标
+  const raycaster = new THREE.Raycaster()
+  const pointerV = new THREE.Vector2()
+  function pickAt(e: MouseEvent): number | null {
+    const r = canvas.getBoundingClientRect()
+    pointerV.x = ((e.clientX - r.left) / r.width) * 2 - 1
+    pointerV.y = -((e.clientY - r.top) / r.height) * 2 + 1
+    raycaster.setFromCamera(pointerV, camera)
+    const hits = raycaster.intersectObjects(group.children, false)
+    for (const h of hits) {
+      const idx = h.object.userData?.index
+      if (idx != null) return idx as number
+    }
+    return null
+  }
+  let downX = 0
+  let downY = 0
+  function onDown(e: PointerEvent) { downX = e.clientX; downY = e.clientY }
+  function onUp(e: PointerEvent) {
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return
+    const idx = pickAt(e)
+    if (idx != null) opts?.onPick?.(idx)
+  }
+  let hoverFrame = false
+  function onHoverMove(e: MouseEvent) {
+    if (hoverFrame) return
+    hoverFrame = true
+    requestAnimationFrame(() => {
+      hoverFrame = false
+      canvas.style.cursor = pickAt(e) != null ? 'pointer' : 'grab'
+    })
+  }
+  canvas.addEventListener('pointerdown', onDown)
+  canvas.addEventListener('pointerup', onUp)
+  canvas.addEventListener('mousemove', onHoverMove, { passive: true })
 
   // 星尘
   const starGeo = new THREE.BufferGeometry()
@@ -193,6 +231,9 @@ export function createPhotoCosmos(
       if (raf) cancelAnimationFrame(raf)
       io.disconnect()
       window.removeEventListener('resize', resize)
+      canvas.removeEventListener('pointerdown', onDown)
+      canvas.removeEventListener('pointerup', onUp)
+      canvas.removeEventListener('mousemove', onHoverMove)
       window.removeEventListener('mousemove', onMove)
       document.removeEventListener('visibilitychange', onVis)
       disposables.forEach((d) => d.dispose())

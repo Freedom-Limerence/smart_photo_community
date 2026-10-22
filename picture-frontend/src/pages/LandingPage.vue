@@ -1,15 +1,19 @@
 <template>
   <div class="landing">
-    <!-- ① 动态背景层：真实作品马赛克墙——12 块瓦片随机交叉换图，画面永远在流动 -->
-    <div class="hero-media" aria-hidden="true">
-      <div class="mosaic">
-        <div v-for="(t, i) in tiles" :key="i" class="tile">
-          <transition name="tilefade">
-            <img :key="t.src + t.pos" :src="t.src" :style="{ objectPosition: t.pos }" alt="" />
-          </transition>
-        </div>
-      </div>
-      <div class="hero-veil" />
+    <!-- ① 首屏主体：被选作品 Ken Burns 大背景 + 12 幅作品 3D 星环（点击卡片切换背景） -->
+    <div class="hero-media" aria-hidden="false">
+      <transition name="backdropfade">
+        <img
+          v-if="selectedWork"
+          :key="selectedWork.id"
+          class="hero-backdrop"
+          :src="thumbOf(selectedWork)"
+          :alt="selectedWork.title || '作品背景'"
+        />
+      </transition>
+      <div class="hero-veil hero-veil-deep" />
+      <canvas ref="cosmosCanvas" class="cosmos-canvas hero-canvas" aria-label="三维作品星环，点击卡片切换背景" />
+      <p v-if="cosmosFallback" class="cosmos-fallback">三维展厅需要 WebGL 支持——已回退为静态背景。</p>
     </div>
 
     <!-- ② 呼吸光晕 + 星尘 + 鼠标光斑 -->
@@ -46,7 +50,10 @@
       </div>
       <div class="hero-index" v-reveal="640">
         <span><b>{{ total }}</b> 件作品</span>
-        <span><b>{{ heroSlides.length }}</b> 幅正在显影</span>
+        <span class="now-viewing" v-if="selectedWork">
+          正在看<b>{{ selectedWork.title || '未命名作品' }}</b>
+          <em>点击星环卡片换背景</em>
+        </span>
         <span class="live"><i />LIVE</span>
       </div>
       <span class="scroll-cue" aria-hidden="true">向下滚动</span>
@@ -77,18 +84,6 @@
       </div>
     </section>
 
-    <!-- ⑤.5 三维照片星环：12 幅真实作品漂浮成 3D 星环（懒加载 three chunk） -->
-    <section class="cosmos-section">
-      <div class="cosmos-head" v-reveal>
-        <span class="eyebrow">3D GALLERY / 三维展厅</span>
-        <h2>走进<em>立体</em>的作品星环</h2>
-        <p>12 幅作品漂浮在三维空间里，移动鼠标环视它们——这就是本站全部影像的形状。</p>
-      </div>
-      <div ref="cosmosHost" class="cosmos-host">
-        <canvas ref="cosmosCanvas" class="cosmos-canvas" aria-label="三维照片星环交互展示" />
-        <p v-if="cosmosFallback" class="cosmos-fallback">三维展厅需要 WebGL 支持——你看到的是静态回退。</p>
-      </div>
-    </section>
 
     <!-- ⑦ 能力列表 + 收尾 CTA -->
     <section class="landing-capabilities">
@@ -136,34 +131,12 @@ let raf = 0
 const heroSlides = computed(() => (allWorks.value.length ? allWorks.value : featured.value).slice(0, 5))
 
 /** 动态图片墙：12 块瓦片承接全部真实作品，随机两块定时交叉淡入换图 */
-const tiles = ref<{ src: string; pos: string }[]>([])
-const TILE_POS = ['50% 30%', '30% 60%', '62% 38%', '50% 55%', '26% 26%', '74% 72%', '40% 45%', '58% 28%']
-let swapTimer = 0
-
-function buildTiles() {
-  const srcs = heroSlides.value.map(thumbOf).filter(Boolean)
-  if (!srcs.length) return
-  tiles.value = Array.from({ length: 12 }, (_, i) => ({
-    src: srcs[i % srcs.length],
-    pos: TILE_POS[i % TILE_POS.length],
-  }))
-}
-
-function startSwaps() {
-  if (reduced || swapTimer || !tiles.value.length) return
-  swapTimer = window.setInterval(() => {
-    if (document.hidden) return
-    const srcs = heroSlides.value.map(thumbOf).filter(Boolean)
-    if (srcs.length < 2) return
-    for (let k = 0; k < 2; k++) {
-      const i = Math.floor(Math.random() * tiles.value.length)
-      const cur = tiles.value[i].src
-      let next = srcs[Math.floor(Math.random() * srcs.length)]
-      let guard = 0
-      while (next === cur && guard++ < 6) next = srcs[Math.floor(Math.random() * srcs.length)]
-      if (next !== cur) tiles.value[i] = { ...tiles.value[i], src: next }
-    }
-  }, 2600)
+/** 星环选中的作品：默认第一件（hot 最高）；点击 3D 卡片切换 → Ken Burns 大背景随之更换 */
+const ringWorks = computed(() => (allWorks.value.length ? allWorks.value : featured.value).slice(0, 12))
+const selectedIdx = ref(0)
+const selectedWork = computed(() => ringWorks.value[selectedIdx.value] || null)
+function selectWork(i: number) {
+  if (i >= 0 && i < ringWorks.value.length) selectedIdx.value = i
 }
 const parallax = computed(() => (reduced ? {} : {
   transform: 'translate3d(0,' + Math.min(scrollY.value * 0.12, 120) + 'px,0)',
@@ -194,22 +167,24 @@ function onMove(e: MouseEvent) {
 }
 function onScroll() { scrollY.value = window.scrollY || document.documentElement.scrollTop || 0 }
 
-const cosmosHost = ref<HTMLElement | null>(null)
 const cosmosCanvas = ref<HTMLCanvasElement | null>(null)
 const cosmosFallback = ref(false)
 let cosmosDispose: (() => void) | null = null
 let cosmosStarted = false
-let cosmosIo: IntersectionObserver | null = null
 
 async function startCosmos() {
   if (cosmosStarted || !cosmosCanvas.value) return
+  if (!allWorks.value.length) return
   cosmosStarted = true
   try {
     const { createPhotoCosmos } = await import('@/three/photoCosmos')
-    const urls = (featured.value.length ? featured.value : allWorks.value).map(thumbOf).filter(Boolean)
+    const urls = ringWorks.value.map(thumbOf).filter(Boolean)
     if (urls.length < 2) { cosmosFallback.value = true; return }
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    cosmosDispose = createPhotoCosmos(cosmosCanvas.value, urls, { reduced }).dispose
+    cosmosDispose = createPhotoCosmos(cosmosCanvas.value, urls, {
+      reduced,
+      onPick: (i) => selectWork(i),
+    }).dispose
   } catch {
     cosmosFallback.value = true
   }
@@ -223,29 +198,20 @@ onMounted(async () => {
       allWorks.value = recs
       featured.value = recs.slice(0, 5)
       total.value = Number(res.data.data?.total || recs.length)
-      buildTiles()
-      startSwaps()
+      void startCosmos()
     }
   } catch { /* 保持空态 */ }
   if (!reduced) {
     window.addEventListener('mousemove', onMove, { passive: true })
     window.addEventListener('scroll', onScroll, { passive: true })
   }
-  cosmosIo = new IntersectionObserver((entries) => {
-    if (entries.some((e) => e.isIntersecting)) {
-      cosmosIo?.disconnect()
-      void startCosmos()
-    }
-  }, { rootMargin: '200px' })
-  if (cosmosHost.value) cosmosIo.observe(cosmosHost.value)
+  // 首屏即星环：数据就绪后直接启动（onMounted 数据加载完成处调用 startCosmos）
 })
 onBeforeUnmount(() => {
-  cosmosIo?.disconnect()
   cosmosDispose?.()
   window.removeEventListener('mousemove', onMove)
   window.removeEventListener('scroll', onScroll)
   if (raf) cancelAnimationFrame(raf)
-  if (swapTimer) clearInterval(swapTimer)
 })
 </script>
 
@@ -254,22 +220,26 @@ onBeforeUnmount(() => {
 
 /* ① 背景轮播 */
 .hero-media { position: absolute; inset: 0 0 auto 0; height: 100svh; overflow: hidden; }
-.mosaic { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 2px; }
-.tile { position: relative; overflow: hidden; background: var(--surface-2); }
-.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; will-change: opacity, transform; }
-.tilefade-enter-active { transition: opacity 1.1s var(--ease), transform 7s linear; }
-.tilefade-enter-from { opacity: 0; transform: scale(1.09); }
-.tilefade-leave-active { transition: opacity 1.1s var(--ease); position: absolute; inset: 0; }
-.tilefade-leave-to { opacity: 0; }
-.hero-slide { position: absolute; inset: 0; background-size: cover; background-position: center;
-  opacity: 0; transform: scale(1.04); animation-name: heroCycle; animation-timing-function: ease-in-out; animation-iteration-count: infinite; will-change: opacity, transform; }
-@keyframes heroCycle {
-  0%   { opacity: 0; transform: scale(1.03); }
-  4%   { opacity: 1; transform: scale(1.04); }
-  18%  { opacity: 1; transform: scale(1.09); }
-  24%  { opacity: 0; transform: scale(1.1); }
-  100% { opacity: 0; transform: scale(1.1); }
-}
+
+/* 被选作品 Ken Burns 大背景（点击星环卡片切换） */
+.hero-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: backdropDrift 26s var(--ease, ease) infinite alternate; will-change: transform, opacity; }
+@keyframes backdropDrift { from { transform: scale(1.02) translate3d(0, 0, 0); } to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); } }
+.backdropfade-enter-active { transition: opacity 1.1s cubic-bezier(.16, 1, .3, 1), transform 26s linear; }
+.backdropfade-enter-from { opacity: 0; }
+.backdropfade-leave-active { transition: opacity 1.1s cubic-bezier(.16, 1, .3, 1); position: absolute; inset: 0; }
+.backdropfade-leave-to { opacity: 0; }
+.hero-veil-deep { background:
+  linear-gradient(105deg, rgba(11,11,12,.92) 0%, rgba(11,11,12,.66) 38%, rgba(11,11,12,.28) 100%),
+  linear-gradient(to top, rgba(11,11,12,.95), transparent 55%); }
+
+/* 3D 星环画布铺满首屏（在背景之上、宣言之下） */
+.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
+.cosmos-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-3); font-size: 13px; margin: 0; }
+
+/* 选中标注 */
+.now-viewing { display: inline-flex; align-items: baseline; gap: 8px; color: var(--text-2); }
+.now-viewing b { color: var(--accent-hover); font-family: var(--font-display); font-size: 15px; font-weight: 400; }
+.now-viewing em { font-style: normal; color: var(--text-3); font-size: 12px; letter-spacing: .04em; }
 .hero-veil { position: absolute; inset: 0;
   background: linear-gradient(105deg, rgba(11,11,12,.94) 0%, rgba(11,11,12,.78) 42%, rgba(11,11,12,.42) 100%),
               linear-gradient(to top, rgba(11,11,12,.96), transparent 55%); }
@@ -294,7 +264,7 @@ onBeforeUnmount(() => {
 .landing-nav { display: flex; align-items: center; gap: 10px; }
 
 /* ④ 首屏 */
-.landing-hero { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: flex-start;
+.landing-hero { position: relative; z-index: 3; pointer-events: none; display: flex; flex-direction: column; align-items: flex-start;
   justify-content: center; gap: 22px; min-height: calc(100svh - 96px); padding: 0 clamp(20px, 6vw, 96px) 96px;
   transition: opacity .1s linear; }
 .landing-manifesto { margin: 0; font-family: var(--font-display); font-weight: 400; letter-spacing: -.02em;
@@ -304,7 +274,8 @@ onBeforeUnmount(() => {
 .kline > span { display: block; transform: translateY(105%) skewY(4deg); animation: klineUp .95s cubic-bezier(.16,1,.3,1) forwards; animation-delay: var(--d); }
 @keyframes klineUp { to { transform: none; } }
 .landing-sub { margin: 0; max-width: 46ch; color: var(--text-2); font-size: clamp(14px, 1.15vw, 17px); line-height: 1.9; }
-.landing-cta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.landing-cta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; pointer-events: auto; }
+.landing-manifesto, .landing-sub, .hero-index, .scroll-cue { pointer-events: none; }
 .enter-btn { height: 48px; padding: 0 26px; border-radius: 999px; }
 .enter-btn:hover { transform: translateY(-2px); }
 .ghost-btn { height: 48px; padding: 0 22px; border-radius: 999px; background: transparent; }
