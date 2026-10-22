@@ -1,5 +1,5 @@
 <template>
-  <div class="landing">
+  <div class="landing" :class="{ 'gallery-hidden': galleryHidden }">
     <!-- ① 首屏主体：被选作品 Ken Burns 大背景 + 12 幅作品 3D 星环（点击卡片切换背景） -->
     <div class="hero-media" aria-hidden="false">
       <transition name="backdropfade">
@@ -15,17 +15,16 @@
       <canvas ref="cosmosCanvas" class="cosmos-canvas hero-canvas" aria-label="三维作品星环，点击卡片切换背景" />
       <p v-if="cosmosFallback" class="cosmos-fallback">三维展厅需要 WebGL 支持——已回退为静态背景。</p>
 
-      <!-- 背景切换开关：ON=点击卡片换背景 OFF=锁定当前背景（仅高亮） -->
+      <!-- 沉浸模式开关：隐藏卡片后背景去除遮罩与模糊，原图完整展示 -->
       <button
         type="button"
-        class="bg-toggle"
-        :class="{ on: switchOn }"
-        role="switch"
-        :aria-checked="switchOn"
-        @click="switchOn = !switchOn"
+        class="gallery-toggle"
+        :class="{ hidden: galleryHidden }"
+        :aria-pressed="galleryHidden"
+        @click="toggleGallery"
       >
-        <span class="bt-label">点击卡片切换背景</span>
-        <span class="bt-track"><i class="bt-thumb" /></span>
+        <span class="gt-icon">{{ galleryHidden ? '▦' : '⊟' }}</span>
+        <span class="gt-label">{{ galleryHidden ? '显示画廊卡片' : '隐藏画廊卡片' }}</span>
       </button>
     </div>
 
@@ -149,13 +148,21 @@ const ringWorks = computed(() => (allWorks.value.length ? allWorks.value : featu
 const selectedIdx = ref(0)
 const selectedWork = computed(() => ringWorks.value[selectedIdx.value] || null)
 
-/** 背景切换开关：ON=点击卡片同步换背景；OFF=锁定背景，点击仅高亮卡片 */
-const switchOn = ref(true)
+/** 沉浸模式：隐藏 3D 卡片，背景去除遮罩/模糊展示原图 */
+const galleryHidden = ref(false)
+function watchGalleryHidden() {
+  // 3D 卡片淡出/淡入
+  cosmosHandle.value?.setCardsVisible(!galleryHidden.value)
+}
 const activeIdx = ref(0)
+function toggleGallery() {
+  galleryHidden.value = !galleryHidden.value
+  watchGalleryHidden()
+}
 function handlePick(i: number) {
   if (i < 0 || i >= ringWorks.value.length) return
   activeIdx.value = i
-  if (switchOn.value) selectedIdx.value = i
+  selectedIdx.value = i
   cosmosHandle.value?.setHighlight(i)
 }
 const parallax = computed(() => (reduced ? {} : {
@@ -190,7 +197,7 @@ function onScroll() { scrollY.value = window.scrollY || document.documentElement
 const cosmosCanvas = ref<HTMLCanvasElement | null>(null)
 const cosmosFallback = ref(false)
 let cosmosDispose: (() => void) | null = null
-const cosmosHandle = ref<{ setHighlight: (i: number) => void; dispose: () => void } | null>(null)
+const cosmosHandle = ref<{ setHighlight: (i: number) => void; setCardsVisible: (v: boolean) => void; dispose: () => void } | null>(null)
 let cosmosStarted = false
 
 async function startCosmos() {
@@ -252,32 +259,31 @@ onBeforeUnmount(() => {
 .backdropfade-enter-from { opacity: 0; }
 .backdropfade-leave-active { transition: opacity 1.1s cubic-bezier(.16, 1, .3, 1); position: absolute; inset: 0; }
 .backdropfade-leave-to { opacity: 0; }
-.hero-veil-deep { background:
-  radial-gradient(110% 85% at 16% 80%, rgba(11,11,12,.66) 0%, rgba(11,11,12,.22) 46%, rgba(11,11,12,.06) 100%),
-  linear-gradient(to top, rgba(11,11,12,.5), transparent 30%); }
+.hero-veil-deep { background: rgba(0, 0, 0, .5); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); transition: background .8s var(--ease), backdrop-filter .8s var(--ease), opacity .8s var(--ease); }
+.gallery-hidden .hero-veil-deep { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.gallery-hidden .hero-backdrop { animation-play-state: paused; }
 
 /* 3D 星环画布铺满首屏（在背景之上、宣言之下） */
-.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
+.hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; transition: opacity .9s var(--ease); }
+.gallery-hidden .hero-canvas { opacity: 0; pointer-events: none; }
 .cosmos-fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-3); font-size: 13px; margin: 0; }
 
-/* 背景切换开关：毛玻璃质感 + 极简线条（高级画廊调性） */
-.bg-toggle {
+/* 沉浸模式开关：毛玻璃胶囊 + 图标文案（显示/隐藏画廊卡片） */
+.gallery-toggle {
   position: absolute; right: clamp(16px, 2.4vw, 36px); bottom: clamp(16px, 2.4vw, 36px);
-  z-index: 5; display: inline-flex; align-items: center; gap: 12px;
-  padding: 10px 16px; border-radius: 999px;
+  z-index: 5; display: inline-flex; align-items: center; gap: 10px;
+  padding: 11px 18px; border-radius: 999px;
   background: rgba(20, 22, 20, .55);
   border: 1px solid rgba(255, 255, 255, .14);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  color: var(--text-2); cursor: pointer;
+  color: var(--text-1); cursor: pointer;
   transition: border-color .25s var(--ease), background .25s var(--ease);
 }
-.bg-toggle:hover { border-color: rgba(163, 182, 168, .5); color: var(--text-1); }
-.bt-label { font-size: 12px; letter-spacing: .06em; }
-.bt-track { position: relative; width: 34px; height: 19px; border-radius: 999px; background: rgba(255, 255, 255, .16); transition: background .25s var(--ease); }
-.bt-thumb { position: absolute; top: 2.5px; left: 2.5px; width: 14px; height: 14px; border-radius: 50%; background: var(--text-2); transition: transform .25s var(--ease), background .25s var(--ease); }
-.bg-toggle.on .bt-track { background: color-mix(in srgb, var(--accent) 55%, transparent); }
-.bg-toggle.on .bt-thumb { transform: translateX(15px); background: var(--accent-ink); }
+.gallery-toggle:hover { border-color: rgba(163, 182, 168, .5); }
+.gt-icon { font-size: 14px; color: var(--accent-hover); line-height: 1; }
+.gt-label { font-size: 12px; letter-spacing: .08em; }
+.gallery-toggle.hidden { background: rgba(11, 11, 12, .35); }
 
 /* 选中标注 */
 .landing-manifesto, .landing-sub { text-shadow: 0 2px 28px rgba(11,11,12,.85), 0 1px 6px rgba(11,11,12,.9); }

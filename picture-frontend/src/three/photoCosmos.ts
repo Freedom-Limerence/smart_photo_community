@@ -13,6 +13,8 @@ export interface CosmosHandle {
   dispose: () => void
   /** 设置当前高亮（选中）的卡片索引；-1 表示无 */
   setHighlight: (index: number) => void
+  /** 沉浸模式：卡片/背板平滑淡出（星尘保留），false=隐藏 */
+  setCardsVisible: (visible: boolean) => void
 }
 
 export function createPhotoCosmos(
@@ -52,6 +54,7 @@ export function createPhotoCosmos(
       depthWrite: false,
       fog: true,
     })
+    ;(frameMat.userData as any) = { baseOpacity: 0.92 }
     const cardMat = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       transparent: true,
@@ -59,6 +62,7 @@ export function createPhotoCosmos(
       side: THREE.DoubleSide,
       fog: true,
     })
+    ;(cardMat.userData as any) = { baseOpacity: 0.96 }
     disposables.push(frameMat, cardMat)
     return { frameMat, cardMat }
   }
@@ -127,23 +131,46 @@ export function createPhotoCosmos(
   }
   let downX = 0
   let downY = 0
-  function onDown(e: PointerEvent) { downX = e.clientX; downY = e.clientY }
+  let downTime = 0
+  function onDown(e: PointerEvent) {
+    downX = e.clientX
+    downY = e.clientY
+    downTime = performance.now()
+    dragging = true
+    spinVelocity = 0
+  }
+  function onPointerMove(e: PointerEvent) {
+    if (!dragging) return
+    const dx = e.clientX - downX
+    downX = e.clientX
+    group.rotation.y += dx * 0.0045
+    spinVelocity = dx * 0.18
+  }
   function onUp(e: PointerEvent) {
-    if (Math.hypot(e.clientX - downX, e.clientY - downY) > 8) return
-    const idx = pickAt(e)
-    if (idx != null) opts?.onPick?.(idx)
+    if (!dragging) return
+    dragging = false
+    const moved = Math.hypot(e.clientX - downX, e.clientY - downY)
+    const quick = performance.now() - downTime < 450
+    if (moved <= 8 && quick) {
+      const idx = pickAt(e)
+      if (idx != null) opts?.onPick?.(idx)
+    }
   }
   let hoverFrame = false
   function onHoverMove(e: MouseEvent) {
-    if (hoverFrame) return
+    if (dragging || hoverFrame) return
     hoverFrame = true
     requestAnimationFrame(() => {
       hoverFrame = false
-      canvas.style.cursor = pickAt(e) != null ? 'pointer' : 'grab'
+      const hit = pickAt(e)
+      hoveringCard = hit != null
+      canvas.style.cursor = hit != null ? 'pointer' : 'grab'
     })
   }
   canvas.addEventListener('pointerdown', onDown)
+  canvas.addEventListener('pointermove', onPointerMove)
   canvas.addEventListener('pointerup', onUp)
+  canvas.addEventListener('pointercancel', () => { dragging = false })
   canvas.addEventListener('mousemove', onHoverMove, { passive: true })
 
   // 选中光晕：单张 additive 光晕面，跟随选中卡（外发光效果）
@@ -163,6 +190,14 @@ export function createPhotoCosmos(
 
   let highlightIndex = -1
   const cardScales = urls.map(() => 1)
+
+  // 旋转状态机：自动环绕 / hover 卡片暂停 / 拖拽接管 + 惯性
+  let hoveringCard = false
+  let dragging = false
+  let spinVelocity = 0
+  const AUTO_SPEED = 0.12
+  let cardsTargetOpacity = 1
+  let cardsOpacity = 1
 
   // 星尘
   const starGeo = new THREE.BufferGeometry()
@@ -211,8 +246,19 @@ export function createPhotoCosmos(
 
   function frame() {
     const dt = Math.min(0.1, clock.getDelta())
-    group.rotation.y += dt * 0.045
+    if (dragging) {
+      // 拖拽时 rotation 由 pointermove 直接驱动
+    } else {
+      if (!hoveringCard) group.rotation.y += dt * AUTO_SPEED
+      if (Math.abs(spinVelocity) > 0.0004) {
+        group.rotation.y += spinVelocity
+        spinVelocity *= Math.pow(0.02, dt)
+      } else {
+        spinVelocity = 0
+      }
+    }
     stars.rotation.y -= dt * 0.012
+    cardsOpacity += (cardsTargetOpacity - cardsOpacity) * Math.min(1, dt * 5)
     for (let i = 0; i < group.children.length; i++) {
       const obj = group.children[i] as THREE.Mesh
       const idx = obj.userData?.index
@@ -273,12 +319,16 @@ export function createPhotoCosmos(
     setHighlight(index: number) {
       highlightIndex = index
     },
+    setCardsVisible(visible: boolean) {
+      cardsTargetOpacity = visible ? 1 : 0
+    },
     dispose() {
       running = false
       if (raf) cancelAnimationFrame(raf)
       io.disconnect()
       window.removeEventListener('resize', resize)
       canvas.removeEventListener('pointerdown', onDown)
+      canvas.removeEventListener('pointermove', onPointerMove)
       canvas.removeEventListener('pointerup', onUp)
       canvas.removeEventListener('mousemove', onHoverMove)
       window.removeEventListener('mousemove', onMove)
