@@ -115,21 +115,21 @@ function init(canvas: HTMLCanvasElement) {
 
   // 流星：3-5s 一颗
   const meteors: Meteor[] = []
-  let nextMeteor = performance.now() + 1800
+  let nextMeteor = performance.now() + 1200
   function spawnMeteor() {
     const fromLeft = Math.random() > 0.5
-    const sx = fromLeft ? Math.random() * w * 0.35 : w * (0.62 + Math.random() * 0.38)
-    const sy = Math.random() * h * 0.3
+    const sx = fromLeft ? Math.random() * w * 0.5 : w * (0.5 + Math.random() * 0.5)
+    const sy = Math.random() * h * 0.65
     const dir = fromLeft ? 1 : -1
-    const speed = 11 + Math.random() * 8
+    const speed = 13 + Math.random() * 9
     meteors.push({
       x: sx,
       y: sy,
       vx: dir * speed * 0.82,
       vy: speed * 0.57,
-      len: 180 + Math.random() * 120,
+      len: 220 + Math.random() * 140,
     })
-    nextMeteor = performance.now() + 3000 + Math.random() * 2000
+    nextMeteor = performance.now() + 2500 + Math.random() * 2000
   }
 
   let last = performance.now()
@@ -140,9 +140,9 @@ function init(canvas: HTMLCanvasElement) {
 
     // 深空蓝底色（比纯黑亮一档，可感知的蓝）
     const g = ctx!.createLinearGradient(0, 0, 0, h)
-    g.addColorStop(0, 'rgb(8, 13, 36)')
-    g.addColorStop(0.5, 'rgb(10, 16, 44)')
-    g.addColorStop(1, 'rgb(7, 10, 28)')
+    g.addColorStop(0, 'rgb(2, 2, 4)')
+    g.addColorStop(0.5, 'rgb(3, 3, 6)')
+    g.addColorStop(1, 'rgb(1, 1, 3)')
     ctx!.fillStyle = g
     ctx!.fillRect(0, 0, w, h)
 
@@ -210,7 +210,7 @@ function init(canvas: HTMLCanvasElement) {
     }
 
     // 流星
-    if (now > nextMeteor && meteors.length < 2) spawnMeteor()
+    if (now > nextMeteor && meteors.length < 3) spawnMeteor()
     for (let i = meteors.length - 1; i >= 0; i--) {
       const m = meteors[i]
       m.x += m.vx
@@ -222,11 +222,11 @@ function init(canvas: HTMLCanvasElement) {
       const tailX = m.x - m.vx * (m.len / 12)
       const tailY = m.y - m.vy * (m.len / 12)
       const grad = ctx!.createLinearGradient(m.x, m.y, tailX, tailY)
-      grad.addColorStop(0, 'rgba(255, 255, 255, 0.98)')
+      grad.addColorStop(0, 'rgba(255, 255, 255, 1)')
       grad.addColorStop(0.3, 'rgba(190, 214, 255, 0.6)')
       grad.addColorStop(1, 'rgba(140, 170, 255, 0)')
       ctx!.strokeStyle = grad
-      ctx!.lineWidth = 2.1
+      ctx!.lineWidth = 2.6
       ctx!.lineCap = 'round'
       ctx!.beginPath()
       ctx!.moveTo(m.x, m.y)
@@ -267,8 +267,8 @@ onMounted(() => {
       canvasRef.value.width = window.innerWidth
       canvasRef.value.height = window.innerHeight
       const g = ctx.createLinearGradient(0, 0, 0, canvasRef.value.height)
-      g.addColorStop(0, 'rgb(8, 13, 36)')
-      g.addColorStop(1, 'rgb(7, 10, 28)')
+      g.addColorStop(0, 'rgb(2, 2, 4)')
+      g.addColorStop(1, 'rgb(1, 1, 3)')
       ctx.fillStyle = g
       ctx.fillRect(0, 0, canvasRef.value.width, canvasRef.value.height)
       for (let i = 0; i < 320; i++) {
