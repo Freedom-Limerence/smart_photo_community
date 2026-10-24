@@ -12,6 +12,22 @@
         <em><span class="nb">建造</span>一间永不打烊的画廊</em>。
       </p>
     </section>
+    <!-- 每日精选：按日期确定性轮换，每天一位主角 -->
+    <section v-if="mode === 'home' && dailyPick" class="daily-pick container" v-reveal>
+      <transition name="backdropfade" appear>
+        <img class="dp-cover" :src="dailyCover" :alt="dailyPick.title || '每日精选'" />
+      </transition>
+      <div class="dp-veil" aria-hidden="true"></div>
+      <div class="dp-copy">
+        <span class="dp-eyebrow">DAILY PICK / 每日精选</span>
+        <h2>{{ dailyPick.title || '未命名作品' }}</h2>
+        <p class="dp-meta">{{ dailyPick.author?.userName || '摄影师' }} · {{ todayText }}</p>
+        <p class="dp-desc">{{ dailyPick.description || '今天，让它成为你的第一眼。' }}</p>
+        <button type="button" class="dp-btn" @click="openWork(dailyPick)">
+          欣赏今日之选 <ArrowRightOutlined />
+        </button>
+      </div>
+    </section>
     <ContactSheet v-if="mode === 'home'" :works="featuredWorks" :loading="loading && !works.length" @open="openWork" />
     <section id="works-feed" class="feed container" style="position:relative; z-index:1;">
       <header v-reveal class="feed-heading">
@@ -75,6 +91,21 @@ const tabs = [{value:'latest',label:'最新发现'}, {value:'hot',label:'热门�
 const featuredWorks = computed(() => works.value.filter(w => w.coverUrl || w.pictures?.[0]?.url).slice(0,6))
 const marqueeWords = ['人像', '街拍', '长曝光', '山与海', '人文纪事', '夜景', '胶片', '晨光', '几何', '自然光']
 let fetchVersion = 0
+/** 每日精选：按年中的第几天确定性轮换，每天一位主角 */
+const dailyPick = computed(() => {
+  const pool = (works.value.length ? works.value : featuredWorks.value).slice(0, 12)
+  if (!pool.length) return null
+  const day = Math.floor(Date.now() / 86400000)
+  return pool[day % pool.length]
+})
+const dailyCover = computed(() => {
+  const w = dailyPick.value
+  if (!w) return ''
+  const p = w.pictures?.[0]
+  return p?.url || p?.thumbnailUrl || w.coverUrl || ''
+})
+const todayText = computed(() => new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' }) + ' 精选')
+
 /** 点卡片开灯箱（沉浸看图 + 键盘切换）；详情从灯箱进入 */
 const lightboxOpen = ref(false)
 const lightboxIndex = ref(0)
@@ -201,4 +232,17 @@ onMounted(() => fetchWorks())
 .marquee-seq i { font-style: normal; color: var(--accent); font-size: .5em; margin: 0 clamp(18px, 2.4vw, 40px); transform: translateY(-4px); }
 @keyframes marquee-roll { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+
+/* 每日精选 */
+.daily-pick { position: relative; z-index: 1; margin-top: clamp(18px, 2.6vw, 34px); height: clamp(280px, 42vh, 460px); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+.dp-cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.dp-veil { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(4,5,8,.86) 0%, rgba(4,5,8,.55) 46%, rgba(4,5,8,.12) 100%); }
+.dp-copy { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: clamp(20px, 4vw, 52px); max-width: 60%; }
+.dp-eyebrow { color: var(--accent-hover); font-size: 12px; letter-spacing: .22em; }
+.dp-copy h2 { margin: 0; color: var(--text-1); font-family: var(--font-display); font-weight: 400; font-size: clamp(22px, 3vw, 40px); letter-spacing: -.01em; text-shadow: 0 2px 20px rgba(0,0,0,.5); }
+.dp-meta { margin: 0; color: var(--text-2); font-size: 13px; }
+.dp-desc { margin: 0; color: var(--text-2); font-size: 14px; max-width: 46ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.dp-btn { margin-top: 8px; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; border: 1px solid rgba(255,255,255,.2); background: rgba(10,12,10,.55); color: var(--text-1); cursor: pointer; font-size: 13.5px; letter-spacing: .05em; transition: border-color .25s, background .25s; }
+.dp-btn:hover { border-color: rgba(163,182,168,.65); background: rgba(20,24,20,.7); }
+@media (max-width: 720px) { .dp-copy { max-width: 100%; } }
 </style>
