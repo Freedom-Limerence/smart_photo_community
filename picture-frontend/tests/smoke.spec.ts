@@ -54,8 +54,14 @@ test.describe('首页', () => {
 })
 
 test.describe('作品详情', () => {
-  test('核心区块完整：舞台 / 标题 / 互动区', async ({ page }) => {
-    await page.goto('/works/76')
+  test('核心区块完整：舞台 / 标题 / 互动区', async ({ page, request }) => {
+    // 不硬编码作品 ID：库被 reseed/清理后固定 ID 会消失，曾让本测试红了 3 天。
+    // 改为运行时从公开作品流取一件真实作品。
+    const listRes = await request.get('http://127.0.0.1:8123/api/work/page?current=1&size=1&sort=latest')
+    const listBody = await listRes.json()
+    const workId = listBody?.data?.records?.[0]?.id
+    expect(workId, '公开作品流里应至少有一件作品（否则后续断言无意义）').toBeTruthy()
+    await page.goto('/works/' + workId)
     await expect(page.locator('.stage-img')).toBeVisible()
     await expect(page.locator('.work-page h1, .detail-view h1, .work-page h2').first()).toBeVisible()
     await expect(page.locator('.act').first()).toBeVisible()
