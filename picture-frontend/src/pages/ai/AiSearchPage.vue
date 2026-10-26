@@ -29,21 +29,30 @@
             <img v-if="item.thumbnailUrl || item.url" :src="item.thumbnailUrl || item.url" alt="" class="thumb" />
             <div class="result-body">
               <strong>{{ item.name || ('图片 #' + item.pictureId) }}</strong>
-              <div class="meta">
-                <a-tag color="green">分值 {{ item.score }}</a-tag>
-                <a-tag color="blue">{{ item.accessReason }}</a-tag>
+
+              <!-- 匹配置信条：分值归一化到本组最高分 -->
+              <div class="conf">
+                <div class="conf-bar"><i :style="{ width: confPct(item) + '%' }" /></div>
+                <span class="conf-val">{{ confPct(item) }}%</span>
               </div>
-              <div class="meta">
-                <span class="label">命中字段：</span>
-                <a-tag v-for="f in item.matchedFields" :key="f">{{ fieldLabel(f) }}</a-tag>
+
+              <!-- 命中字段：按类型着色的徽章 -->
+              <div class="hit-row">
+                <span v-for="f in item.matchedFields" :key="f" class="hit-field" :class="'f-' + f">{{ fieldLabel(f) }}</span>
                 <span v-if="!item.matchedFields?.length" class="muted">—</span>
               </div>
-              <div class="meta">
-                <span class="label">命中标签：</span>
-                <a-tag v-for="t in item.matchedTags" :key="t" color="orange">{{ t }}</a-tag>
+
+              <!-- 命中标签：可点 chips，点击即以该标签重新检索 -->
+              <div class="hit-row">
+                <button v-for="t in item.matchedTags" :key="t" type="button" class="hit-tag"
+                        :title="'用「' + t + '」再次检索'" @click.stop="rerunWith(t)"># {{ t }}</button>
                 <span v-if="!item.matchedTags?.length" class="muted">—</span>
               </div>
-              <a-button type="link" size="small" @click="router.push('/ai/catalog?pictureId=' + item.pictureId)">查看元数据</a-button>
+
+              <div class="access-line">
+                <SafetyOutlined /> {{ item.accessReason }}
+                <a-button type="link" size="small" @click="router.push('/ai/catalog?pictureId=' + item.pictureId)">查看元数据</a-button>
+              </div>
             </div>
           </a-card>
         </a-col>
@@ -54,9 +63,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { SafetyOutlined } from '@ant-design/icons-vue'
 import { searchWithEvidence } from '@/api/aiController'
 
 const router = useRouter()
@@ -74,6 +84,17 @@ const fieldLabels: Record<string, string> = {
   compositionTags: '构图标签', camera: '相机信息',
 }
 function fieldLabel(f: string) { return fieldLabels[f] || f }
+
+/** 匹配置信度：以本组最高分为 100% */
+const maxScore = computed(() => Math.max(1, ...results.value.map((i: any) => i.score || 0)))
+function confPct(item: any) {
+  return Math.max(5, Math.round(((item.score || 0) / maxScore.value) * 100))
+}
+/** 点击命中标签：以该标签重新检索 */
+function rerunWith(tag: string) {
+  query.value = tag
+  doSearch()
+}
 
 async function doSearch() {
   if (!query.value.trim()) return message.warning('请输入检索内容')
@@ -107,7 +128,28 @@ h1 { margin: 0 0 6px; font-size: 26px; }
 .result-body { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
 .meta { font-size: 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .label { color: var(--text-3); }
-.muted { color: #b6c2ba; }
+.muted { color: var(--text-3); }
+
+/* 匹配置信条 */
+.conf { display: flex; align-items: center; gap: 10px; }
+.conf-bar { flex: 1; height: 6px; border-radius: 4px; background: var(--surface-2, rgba(0,0,0,.08)); overflow: hidden; }
+.conf-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-hover)); transition: width .7s var(--ease); }
+.conf-val { font-size: 12px; color: var(--accent-hover); font-variant-numeric: tabular-nums; min-width: 38px; text-align: right; }
+
+/* 命中字段徽章（按字段类型着色） */
+.hit-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.hit-field { font-size: 12px; padding: 3px 9px; border-radius: 999px; letter-spacing: .04em; }
+.hit-field.f-name { background: rgba(70, 110, 235, .14); color: rgb(111, 146, 232); }
+.hit-field.f-introduction { background: rgba(80, 170, 110, .14); color: rgb(102, 179, 130); }
+.hit-field.f-category { background: rgba(140, 90, 230, .14); color: rgb(161, 132, 224); }
+.hit-field.f-tags, .hit-field.f-subjectTags, .hit-field.f-sceneTags, .hit-field.f-lightTags, .hit-field.f-compositionTags { background: rgba(220, 140, 60, .14); color: rgb(217, 154, 85); }
+.hit-field.f-camera { background: rgba(110, 120, 130, .16); color: rgb(143, 160, 173); }
+
+/* 命中标签 chips：可点 */
+.hit-tag { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px dashed var(--border-strong, rgba(163,182,168,.4)); background: transparent; color: var(--accent-hover); cursor: pointer; transition: background .2s, border-color .2s; }
+.hit-tag:hover { background: rgba(163, 182, 168, .12); border-color: var(--accent-hover); }
+
+.access-line { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); }
 
 /* AI 命中扫光：结果卡揭示后一道高亮扫过（每卡错峰，一次即止） */
 .ai-scan { position: relative; overflow: hidden; }
