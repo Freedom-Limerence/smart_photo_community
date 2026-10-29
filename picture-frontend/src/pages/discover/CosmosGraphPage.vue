@@ -3,9 +3,8 @@
     <div class="cg-canvas-wrap">
       <canvas ref="canvasRef" class="cg-canvas" />
       <!-- hover 浮标：节点标题与作者 -->
-      <div v-if="hoverIdx !== null" class="cg-tooltip" :style="{ left: hoverPos.x + 14 + 'px', top: hoverPos.y - 10 + 'px' }">
-        <strong>{{ works[hoverIdx]?.title || '未命名作品' }}</strong>
-        <span>{{ works[hoverIdx]?.author }} · {{ works[hoverIdx]?.tags?.slice(0, 3).map((t: string) => '#' + t).join(' ') }}</span>
+      <div v-if="hoverText" class="cg-tooltip" :style="{ left: hoverPos.x + 14 + 'px', top: hoverPos.y - 10 + 'px' }">
+        <strong>{{ hoverText }}</strong>
       </div>
       <!-- 操作提示 -->
       <div class="cg-hints" aria-hidden="true">
@@ -16,7 +15,7 @@
     <header class="cg-head">
       <p class="eyebrow">LIGHT CONSTELLATION</p>
       <h1>光影<em>星图</em></h1>
-      <p class="cg-sub">每一颗星，都是一幅作品；<br />连线，是它们共享的光。{{ edges }} 条星桥，串联 {{ nodes }} 幅作品。</p>
+      <p class="cg-sub">大星是题材，小星是作品。<br />{{ hubsCount }} 个题材星团 · {{ leaves }} 幅作品 · {{ edgeCount }} 条光桥。<br /><span style="color: var(--accent-hover)">推近星团，展开其中的作品。</span></p>
     </header>
 
     <a-spin v-if="loading" class="cg-loading" size="large" />
@@ -40,10 +39,10 @@ const works = ref<any[]>([])
 const edgeCount = ref(0)
 const lightboxOpen = ref(false)
 const lightboxIdx = ref(0)
-const hoverIdx = ref<number | null>(null)
+const hoverText = ref<string | null>(null)
 const hoverPos = ref({ x: 0, y: 0 })
-const nodes = computed(() => works.value.length)
-const edges = computed(() => edgeCount.value)
+const hubsCount = ref(0)
+const leaves = computed(() => works.value.length)
 
 let handle: GraphHandle | null = null
 
@@ -53,22 +52,22 @@ function openDetail(w: any) {
 
 onMounted(async () => {
   try {
-    const res: any = await getCosmosGraph(150)
-    if (res.data.code === 0 && res.data.data?.nodes?.length) {
-      works.value = (res.data.data.nodes || []).map((nn: any) => ({
-        ...nn,
-        likeCount: Number(nn.likeCount || 0),
-      }))
-      edgeCount.value = (res.data.data.edges || []).length
-      const data: GraphData = { nodes: works.value, edges: res.data.data.edges || [] }
+      const res: any = await getCosmosGraph(300)
+    if (res.data.code === 0 && res.data.data?.hubs?.length) {
+      const gd = res.data.data
+      works.value = (gd.leaves || []).map((lf: any) => ({ ...lf, id: lf.workId }))
+      hubsCount.value = (gd.hubs || []).length
+      edgeCount.value = (gd.edges || []).length
+      const data: GraphData = { hubs: gd.hubs || [], leaves: gd.leaves || [], edges: gd.edges || [] }
       if (canvasRef.value) {
         handle = createGraphUniverse(canvasRef.value, data, {
-          onPick: (i) => {
-            lightboxIdx.value = i
+          onPickLeaf: (leafIndex) => {
+            lightboxIdx.value = leafIndex
             lightboxOpen.value = true
           },
-          onHover: (i, screen) => {
-            hoverIdx.value = i
+          onOpenHub: (tag) => router.push('/tags/' + encodeURIComponent(tag)),
+          onHover: (text, screen) => {
+            hoverText.value = text
             hoverPos.value = screen
           },
         })

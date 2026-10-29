@@ -11,93 +11,111 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * 光影星图（/cosmos 页）：作品节点 + 共享标签连线的聚合数据
+ * 光影星图（/cosmos 页）：两层知识图谱
+ * Hub = 标签枢纽（被 >=2 幅作品使用的标签）
+ * Leaf = 图片节点（每个 Hub 下按热度取前 K 幅）
  */
 @RestController
 @RequestMapping("/cosmos")
 public class CosmosController {
 
+    private static final int LEAVES_PER_HUB = 8;
+
     @Resource
     private PhotoWorkService workService;
 
     /**
-     * 星图数据：hot 前 limit 件公开作品为节点，共享标签生成连线（每节点最多保留 4 条最强的边）
-     * GET /cosmos/graph?limit=150
+     * GET /cosmos/graph?limit=300&hubMin=2&leavesPerHub=8
+     * 返回：hubs（标签枢纽，含关联数）、leaves（图片节点，含归属 hub）、edges（hub→leaf）
      */
     @GetMapping("/graph")
-    public BaseResponse<Map<String, Object>> graph(@RequestParam(defaultValue = "150") Integer limit) {
-        int n = Math.min(Math.max(limit == null ? 150 : limit, 1), 300);
-        // hot 排序取前 n 件公开作品（复用作品分页，含图片与作者信息）
+    public BaseResponse<Map<String, Object>> graph(
+            @RequestParam(defaultValue = "300") Integer limit,
+            @RequestParam(defaultValue = "2") Integer hubMin,
+            @RequestParam(defaultValue = "8") Integer leavesPerHub) {
+        int n = Math.min(Math.max(limit == null ? 300 : limit, 1), 300);
+        int minHub = Math.max(hubMin == null ? 2 : hubMin, 2);
+        int perHub = Math.min(Math.max(leavesPerHub == null ? 8 : leavesPerHub, 3), 12);
+
         var page = workService.page(1, n, null, "hot");
         List<PhotoWork> works = page.getRecords();
 
-        List<Map<String, Object>> nodes = new ArrayList<>();
-        List<List<String>> tagLists = new ArrayList<>();
+        // 1) 每件作品的标签集合 + 节点基础信息
+        record WorkInfo(String id, String title, String author, String cover, long heat, List<String> tags) {}
+        List<WorkInfo> infos = new ArrayList<>();
         for (PhotoWork w : works) {
-            Map<String, Object> node = new LinkedHashMap<>();
-            node.put("id", String.valueOf(w.getId()));
-            node.put("title", w.getTitle());
-            node.put("author", w.getAuthor() != null ? w.getAuthor().getUserName() : "摄影师");
-            node.put("likeCount", w.getLikeCount() == null ? 0 : w.getLikeCount());
-            // 首图的标签集合（作品封面）+ 封面地址
-            Set<String> tags = new HashSet<>();
-            String cover = "";
-            if (w.getPictures() != null && !w.getPictures().isEmpty()) {
-                var p = w.getPictures().get(0);
-                cover = p.getThumbnailUrl() != null ? p.getThumbnailUrl() : p.getUrl();
-                if (p.getTags() != null) tags.addAll(p.getTags());
-            }
-            node.put("cover", cover);
-            node.put("tags", new ArrayList<>(tags));
-            nodes.add(node);
-            tagLists.add(new ArrayList<>(tags));
+            if (w.getPictures() == null || w.getPictures().isEmpty()) continue;
+            var p = w.getPictures().get(0);
+            List<String> tags = new ArrayList<>();
+            if (p.getTags() != null) tags.addAll(p.getTags());
+            if (tags.isEmpty()) continue;   // 无标签的作品无法挂入星图
+            String cover = p.getThumbnailUrl() != null ? p.getThumbnailUrl() : p.getUrl();
+            long heat = (w.getLikeCount() == null ? 0 : w.getLikeCount())
+                    + (w.getFavoriteCount() == null ? 0 : w.getFavoriteCount());
+            infos.add(new WorkInfo(String.valueOf(w.getId()), w.getTitle(),
+                    w.getAuthor() != null ? w.getAuthor().getUserName() : "摄影师", cover, heat, tags));
         }
 
-        // 共享标签 → 连线（每节点最多保留 4 条最强的边，避免发丝球）
-        List<Map<String, Object>> edges = new ArrayList<>();
-        int[] edgeCount = new int[works.size()];
-        for (int i = 0; i < works.size(); i++) {
-            // 按共享数降序收集 i-j
-            List<int[]> candidates = new ArrayList<>();
-            for (int j = i + 1; j < works.size(); j++) {
-                Set<String> shared = new HashSet<>(tagLists.get(i));
-                shared.retainAll(tagLists.get(j));
-                if (!shared.isEmpty()) candidates.add(new int[]{j, shared.size()});
+        // 2) 标签 → 作品列表；Hub = 被 >= hubMin 幅作品使用的标签
+        Map<String, List<WorkInfo>> tagWorks = new LinkedHashMap<>();
+        for (WorkInfo info : infos) {
+            for (String t : new java.util.HashSet<>(info.tags())) {
+                tagWorks.computeIfAbsent(t, k -> new ArrayList<>()).add(info);
             }
-            candidates.sort((a, b) -> b[1] - a[1]);
-            for (int[] c : candidates) {
-                if (edgeCount[i] >= 4) break;
-                int j = c[0];
-                boolean jFull = false;
-                // j 的边数动态统计
-                int jCount = 0;
-                for (Map<String, Object> e : edges) {
-                    int s = Integer.parseInt((String) e.get("source"));
-                    int t = Integer.parseInt((String) e.get("target"));
-                    if (s == j || t == j) jCount++;
-                }
-                if (jCount >= 4) jFull = true;
-                if (jFull) continue;
+        }
+        List<Map.Entry<String, List<WorkInfo>>> hubEntries = tagWorks.entrySet().stream()
+                .filter(e -> e.getValue().size() >= minHub)
+                .sorted((a, b) -> b.getValue().size() - a.getValue().size())
+                .toList();
+
+        // 3) 生成 Hub 与 Leaf（每 Hub 按热度取前 perHub 幅，作品去重：只挂第一个命中的 Hub）
+        List<Map<String, Object>> hubs = new ArrayList<>();
+        List<Map<String, Object>> leaves = new ArrayList<>();
+        List<Map<String, Object>> edges = new ArrayList<>();
+        java.util.Set<String> usedWorkIds = new java.util.HashSet<>();
+
+        for (var entry : hubEntries) {
+            String tag = entry.getKey();
+            List<WorkInfo> candidates = entry.getValue().stream()
+                    .sorted(Comparator.comparingLong(WorkInfo::heat).reversed())
+                    .toList();
+            Map<String, Object> hub = new LinkedHashMap<>();
+            hub.put("tag", tag);
+            hub.put("count", entry.getValue().size());
+            hubs.add(hub);
+
+            int added = 0;
+            for (WorkInfo info : candidates) {
+                if (added >= perHub) break;
+                if (usedWorkIds.contains(info.id())) continue;   // 一图只挂一个 Hub（去重防爆炸）
+                usedWorkIds.add(info.id());
+                Map<String, Object> leaf = new LinkedHashMap<>();
+                leaf.put("workId", info.id());
+                leaf.put("title", info.title());
+                leaf.put("author", info.author());
+                leaf.put("cover", info.cover());
+                leaf.put("heat", info.heat());
+                leaf.put("hub", tag);
+                leaf.put("tags", info.tags());
+                leaves.add(leaf);
                 Map<String, Object> e = new HashMap<>();
-                e.put("source", String.valueOf(i));
-                e.put("target", String.valueOf(j));
-                e.put("weight", c[1]);
+                e.put("hub", tag);
+                e.put("leaf", info.id());
                 edges.add(e);
-                edgeCount[i]++;
-                edgeCount[j]++;
+                added++;
             }
         }
 
         Map<String, Object> data = new HashMap<>();
-        data.put("nodes", nodes);
+        data.put("hubs", hubs);
+        data.put("leaves", leaves);
         data.put("edges", edges);
         return ResultUtils.success(data);
     }
