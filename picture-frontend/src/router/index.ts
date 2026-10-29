@@ -91,6 +91,7 @@ const router = createRouter({
         { path: 'photographers/:id/following', component: FollowListPage, meta: { title: '关注' } },
         { path: 'search', name: 'search', component: SearchPage, meta: { title: '搜索' } },
         { path: 'notifications', name: 'notifications', component: NotificationPage, meta: { title: '通知中心', requiresAuth: true } },
+        { path: 'cosmos', name: 'cosmos-graph', component: () => import('@/pages/discover/CosmosGraphPage.vue'), meta: { title: '光影星图' } },
         { path: 'ranking', name: 'ranking', component: () => import('@/pages/discover/RankingPage.vue'), meta: { title: '作品排行榜' } },
         { path: 'wall', name: 'wall', component: WallPage, meta: { title: '今日影像大屏' } },
         { path: 'tags', name: 'tag-index', component: TagIndexPage, meta: { title: '标签广场' } },

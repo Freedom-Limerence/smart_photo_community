@@ -234,3 +234,7 @@ export function searchWorksByKeyword(params: { keyword: string; current?: number
 export function listWorksByTag(tag: string, limit = 12) {
   return request('/api/work/by-tag', { method: 'GET', params: { tag, limit } })
 }
+
+export function getCosmosGraph(limit = 150) {
+  return request('/api/cosmos/graph', { method: 'GET', params: { limit } })
+}
