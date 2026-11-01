@@ -352,3 +352,27 @@ body::after {
 }
 body.cursor-glow-on .cursor-glow { opacity: 1; }
 @media (hover: none) { .cursor-glow { display: none; } }
+
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 1px solid rgba(201, 211, 203, .8);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: .7;
+  transition: width .25s ease, height .25s ease, margin .25s ease, background .25s ease;
+}
+body.cursor-hover .cursor-ring {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  background: rgba(143, 163, 148, .12);
+}
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .cursor-ring { display: none; }
+}

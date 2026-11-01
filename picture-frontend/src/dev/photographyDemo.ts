@@ -78,3 +78,30 @@ export const demoWorks: DemoWork[] = [
     pictures: pictures(IMG.fisher, IMG.sea),
   },
 ]
+
+/** 影像星座的专用演示关系；页面通过同一个开发环境门控动态加载。 */
+export const demoCosmosGraph = (() => {
+  const themes: Record<string, string[]> = {
+    'demo-001': ['山与雾', '自然光', '清晨'],
+    'demo-002': ['人文纪事', '自然光'],
+    'demo-003': ['城市切片', '人文纪事'],
+    'demo-004': ['海的边界', '清晨'],
+    'demo-005': ['山与雾', '自然光'],
+    'demo-006': ['海的边界', '人文纪事'],
+  }
+  const count = new Map<string, number>()
+  demoWorks.forEach((work) => themes[work.id]?.forEach((tag) => count.set(tag, (count.get(tag) || 0) + 1)))
+  return {
+    hubs: [...count].sort((a, b) => b[1] - a[1]).map(([tag, total]) => ({ tag, count: total })),
+    leaves: demoWorks.map((work) => ({
+      workId: work.id,
+      title: work.title,
+      author: work.author.userName,
+      cover: work.coverUrl || work.pictures[0]?.url || '',
+      heat: 0,
+      hub: themes[work.id]?.[0] || '',
+      tags: themes[work.id] || [],
+    })),
+    edges: demoWorks.flatMap((work) => (themes[work.id] || []).map((tag) => ({ hub: tag, leaf: work.id }))),
+  }
+})()

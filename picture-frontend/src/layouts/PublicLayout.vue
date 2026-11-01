@@ -1,7 +1,7 @@
 <template>
   <div class="public-layout" :class="{ 'is-immersive': isWorkDetail }">
     <!-- 全局深空星空：三层星 + 流星 + 星云（fixed 底层） -->
-    <GlobalStarfield />
+    <GlobalStarfield v-if="route.name !== 'cosmos-graph'" />
     <!-- 键盘跳转：Tab 第一站直达内容区（P0-7） -->
     <a class="skip-link" href="#main-content">跳到主要内容</a>
     <!-- 摄影演示模式提示条：仅开发环境 ?demo=photography 时显示 -->

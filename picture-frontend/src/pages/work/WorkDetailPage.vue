@@ -16,7 +16,7 @@
               <RightOutlined />
             </button>
             <div class="stage-bar">
-              <a-button type="text" class="stage-btn" @click="openOriginal">
+              <a-button type="text" class="stage-btn" :disabled="previewWork" @click="openOriginal">
                 <PictureOutlined /> 查看原图
               </a-button>
               <a-button type="text" class="stage-btn" @click="toggleFullscreen">
@@ -41,14 +41,15 @@
         <!-- ============ 副区：故事与互动 ============ -->
         <aside class="story">
           <header class="author">
-            <router-link class="author-main" :to="'/photographers/' + work.authorId">
+            <router-link v-if="!previewWork" class="author-main" :to="'/photographers/' + work.authorId">
               <a-avatar :src="work.author?.userAvatar" :size="44">{{ authorText }}</a-avatar>
               <div>
                 <strong>{{ work.author?.userName || '摄影师' }}</strong>
                 <span class="muted">{{ formatDate(work.createTime) }} 发布</span>
               </div>
             </router-link>
-            <a-space>
+            <span v-if="previewWork" class="author-main">{{ work.author?.userName }} · 摄影演示作品</span>
+            <a-space v-if="!previewWork">
               <a-button v-if="!isSelf" :type="followed ? 'default' : 'primary'" size="small" @click="toggleFollow">
                 {{ followed ? '已关注' : '+ 关注' }}
               </a-button>
@@ -76,7 +77,7 @@
             <div v-if="work.copyrightNotice"><dt>版权</dt><dd>{{ work.copyrightNotice }}</dd></div>
           </dl>
 
-          <div class="actions">
+          <div v-if="!previewWork" class="actions">
             <LikeButton class="act" :liked="liked" :count="work.likeCount ?? 0" @toggle="toggleLike" />
             <button class="act" :class="{ on: favorited }" type="button" @click="toggleFavorite">
               <StarFilled v-if="favorited" /><StarOutlined v-else /> {{ work.favoriteCount ?? 0 }}
@@ -88,7 +89,7 @@
           </div>
 
           <!-- ============ 评论区（二级回复 + 点赞） ============ -->
-          <section id="work-comments" class="comments">
+          <section v-if="!previewWork" id="work-comments" class="comments">
             <div class="section-title">
               <span class="eyebrow">CONVERSATION</span>
               <h2>关于这组作品 <small>{{ comments.length }}</small></h2>
@@ -187,6 +188,7 @@ import {
   MoreOutlined, PictureOutlined, RightOutlined, StarFilled, StarOutlined,
 } from '@ant-design/icons-vue'
 import WorkCard from '@/components/common/WorkCard.vue'
+import { isPreviewResource, loadPhotographyPreview } from '@/utils/photographyPreview'
 import LikeButton from '@/components/common/LikeButton.vue'
 import { useAmbientGlow } from '@/composables/useAmbientGlow'
 import {
@@ -224,6 +226,7 @@ const reportReason = ref('内容违规')
 const reportDetail = ref('')
 
 const workId = computed(() => String(route.params.id))
+const previewWork = computed(() => isPreviewResource(workId.value))
 const pictures = computed(() => (work.value?.pictures?.length ? work.value.pictures : []))
 const activePicture = computed(() => pictures.value[activeIndex.value] || pictures.value[0] || null)
 const meta = computed(() => activePicture.value || {})
@@ -300,6 +303,13 @@ function onKeydown(e: KeyboardEvent) {
 async function load() {
   loading.value = true
   try {
+    if (previewWork.value) {
+      const preview = await loadPhotographyPreview()
+      const item = preview?.demoWorks.find(item => item.id === workId.value)
+      work.value = item ? { ...item, description: item.introduction } : null
+      comments.value = []; related.value = []
+      return
+    }
     const res: any = await getWorkDetail(workId.value)
     work.value = res.data.code === 0 ? res.data.data : null
     if (!work.value) return
@@ -430,7 +440,7 @@ onMounted(() => {
 function rememberRecent() {
   try {
     const w = work.value
-    if (!w?.id) return
+    if (!w?.id || previewWork.value) return
     const list: { id: string; title: string; cover?: string }[] = JSON.parse(localStorage.getItem('photo_recent_works') || '[]')
     const cover = w.coverUrl || w.pictures?.[0]?.thumbnailUrl || w.pictures?.[0]?.url || ''
     const next = [{ id: String(w.id), title: w.title || '未命名作品', cover }, ...list.filter((r) => r.id !== String(w.id))].slice(0, 6)
