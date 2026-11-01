@@ -28,6 +28,12 @@
       </div>
 
       <div v-else class="constellation-overview">
+          <transition name="intro-fade">
+            <div v-if="introVisible" class="intro-overlay" aria-hidden="true">
+              <strong>{{ leaves.length }} 幅作品</strong><span>·</span><strong>{{ hubs.length }} 个题材</strong>
+              <p>它们在此连成一片宇宙</p>
+            </div>
+          </transition>
           <div class="overview-intro">
             <h1>影像星图<span>从一个星点，走近一幅影像。</span></h1>
             <p>{{ hubs.length }} 个题材 · {{ leaves.length }} 幅作品 · {{ edges.length }} 条真实关联</p>
@@ -47,7 +53,25 @@
             <CosmosInteractiveGraph ref="graphRef" :hubs="hubs" :works="leaves" :edges="edges" :selected-tag="inspectedHub" :selected-work="inspectedWork?.workId || null" :neighbors-only="false" @select-hub="inspectHub" @open-work="openWork" @clear="clearInspection" />
           </div>
 
-          <button v-if="inspectedWork" class="selected-work-link" type="button" @click="openWork(inspectedWork)">查看「{{ inspectedWork.title }}」详情</button>
+          <!-- 详情侧滑卡：点击作品节点后从右滑出 -->
+          <transition name="side-card">
+            <aside v-if="inspectedWork && sideCardOpen" class="work-side-card" :key="inspectedWork.workId">
+              <button type="button" class="side-close" aria-label="关闭详情卡" @click="clearInspection">×</button>
+              <img class="side-cover" :src="inspectedWork.cover" :alt="inspectedWork.title || '作品'" loading="lazy" />
+              <div class="side-body">
+                <h3>{{ inspectedWork.title || '未命名作品' }}</h3>
+                <p class="side-author">{{ inspectedWork.author }}</p>
+                <div class="side-tags">
+                  <span v-for="t in inspectedWork.tags.slice(0, 5)" :key="t" @click="inspectHub(t)"># {{ t }}</span>
+                </div>
+                <div class="side-actions">
+                  <button type="button" class="side-primary" @click="enterWork">进入作品详情</button>
+                  <button type="button" class="side-ghost" @click="openLightbox">看大图</button>
+                </div>
+              </div>
+            </aside>
+          </transition>
+          <Lightbox :works="leaves" v-model:open="lightboxOpen" v-model:index="lightboxIdx" @detail="enterWork" />
           <div class="theme-index">
             <span class="theme-index-label">探索题材</span>
             <button v-for="hub in hubs" :key="hub.tag" type="button" :aria-pressed="inspectedHub === hub.tag" :class="{ active: inspectedHub === hub.tag }" @click="inspectHub(hub.tag)">
@@ -65,6 +89,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getCosmosGraph } from '@/api/photoCommunity'
 import CosmosInteractiveGraph from './CosmosInteractiveGraph.vue'
+import Lightbox from '@/components/common/Lightbox.vue'
 import { isPreviewResource, loadPhotographyPreview } from '@/utils/photographyPreview'
 
 interface Hub { tag: string; count: number }
@@ -83,6 +108,7 @@ const error = ref('')
 const inspectedHub = ref<string | null>(null)
 const inspectedWork = ref<Work | null>(null)
 const searchQuery = ref('')
+const introVisible = ref(false)
 let requestVersion = 0
 
 interface SearchResult { id: string; kind: 'hub' | 'work'; label: string; work?: Work }
@@ -96,15 +122,35 @@ const searchResults = computed<SearchResult[]>(() => {
 })
 function chooseSearchResult(result: SearchResult) { if (result.work) inspectWork(result.work); else inspectHub(result.label); searchQuery.value = '' }
 function inspectHub(tag: string) {
+  console.log('[cg] page inspectHub', tag)
   if (inspectedHub.value === tag) graphRef.value?.focusSelection()
-  inspectedHub.value = tag || null; inspectedWork.value = null
+  inspectedHub.value = tag || null; inspectedWork.value = null; console.log('[cg] set hub ->', inspectedHub.value)
 }
 function inspectWork(work: Work) {
   if (inspectedWork.value?.workId === work.workId) graphRef.value?.focusSelection()
   inspectedWork.value = work; inspectedHub.value = null
 }
-function clearInspection() { inspectedHub.value = null; inspectedWork.value = null }
+function clearInspection() {
+  console.log('[cg] CLEAR inspection')
+  inspectedHub.value = null; inspectedWork.value = null; sideCardOpen.value = false
+}
+/** 点击作品节点：侧滑详情卡（不离开宇宙） */
+const sideCardOpen = ref(false)
+const lightboxOpen = ref(false)
+const lightboxIdx = ref(0)
 function openWork(work: Work) {
+  inspectedWork.value = work
+  inspectedHub.value = null
+  sideCardOpen.value = true
+}
+function openLightbox() {
+  const i = leaves.value.findIndex((w) => w.workId === inspectedWork.value?.workId)
+  if (i >= 0) lightboxIdx.value = i
+  lightboxOpen.value = true
+}
+function enterWork() {
+  const work = inspectedWork.value
+  if (!work) return
   void router.push({ path: '/works/' + encodeURIComponent(work.workId), query: isPreviewResource(work.workId) ? { demo: 'photography' } : {} })
 }
 function onKeydown(event: KeyboardEvent) {
@@ -125,6 +171,8 @@ async function loadGraph() {
       graph = response.data.data
     }
     if (version !== requestVersion) return
+    introVisible.value = true
+    window.setTimeout(() => { introVisible.value = false }, 1700)
     leaves.value = Array.isArray(graph?.leaves) ? graph.leaves.filter((work) => work?.workId) : []
     const leafIds = new Set(leaves.value.map((work) => work.workId))
     const incomingHubs = Array.isArray(graph?.hubs) ? graph.hubs : []
@@ -144,7 +192,7 @@ async function loadGraph() {
     const connectedTags = new Set(edges.value.map((edge) => edge.hub))
     hubs.value = incomingHubs.filter((hub) => hub?.tag && connectedTags.has(hub.tag))
     const requestedTheme = typeof route.query.theme === 'string' ? route.query.theme : null
-    inspectedHub.value = hubs.value.some((hub) => hub.tag === requestedTheme) ? requestedTheme : null
+    inspectedHub.value = hubs.value.some((hub) => hub.tag === requestedTheme) ? requestedTheme : null; console.log('[cg] loadGraph ->', inspectedHub.value)
   } catch (cause: any) {
     if (version === requestVersion) error.value = cause?.message || '请检查网络连接后重试。'
   } finally {
@@ -154,7 +202,7 @@ async function loadGraph() {
 
 watch(() => route.query.demo, () => { void loadGraph() })
 watch(() => route.query.theme, (theme) => {
-  inspectedHub.value = typeof theme === 'string' && hubs.value.some((hub) => hub.tag === theme) ? theme : null
+  inspectedHub.value = typeof theme === 'string' && hubs.value.some((hub) => hub.tag === theme) ? theme : null; console.log('[cg] route theme watch ->', inspectedHub.value)
 })
 onMounted(() => { void loadGraph(); window.addEventListener('keydown', onKeydown) })
 onBeforeUnmount(() => { requestVersion++; window.removeEventListener('keydown', onKeydown) })
@@ -205,6 +253,34 @@ onBeforeUnmount(() => { requestVersion++; window.removeEventListener('keydown', 
 .scene-change-enter-from { opacity: 0; transform: translateY(18px); }
 .scene-change-leave-to { opacity: 0; transform: translateY(-12px); }
 
+
+/* 详情侧滑卡 */
+.work-side-card { position: absolute; z-index: 8; top: 84px; right: 36px; bottom: 80px; width: min(330px, calc(100vw - 72px)); display: flex; flex-direction: column; border: 1px solid rgba(163,184,170,.28); border-radius: 14px; background: rgba(10, 14, 11, .92); box-shadow: 0 24px 70px rgba(0,0,0,.6); overflow: hidden; backdrop-filter: blur(10px); }
+.side-close { position: absolute; top: 10px; right: 12px; z-index: 2; width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; background: rgba(0,0,0,.4); color: var(--text-1); font-size: 16px; cursor: pointer; }
+.side-cover { width: 100%; height: 46%; object-fit: cover; display: block; }
+.side-body { display: flex; flex-direction: column; gap: 9px; padding: 16px 18px 18px; overflow-y: auto; }
+.side-body h3 { margin: 0; color: var(--text-1); font: 400 19px/1.35 var(--font-display, serif); }
+.side-author { margin: 0; color: var(--text-3); font-size: 12px; }
+.side-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.side-tags span { padding: 3px 10px; border: 1px dashed rgba(163,184,170,.35); border-radius: 999px; color: var(--accent-hover); font-size: 11.5px; cursor: pointer; }
+.side-tags span:hover { border-color: var(--accent-hover); }
+.side-actions { display: flex; gap: 9px; margin-top: auto; padding-top: 10px; }
+.side-actions button { flex: 1; padding: 10px 12px; border-radius: 9px; font-size: 12.5px; cursor: pointer; }
+.side-primary { border: 1px solid var(--accent); background: rgba(120,150,131,.22); color: var(--text-1); }
+.side-primary:hover { background: rgba(120,150,131,.4); }
+.side-ghost { border: 1px solid rgba(163,184,170,.3); background: none; color: var(--accent-ink); }
+.side-ghost:hover { border-color: var(--accent-hover); }
+.side-card-enter-active, .side-card-leave-active { transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .35s; }
+.side-card-enter-from, .side-card-leave-to { transform: translateX(60px); opacity: 0; }
+
+/* 入场叙事 */
+.intro-overlay { position: absolute; inset: 0; z-index: 7; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,.55), rgba(0,0,0,.8)); }
+.intro-overlay strong { color: var(--text-1); font: 400 clamp(26px, 3.6vw, 46px)/1.2 var(--font-display, serif); }
+.intro-overlay span { margin: 0 18px; color: var(--accent); }
+.intro-overlay p { margin: 0; color: var(--text-3); font-size: 13px; letter-spacing: .14em; }
+.intro-fade-enter-active { transition: opacity .5s ease; }
+.intro-fade-leave-active { transition: opacity .8s ease; }
+.intro-fade-enter-from, .intro-fade-leave-to { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
