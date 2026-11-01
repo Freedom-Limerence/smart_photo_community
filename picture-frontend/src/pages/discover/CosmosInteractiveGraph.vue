@@ -10,7 +10,7 @@
       <button type="button" class="text-control" @click="resetLayout">重新布局</button>
     </div>
     <div class="graph-legend"><i></i>{{ revealRatio < 0.4 ? '题材星座' : '影像已浮现' }}</div>
-    <p class="graph-hint" :class="{ faded: interacted }">{{ interacted ? '点击影像卡查看详情 · 拖拽空白旋转视角' : '拖拽旋转宇宙 · 滚轮推近星团 · 点击星点查看' }}</p>
+    <p class="graph-hint" :class="{ faded: interacted }">{{ hint }}</p>
     <p class="graph-announcement" role="status">{{ announcement }}</p>
   </div>
 </template>
@@ -46,6 +46,14 @@ const zoomPercent = ref(100)
 const revealRatio = ref(0)
 const announcement = ref('')
 const interacted = ref(false)
+const hint = ref('拖拽旋转宇宙 · 滚轮推近，看清这片星空')
+watch(revealRatio, (v) => {
+  hint.value = v < 0.25
+    ? '滚轮推近，看清这片星空'
+    : v < 0.85
+      ? '题材已现身 · 继续推近走进一个星团'
+      : '点击影像卡查看详情 · 拉远回到星座'
+})
 const activeId = ref<string | null>(null)
 watch(() => [props.selectedTag, props.selectedWork], ([tag, work]) => {
   activeId.value = tag ? 'tag:' + tag : work ? 'work:' + work : null
@@ -69,15 +77,27 @@ let firstFit = true
 let hoveredId: string | null = null
 let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/** LOD：相机距离 → leaf 展开度 */
-const DIST_FAR = 760, DIST_NEAR = 330
-function photoReveal() {
-  if (!graph) return 0
+/**
+ * 三级 LOD（17 的层级要求）：先光点 → 放大见标签 → 再放大见图片
+ * L1 远景：纯光点星座（无文字）
+ * L2 中景：题材标签浮现
+ * L3 近景：拍立得（缩略图+标题）浮现
+ */
+const DIST_FAR = 780, DIST_NEAR = 330
+function smooth01(t: number) { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x) }
+function lodLevels() {
+  if (!graph) return { label: 0, photo: 0, d: 9999 }
   const cam = graph.cameraPosition()
   const d = Math.hypot(cam.x, cam.y, cam.z)
   const t = Math.max(0, Math.min(1, (DIST_FAR - d) / (DIST_FAR - DIST_NEAR)))
-  return t * t * (3 - 2 * t)
+  return {
+    label: smooth01((t - 0.15) / 0.4),    // L2：中景标签（fit 全景≈1）
+    photo: smooth01((t - 0.72) / 0.28),   // L3：近景拍立得（只在继续推近后）
+    d,
+  }
 }
+// 兼容旧调用点
+function photoReveal() { return lodLevels().photo }
 
 const textures: THREE.Texture[] = []
 const hubMeta = new Map<string, { glow: THREE.Sprite; card: HTMLElement; phase: number }>()
@@ -309,8 +329,8 @@ let raf = 0
 function tick() {
   if (disposed || !graph) return
   const t = performance.now() / 1000
-  const reveal = photoReveal()
-  revealRatio.value = reveal
+  const levels = lodLevels()
+  revealRatio.value = levels.label
   // CSS2D 层保底在 canvas 之上
   if (css2d) {
     if (css2d.domElement.style.zIndex !== '5') css2d.domElement.style.zIndex = '5'
@@ -328,19 +348,26 @@ function tick() {
     const dim = !!active && !neighbors.value.get(active)?.has(node.id)
     const pulse = 1 + Math.sin(t * 1.35 + meta.phase) * (reducedMotion ? 0 : (isHub ? 0.1 : 0.16))
     if (isHub) {
-      const m = meta as { glow: THREE.Sprite; card: HTMLElement }
+      const m = meta as { glow: THREE.Sprite; card: HTMLElement; phase: number }
       const base = 15 + Math.min(13, (node.hub?.count ?? 0) * 3)
       m.glow.scale.setScalar(base * pulse * (dim ? 0.55 : hot ? 1.3 : 1))
       ;(m.glow.material as THREE.SpriteMaterial).opacity = dim ? 0.3 : 0.95
+      // L2：题材标签按级浮现
+      const cardOpacity = levels.label * (dim ? 0.25 : hot ? 1 : 0.92)
+      m.card.style.opacity = cardOpacity.toFixed(2)
+      m.card.style.visibility = cardOpacity > 0.05 ? 'visible' : 'hidden'
       m.card.classList.toggle('hot', hot)
       m.card.classList.toggle('dim', dim)
     } else {
       const m = meta as { glow: THREE.Sprite; polaroid: THREE.Sprite; polaroidMat: THREE.SpriteMaterial }
-      m.glow.scale.setScalar(8 * pulse * (dim ? 0.3 : hot ? 1.5 : 1))
-      ;(m.glow.material as THREE.SpriteMaterial).opacity = (0.2 + reveal * 0.6) * (dim ? 0.2 : 1)
-      const base = 13 * (0.7 + reveal * 0.45) * (dim ? 0.45 : hot ? 1.15 : 1)
+      // L1：leaf 只是微光点
+      m.glow.scale.setScalar(7 * pulse * (0.7 + levels.photo * 0.5) * (dim ? 0.25 : hot ? 1.6 : 1))
+      ;(m.glow.material as THREE.SpriteMaterial).opacity = (0.35 + levels.photo * 0.45) * (dim ? 0.15 : 1)
+      // L3：拍立得按级浮现
+      const base = 13 * (0.75 + levels.photo * 0.4) * (dim ? 0.4 : hot ? 1.15 : 1)
       m.polaroid.scale.set(base, base * 0.95, 1)
-      m.polaroidMat.opacity = Math.max(0.3, reveal * (dim ? 0.25 : 1))
+      m.polaroidMat.opacity = levels.photo * (dim ? 0.2 : 1)
+      m.polaroid.visible = levels.photo > 0.06
     }
   }
   raf = requestAnimationFrame(tick)
@@ -390,7 +417,13 @@ onMounted(() => {
       if (node.hub) { emit('selectHub', node.hub.tag); focusSelection() }
       else if (node.work) emit('openWork', node.work)
     })
-    .onEngineStop(() => { if (firstFit) { firstFit = false; fit() } })
+    .onEngineStop(() => {
+      if (firstFit) {
+        firstFit = false
+        // 等入场叙事（1.7s）播完再飞入全景：让用户先看到 L1 纯光点宇宙
+        window.setTimeout(() => fit(), reducedMotion ? 0 : 1800)
+      }
+    })
     .warmupTicks(160).cooldownTicks(0)
   graph.d3Force('charge')?.strength(-300)
   graph.d3Force('link')?.distance(85).strength(0.35)
