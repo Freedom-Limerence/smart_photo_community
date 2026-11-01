@@ -1,34 +1,45 @@
 <template>
   <div class="graph-shell">
-    <div ref="mountEl" class="graph-canvas" data-lenis-prevent role="img" aria-label="影像星图。初始显示题材光点，放大显现照片，点击照片进入详情。可拖动画布或节点。" />
+    <div ref="mountEl" class="graph-canvas" data-lenis-prevent role="img" aria-label="影像星图。初始显示题材光点，放大显现照片，点击照片进入详情。拖拽旋转视角，滚轮缩放。" />
     <div class="graph-controls" aria-label="图谱视野控制">
-      <button type="button" aria-label="放大图谱" @click="zoomBy(1.25)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button type="button" aria-label="推近星图" @click="zoomBy(0.8)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
       <span class="zoom-value">{{ zoomPercent }}%</span>
-      <button type="button" aria-label="缩小图谱" @click="zoomBy(.8)"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <button type="button" aria-label="拉远星图" @click="zoomBy(1.25)"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
       <span class="control-divider"></span>
-      <button type="button" title="缩小并返回题材星图" aria-label="返回题材星图" @click="fit"><svg viewBox="0 0 24 24"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></svg></button>
+      <button type="button" title="回到全景" aria-label="回到全景" @click="fit"><svg viewBox="0 0 24 24"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></svg></button>
       <button type="button" class="text-control" @click="resetLayout">重新布局</button>
     </div>
-    <div class="graph-legend"><i></i>{{ zoomRatio < 1.3 ? '题材星点' : '影像已展开' }}</div>
-    <p class="graph-hint">{{ zoomRatio < 1.3 ? '滚轮放大，发现星点间的影像 · 点击题材靠近' : '点击照片进入详情 · 缩小返回题材星图' }}</p>
+    <div class="graph-legend"><i></i>{{ revealRatio < 0.4 ? '题材星点' : '影像已展开' }}</div>
+    <p class="graph-hint">{{ revealRatio < 0.4 ? '滚轮推近星团，展开其中的影像 · 点击题材星点进入标签页' : '点击影像进入灯箱 · 拉远返回题材星座' }}</p>
     <p class="graph-announcement" role="status">{{ announcement }}</p>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import ForceGraph, { type LinkObject, type NodeObject } from 'force-graph'
-import { forceCollide, forceY } from 'd3-force'
+import ForceGraph3D from '3d-force-graph'
+import * as THREE from 'three'
 
 interface Hub { tag: string; count: number }
-interface Work { workId: string; title: string; author: string; cover: string; heat: number; tags: string[] }
+interface Work { workId: string; title: string; author: string; cover: string; heat: number; tags: string[]; hub?: string }
 interface Edge { hub: string; leaf: string }
-interface PhotoNode extends NodeObject { id: string; kind: 'hub' | 'work'; hub?: Hub; work?: Work; width: number; height: number }
-interface PhotoLink extends LinkObject<PhotoNode> { source: string | PhotoNode; target: string | PhotoNode }
+interface GraphNode {
+  id: string
+  kind: 'hub' | 'work'
+  hub?: Hub
+  work?: Work
+  x?: number
+  y?: number
+  z?: number
+  __threeObj?: THREE.Group
+}
+
 const props = defineProps<{ hubs: Hub[]; works: Work[]; edges: Edge[]; selectedTag: string | null; selectedWork: string | null; neighborsOnly: boolean }>()
 const emit = defineEmits<{ selectHub: [tag: string]; openWork: [work: Work]; clear: [] }>()
+
 const mountEl = ref<HTMLElement | null>(null)
 const zoomPercent = ref(100)
+const revealRatio = ref(0)
 const announcement = ref('')
 const activeId = computed(() => props.selectedTag ? 'tag:' + props.selectedTag : props.selectedWork ? 'work:' + props.selectedWork : null)
 const neighbors = computed(() => {
@@ -41,217 +52,261 @@ const neighbors = computed(() => {
   }
   return map
 })
-const topicPairs = computed(() => {
-  const tagsByWork = new Map<string, string[]>()
-  for (const edge of props.edges) {
-    if (!tagsByWork.has(edge.leaf)) tagsByWork.set(edge.leaf, [])
-    tagsByWork.get(edge.leaf)!.push(edge.hub)
-  }
-  const pairs = new Map<string, [string, string]>()
-  for (const tags of tagsByWork.values()) {
-    for (let i = 0; i < tags.length; i++) for (let j = i + 1; j < tags.length; j++) {
-      const pair: [string, string] = [tags[i]!, tags[j]!].sort() as [string, string]
-      pairs.set(JSON.stringify(pair), pair)
-    }
-  }
-  return [...pairs.values()]
-})
-let graph: ForceGraph<PhotoNode, PhotoLink> | null = null
-let observer: ResizeObserver | null = null
-let hovered: string | null = null
-let firstFit = true
+
+let graph: any = null
 let disposed = false
-const zoomRatio = ref(1)
-let overviewScale = .9
-function photoReveal(scale = graph?.zoom() || overviewScale) {
-  const t = Math.max(0, Math.min(1, (scale / overviewScale - 1.25) / .65))
+let firstFit = true
+let hoveredId: string | null = null
+let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/** LOD：相机距离 → leaf 展开度（0=题材星座，1=作品展开） */
+const DIST_FAR = 620, DIST_NEAR = 200
+function photoReveal() {
+  if (!graph) return 0
+  const cam = graph.cameraPosition()
+  const d = Math.hypot(cam.x, cam.y, cam.z)
+  const t = Math.max(0, Math.min(1, (DIST_FAR - d) / (DIST_FAR - DIST_NEAR)))
   return t * t * (3 - 2 * t)
 }
-const images = new Map<string, HTMLImageElement>()
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const duration = reducedMotion ? 0 : 500
-const idOf = (v: string | number | PhotoNode | undefined) => typeof v === 'object' ? v.id : String(v ?? '')
-function visible(node: PhotoNode) { return !props.neighborsOnly || !activeId.value || !!neighbors.value.get(activeId.value)?.has(node.id) }
-function isActiveLink(link: PhotoLink) {
-  const active = hovered || activeId.value
-  return !!active && (idOf(link.source) === active || idOf(link.target) === active)
+
+// ---- 程序化纹理（本地 canvas，无跨域）----
+const textures: THREE.Texture[] = []
+function glowTexture(color: string): THREE.Texture {
+  const c = document.createElement('canvas')
+  c.width = c.height = 128
+  const ctx = c.getContext('2d')!
+  const g = ctx.createRadialGradient(64, 64, 4, 64, 64, 64)
+  g.addColorStop(0, 'rgba(255,255,255,.95)')
+  g.addColorStop(0.25, color)
+  g.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 128, 128)
+  const tex = new THREE.CanvasTexture(c)
+  textures.push(tex)
+  return tex
 }
-function redraw() {
-  graph?.nodeCanvasObject(paintNode)
-  graph?.linkColor(link => `rgba(166,197,176,${photoReveal() * (isActiveLink(link) ? .8 : (hovered || activeId.value) ? .12 : .3)})`)
-  graph?.linkWidth(link => isActiveLink(link) ? 1.7 : .8)
+function labelTexture(title: string, sub: string): THREE.Texture {
+  const c = document.createElement('canvas')
+  c.width = 512; c.height = 160
+  const ctx = c.getContext('2d')!
+  ctx.textAlign = 'center'
+  ctx.shadowColor = 'rgba(0,0,0,.9)'; ctx.shadowBlur = 10
+  ctx.fillStyle = 'rgb(226,235,225)'
+  ctx.font = '600 56px "Noto Serif SC", serif'
+  ctx.fillText(title, 256, 66)
+  ctx.fillStyle = 'rgb(163,184,169)'
+  ctx.font = '30px sans-serif'
+  ctx.fillText(sub, 256, 128)
+  const tex = new THREE.CanvasTexture(c)
+  textures.push(tex)
+  return tex
 }
-function paintNode(node: PhotoNode, ctx: CanvasRenderingContext2D, scale: number) {
-  const x = node.x || 0, y = node.y || 0, active = hovered || activeId.value
-  const related = active ? neighbors.value.get(active) : null
-  const selected = node.id === activeId.value, hot = node.id === hovered || selected
-  const dim = !!active && !related?.has(node.id)
-  ctx.save()
-  ctx.globalAlpha = dim ? .19 : 1
-  if (node.kind === 'hub') {
-    // Keep a star-sized marker and readable label at every zoom level.
-    const radius = (hot ? 5 : 3.5) / scale
-    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2)
-    ctx.fillStyle = hot ? 'rgb(235,243,224)' : 'rgb(172,198,181)'; ctx.fill()
-    ctx.beginPath(); ctx.arc(x, y, (hot ? 15 : 10) / scale, 0, Math.PI * 2)
-    ctx.strokeStyle = hot ? 'rgba(193,220,200,.7)' : 'rgba(145,170,153,.28)'
-    ctx.lineWidth = 1 / scale; ctx.stroke()
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-    ctx.fillStyle = 'rgb(226,235,225)'; ctx.font = `500 ${18 / scale}px "Noto Serif SC", serif`
-    ctx.fillText(node.hub?.tag || '', x, y + 22 / scale)
-    ctx.fillStyle = 'rgb(163,184,169)'; ctx.font = `${12 / scale}px sans-serif`
-    ctx.fillText((node.hub?.count || 0) + ' 幅', x, y + 49 / scale)
-  } else {
-    const reveal = photoReveal(scale)
-    if (!reveal) { ctx.restore(); return }
-    ctx.globalAlpha *= reveal
-    const w = node.width, h = node.height
-    ctx.shadowColor = 'rgba(0,0,0,.48)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 8
-    ctx.fillStyle = 'rgb(27,32,29)'
-    ctx.beginPath(); ctx.roundRect(x - w / 2 - 4, y - h / 2 - 4, w + 8, h + 8, 5); ctx.fill()
-    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
-    const image = images.get(node.work?.cover || '')
-    ctx.save()
-    ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, 3); ctx.clip()
-    if (image?.complete && image.naturalWidth) {
-      const ratio = Math.max(w / image.naturalWidth, h / image.naturalHeight)
-      const sw = w / ratio, sh = h / ratio
-      ctx.drawImage(image, (image.naturalWidth - sw) / 2, (image.naturalHeight - sh) / 2, sw, sh, x - w / 2, y - h / 2, w, h)
-    } else {
-      ctx.fillStyle = 'rgb(54,68,58)'; ctx.fillRect(x - w / 2, y - h / 2, w, h)
-      ctx.fillStyle = 'rgb(191,207,196)'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('影像待呈现', x, y)
-    }
-    ctx.restore()
-    if (hot) {
-      ctx.strokeStyle = 'rgb(193,220,200)'; ctx.lineWidth = 2 / scale
-      ctx.strokeRect(x - w / 2 - 5, y - h / 2 - 5, w + 10, h + 10)
-    }
-    if (photoReveal(scale) > .8 || hot) {
-      const title = node.work?.title || '未命名作品'
-      ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-      ctx.fillStyle = 'rgb(215,224,216)'
-      ctx.fillText(title.length > 12 ? title.slice(0, 11) + '…' : title, x, y + h / 2 + 12, w + 30)
-    }
+
+const HUB_PALETTE = [0x8fd8f0, 0xf0c987, 0xb8a7e8, 0xf0a7b8, 0xa7e8c9, 0xf0d8a7, 0xc9b8f0, 0xa7d8c9]
+const hubMeta = new Map<string, any>()
+const leafMeta = new Map<string, any>()
+let thumbLoader: THREE.TextureLoader | null = null
+
+function makeHubObject(node: GraphNode): THREE.Group {
+  const hub = node.hub!
+  const i = props.hubs.findIndex((h) => h.tag === hub.tag)
+  const color = '#' + HUB_PALETTE[i % HUB_PALETTE.length].toString(16).padStart(6, '0')
+  const group = new THREE.Group()
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture(color), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.95,
+  }))
+  const s = 16 + Math.min(14, hub.count * 3)
+  glow.scale.set(s, s, 1)
+  group.add(glow)
+  const label = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: labelTexture(hub.tag, hub.count + ' 幅'), transparent: true, depthWrite: false, opacity: 0.92,
+  }))
+  label.scale.set(22, 7, 1)
+  label.position.set(0, s * 0.62 + 2.4, 0)
+  group.add(label)
+  hubMeta.set(node.id, { color: new THREE.Color(color), glow, label, phase: i * 1.7 })
+  return group
+}
+
+function makeLeafObject(node: GraphNode): THREE.Group {
+  const work = node.work!
+  const hubColor = hubMeta.get('tag:' + work.hub)?.color ?? new THREE.Color(0x8fd8f0)
+  const color = '#' + hubColor.getHexString()
+  const group = new THREE.Group()
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture(color), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.8,
+  }))
+  glow.scale.set(9, 9, 1)
+  group.add(glow)
+  const meta = { color: hubColor, glow, photo: null as THREE.Mesh | null, phase: Math.random() * Math.PI * 2 }
+  // 缩略图面片：/cos 同源反代无跨域污染
+  if (work.cover) {
+    const loader = thumbLoader ??= new THREE.TextureLoader()
+    loader.load(work.cover, (tex) => {
+      if (disposed || !node.__threeObj) { tex.dispose(); return }
+      textures.push(tex)
+      const ratio = tex.image.width / tex.image.height
+      const w = ratio < 0.95 ? 7 : 10.5, h = w / ratio
+      const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(w, h),
+        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, side: THREE.DoubleSide }),
+      )
+      meta.photo = mesh
+      node.__threeObj.add(mesh)
+    }, undefined, () => { /* 加载失败保持光点 */ })
   }
-  ctx.restore()
+  leafMeta.set(node.id, meta)
+  return group
 }
-function paintPointer(node: PhotoNode, color: string, ctx: CanvasRenderingContext2D) {
-  if (node.kind === 'work' && photoReveal() < .55) return
-  ctx.fillStyle = color
-  if (node.kind === 'hub') { ctx.beginPath(); ctx.arc(node.x || 0, node.y || 0, 20 / (graph?.zoom() || 1), 0, Math.PI * 2); ctx.fill() }
-  else ctx.fillRect((node.x || 0) - node.width / 2 - 5, (node.y || 0) - node.height / 2 - 5, node.width + 10, node.height + 10)
+
+function nodeThreeObject(node: GraphNode) {
+  return node.kind === 'hub' ? makeHubObject(node) : makeLeafObject(node)
 }
-function photoDimensions(image?: HTMLImageElement) {
-  if (!image?.complete || !image.naturalWidth || !image.naturalHeight) return { width: 126, height: 98 }
-  return image.naturalWidth / image.naturalHeight < .95
-    ? { width: 104, height: 133 }
-    : { width: 146, height: 102 }
+
+function isActiveLink(link: any) {
+  const active = hoveredId || activeId.value
+  return !!active && (String(link.source?.id ?? link.source) === active || String(link.target?.id ?? link.target) === active)
 }
+
 function updateData() {
   if (!graph) return
-  const hubs: PhotoNode[] = props.hubs.map((hub, i) => {
-    const angle = (i - 1) * Math.PI * 2 / Math.max(1, props.hubs.length - 1) - Math.PI / 2
-    const x = i === 0 ? -70 : Math.cos(angle) * 470, y = i === 0 ? 0 : Math.sin(angle) * 175
-    return { id: 'tag:' + hub.tag, kind: 'hub', hub, x, y, fx: x, fy: y, width: i === 0 ? 108 : 90, height: 90 }
-  })
-  const hubMap = new Map(hubs.map(n => [n.hub!.tag, n]))
-  const works: PhotoNode[] = props.works.map((work, i) => {
-    const connected = props.edges.filter(e => e.leaf === work.workId).map(e => hubMap.get(e.hub)).filter((n): n is PhotoNode => !!n)
-    const x = connected.reduce((sum, n) => sum + n.x!, 0) / Math.max(1, connected.length)
-    const y = connected.reduce((sum, n) => sum + n.y!, 0) / Math.max(1, connected.length)
-    return { id: 'work:' + work.workId, kind: 'work', work, x: x + Math.cos(i * 2.4) * 120, y: y + Math.sin(i * 2.4) * 120, ...photoDimensions(images.get(work.cover)) }
-  })
-  for (const work of props.works) {
-    if (!work.cover || images.has(work.cover)) continue
-    const image = new Image()
-    image.onload = () => {
-      if (disposed) return
-      for (const node of graph?.graphData().nodes ?? []) {
-        if (node.work?.cover === work.cover) Object.assign(node, photoDimensions(image))
-      }
-      redraw()
-    }
-    image.onerror = () => { if (!disposed) redraw() }
-    images.set(work.cover, image); image.src = work.cover
-  }
+  hubMeta.clear(); leafMeta.clear()
+  const hubs: GraphNode[] = props.hubs.map((hub) => ({ id: 'tag:' + hub.tag, kind: 'hub' as const, hub }))
+  const works: GraphNode[] = props.works.map((work) => ({ id: 'work:' + work.workId, kind: 'work' as const, work }))
   firstFit = true
-  graph.graphData({ nodes: [...hubs, ...works], links: props.edges.map(e => ({ source: 'tag:' + e.hub, target: 'work:' + e.leaf })) })
-  graph.d3Force('charge')?.strength(-180)
-  graph.d3Force('link')?.distance(140).strength(.25)
-  graph.d3Force('vertical', forceY<PhotoNode>(0).strength(.12))
-  graph.d3Force('collide', forceCollide<PhotoNode>(n => n.kind === 'hub' ? n.width / 2 + 17 : 86).iterations(3))
-  graph.d3ReheatSimulation()
+  graph.graphData({
+    nodes: [...hubs, ...works],
+    links: props.edges.map((e) => ({ source: 'tag:' + e.hub, target: 'work:' + e.leaf })),
+  })
+  graph.d3Force('charge')?.strength(-320)
+  graph.d3Force('link')?.distance(90).strength(0.4)
 }
+
 function fit() {
-  if (!graph || !mountEl.value) return
-  const hubs = graph.graphData().nodes.filter(n => n.kind === 'hub')
-  const xs = hubs.map(n => n.x || 0), ys = hubs.map(n => n.y || 0)
-  const left = Math.min(0, ...xs), right = Math.max(0, ...xs)
-  const top = Math.min(0, ...ys), bottom = Math.max(0, ...ys)
-  overviewScale = Math.max(.25, Math.min(1, (mountEl.value.clientWidth - 200) / Math.max(1, right - left), (mountEl.value.clientHeight - 240) / Math.max(1, bottom - top)))
+  if (!graph) return
+  const hubs = graph.graphData().nodes.filter((nn: any) => nn.kind === 'hub')
+  const box = new THREE.Box3().setFromPoints(hubs.map((nn: any) => new THREE.Vector3(nn.x ?? 0, nn.y ?? 0, nn.z ?? 0)))
+  const center = box.getCenter(new THREE.Vector3())
+  const size = box.getSize(new THREE.Vector3()).length()
   emit('clear')
-  graph.centerAt((left + right) / 2, (top + bottom) / 2, duration)
-  graph.zoom(overviewScale, duration)
-}
-function paintTopicLinks(ctx: CanvasRenderingContext2D, scale: number) {
-  const alpha = 1 - photoReveal(scale)
-  if (alpha <= 0 || !graph) return
-  const nodes = new Map(graph.graphData().nodes.map(n => [n.id, n]))
-  ctx.save(); ctx.strokeStyle = `rgba(143,173,152,${alpha * .24})`; ctx.lineWidth = .7 / scale
-  for (const [source, target] of topicPairs.value) {
-    const a = nodes.get('tag:' + source), b = nodes.get('tag:' + target)
-    if (!a || !b || !visible(a) || !visible(b)) continue
-    ctx.beginPath(); ctx.moveTo(a.x || 0, a.y || 0); ctx.lineTo(b.x || 0, b.y || 0); ctx.stroke()
-  }
-  ctx.restore()
+  const d = Math.max(320, size * 1.15)
+  graph.cameraPosition(
+    { x: center.x + d * 0.4, y: center.y + d * 0.24, z: center.z + d * 0.9 },
+    center, reducedMotion ? 0 : 900,
+  )
 }
 function resetLayout() { emit('clear'); updateData(); announcement.value = '已恢复星图布局' }
-function zoomBy(factor: number) { if (graph) graph.zoom(Math.max(.3, Math.min(3.5, graph.zoom() * factor)), duration / 2) }
-function focusSelection() {
-  if (activeId.value) firstFit = false
-  redraw()
-  graph?.nodeVisibility(visible).linkVisibility(link => {
-    if (!props.neighborsOnly || !activeId.value) return true
-    return idOf(link.source) === activeId.value || idOf(link.target) === activeId.value
-  })
-  const node = graph?.graphData().nodes.find(n => n.id === activeId.value)
-  if (node && graph) {
-    graph.centerAt(node.x, node.y, duration)
-    graph.zoom(overviewScale * 1.95, duration)
-  }
+function zoomBy(factor: number) {
+  if (!graph) return
+  const cam = graph.cameraPosition()
+  const f = Math.max(0.25, Math.min(4, factor))
+  graph.cameraPosition(
+    { x: cam.x * f, y: cam.y * f, z: cam.z * f },
+    { x: 0, y: 0, z: 0 }, reducedMotion ? 0 : 400,
+  )
 }
+function focusSelection() {
+  if (!activeId.value || !graph) return
+  const node: GraphNode | undefined = graph.graphData().nodes.find((nn: GraphNode) => nn.id === activeId.value)
+  if (!node) return
+  const d = 260
+  graph.cameraPosition(
+    { x: (node.x ?? 0) + d * 0.3, y: (node.y ?? 0) + d * 0.22, z: (node.z ?? 0) + d * 0.85 },
+    { x: node.x ?? 0, y: node.y ?? 0, z: node.z ?? 0 }, reducedMotion ? 0 : 900,
+  )
+}
+
+/** 每帧：呼吸 + LOD 渐显 + 高亮压暗 */
+let raf = 0
+function tick() {
+  if (disposed || !graph) return
+  const t = performance.now() / 1000
+  const reveal = photoReveal()
+  revealRatio.value = reveal
+  const active = hoveredId || activeId.value
+  const nodes: GraphNode[] = graph.graphData().nodes ?? []
+  for (const node of nodes) {
+    const obj = node.__threeObj
+    if (!obj) continue
+    const isHub = node.kind === 'hub'
+    const meta = isHub ? hubMeta.get(node.id) : leafMeta.get(node.id)
+    if (!meta) continue
+    const hot = hoveredId === node.id || node.id === activeId.value
+    const dim = !!active && !neighbors.value.get(active)?.has(node.id)
+    const pulse = 1 + Math.sin(t * 1.35 + meta.phase) * (reducedMotion ? 0 : (isHub ? 0.1 : 0.16))
+    if (isHub) {
+      const base = 16 + Math.min(14, (node.hub?.count ?? 0) * 3)
+      meta.glow.scale.setScalar(base * pulse * (dim ? 0.55 : hot ? 1.3 : 1))
+      ;(meta.glow.material as THREE.SpriteMaterial).opacity = dim ? 0.3 : 0.95
+      ;(meta.label.material as THREE.SpriteMaterial).opacity = dim ? 0.25 : 0.92
+    } else {
+      meta.glow.scale.setScalar(9 * pulse * (0.55 + reveal * 0.55) * (dim ? 0.35 : hot ? 1.45 : 1))
+      ;(meta.glow.material as THREE.SpriteMaterial).opacity = (0.22 + reveal * 0.65) * (dim ? 0.25 : 1)
+    }
+    if (!isHub && meta.photo) {
+      const m = meta.photo.material as THREE.MeshBasicMaterial
+      m.opacity = reveal * (dim ? 0.2 : 1)
+      meta.photo.visible = reveal > 0.1
+      if (meta.photo.visible) meta.photo.lookAt(graph.cameraPosition().x, graph.cameraPosition().y, graph.cameraPosition().z)
+    }
+  }
+  raf = requestAnimationFrame(tick)
+}
+
 onMounted(() => {
   if (!mountEl.value) return
-  graph = new ForceGraph<PhotoNode, PhotoLink>(mountEl.value)
-    .width(mountEl.value.clientWidth).height(mountEl.value.clientHeight).backgroundColor('rgba(0,0,0,0)')
-    .nodeCanvasObject(paintNode).nodePointerAreaPaint(paintPointer).nodeLabel(() => '')
-    .linkCurvature(.06).onRenderFramePre(paintTopicLinks)
-    .onNodeHover(node => { hovered = node?.id || null; if (mountEl.value) mountEl.value.style.cursor = node ? 'pointer' : 'grab'; redraw() })
-    .onNodeClick(node => {
-      if (node.hub) { emit('selectHub', node.hub.tag); graph?.centerAt(node.x, node.y, duration); graph?.zoom(overviewScale * 1.95, duration) }
-      else if (node.work && photoReveal() >= .55) emit('openWork', node.work)
+  reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  graph = new (ForceGraph3D as any)(mountEl.value)
+    .width(mountEl.value.clientWidth).height(mountEl.value.clientHeight)
+    .backgroundColor('rgba(0,0,0,0)')
+    .showNavInfo(false)
+    .nodeThreeObject(nodeThreeObject)
+    .nodeLabel(() => '')
+    .linkColor((link: any) => isActiveLink(link) ? 'rgba(193,220,200,.9)' : 'rgba(143,173,152,.35)')
+    .linkWidth((link: any) => isActiveLink(link) ? 1.8 : 0.6)
+    .linkOpacity(0.55)
+    .linkDirectionalParticles(3)
+    .linkDirectionalParticleSpeed(0.006)
+    .linkDirectionalParticleWidth(1.5)
+    .enableNodeDrag(false)   // 拖拽 = 旋转视角（17 的核心要求）
+    .onNodeHover((node: GraphNode | null) => {
+      hoveredId = node?.id ?? null
+      if (mountEl.value) mountEl.value.style.cursor = node ? 'pointer' : 'grab'
     })
-    .onNodeDragEnd(node => { node.fx = node.x; node.fy = node.y; announcement.value = '已移动并固定「' + (node.hub?.tag || node.work?.title) + '」' })
+    .onNodeClick((node: GraphNode) => {
+      if (node.hub) { emit('selectHub', node.hub.tag); focusSelection() }
+      else if (node.work) emit('openWork', node.work)
+    })
     .onBackgroundClick(() => emit('clear'))
-    .onZoom(({ k, x, y }) => {
-      zoomRatio.value = k / overviewScale
-      if (hovered?.startsWith('work:') && photoReveal(k) < .55) hovered = null
-      redraw()
-      zoomPercent.value = Math.round(k / overviewScale * 100)
-      if (mountEl.value) { mountEl.value.dataset.zoom = String(k); mountEl.value.dataset.level = photoReveal(k) > .55 ? 'photos' : 'topics'; mountEl.value.dataset.pan = Math.round(x) + ',' + Math.round(y) }
-    })
-    .onEngineStop(() => { if (firstFit) { firstFit = false; if (activeId.value) focusSelection(); else fit() } })
-    .warmupTicks(120).cooldownTicks(0).minZoom(.3).maxZoom(3.5)
-  graph.zoom(overviewScale, 0)
-  updateData(); redraw()
-  observer = new ResizeObserver(() => { if (mountEl.value && graph) graph.width(mountEl.value.clientWidth).height(mountEl.value.clientHeight) })
-  observer.observe(mountEl.value)
+    .onEngineStop(() => { if (firstFit) { firstFit = false; fit() } })
+    .warmupTicks(160).cooldownTicks(0)
+  graph.d3Force('charge')?.strength(-320)
+  graph.d3Force('link')?.distance(90).strength(0.4)
+  // 入场转场：相机从远处拉近
+  graph.cameraPosition({ x: 1100, y: 520, z: 1600 }, { x: 0, y: 0, z: 0 }, 0)
+  updateData()
+  raf = requestAnimationFrame(tick)
+  const obs = new ResizeObserver(() => { if (mountEl.value && graph) graph.width(mountEl.value.clientWidth).height(mountEl.value.clientHeight) })
+  obs.observe(mountEl.value)
+  observers.push(obs)
 })
+const observers: ResizeObserver[] = []
+
 watch(() => [props.hubs, props.works, props.edges], updateData)
-defineExpose({ focusSelection })
 watch(activeId, focusSelection)
 watch(() => props.neighborsOnly, focusSelection)
-onBeforeUnmount(() => { disposed = true; observer?.disconnect(); graph?._destructor(); graph = null; images.clear() })
+
+onBeforeUnmount(() => {
+  disposed = true
+  cancelAnimationFrame(raf)
+  observers.forEach((o) => o.disconnect())
+  graph?._destructor()
+  graph = null
+  textures.forEach((t) => t.dispose())
+  textures.length = 0
+  hubMeta.clear(); leafMeta.clear()
+})
+defineExpose({ focusSelection })
 </script>
 
 <style scoped>
@@ -259,7 +314,7 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); graph?._destruc
 .graph-shell { position: relative; }
 .graph-canvas { cursor: grab; }
 .graph-canvas:active { cursor: grabbing; }
-.graph-controls { position: absolute; right: 12px; bottom: 8px; display: flex; align-items: center; gap: 3px; padding: 5px; border: 1px solid rgba(153,174,159,.25); border-radius: 10px; background: var(--bg); }
+.graph-controls { position: absolute; right: 12px; bottom: 8px; display: flex; align-items: center; gap: 3px; padding: 5px; border: 1px solid rgba(153,174,159,.25); border-radius: 10px; background: var(--bg); z-index: 2; }
 .graph-controls button { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 5px; color: var(--accent-ink); background: none; cursor: pointer; }
 .graph-controls button:hover { background: rgba(142,168,150,.15); color: var(--text-1); }
 .graph-controls button:focus-visible { outline: 2px solid var(--accent-hover); }
@@ -267,11 +322,8 @@ onBeforeUnmount(() => { disposed = true; observer?.disconnect(); graph?._destruc
 .graph-controls .text-control { width: auto; padding: 0 12px; font-size: 12px; }
 .zoom-value { width: 42px; text-align: center; color: var(--accent-ink); font-size: 12px; font-variant-numeric: tabular-nums; }
 .control-divider { height: 20px; width: 1px; background: rgba(153,174,159,.22); margin: 0 4px; }
-.graph-legend { position: absolute; left: 12px; bottom: 25px; display: flex; gap: 9px; align-items: center; color: var(--accent-ink); font-size: 12px; pointer-events: none; }
+.graph-legend { position: absolute; left: 12px; bottom: 25px; display: flex; gap: 9px; align-items: center; color: var(--accent-ink); font-size: 12px; pointer-events: none; z-index: 2; }
 .graph-legend i { width: 11px; height: 11px; border: 1px solid var(--accent); border-radius: 50%; }
-.graph-legend b { width: 12px; height: 9px; background: var(--accent); margin-left: 14px; }
-.graph-legend span { width: 24px; height: 1px; background: var(--accent); margin-left: 14px; }
-.graph-hint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); color: var(--text-3); font-size: 12px; white-space: nowrap; pointer-events: none; }
+.graph-hint { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); color: var(--text-3); font-size: 12px; white-space: nowrap; pointer-events: none; z-index: 2; }
 .graph-announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 </style>
-
